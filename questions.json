@@ -651,8 +651,8 @@
         {
             "id": 108,
             "category": "Premier League",
-            "question": "Who scored the famous last-minute goal for Manchester City against QPR in 2012 to win their first Premier League title?",
-            "options": ["Sergio Agüero", "Edin Džeko", "Mario Balotelli", "David Silva"]
+            "question": "Which team is known as 'The Clarets'?",
+            "options": ["Burnley", "Brighton", "AFC Bournemouth", "Cardiff City"]
         },
         {
             "id": 109,
