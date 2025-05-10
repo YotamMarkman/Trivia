@@ -1,0 +1,1762 @@
+{
+    "metadata": {
+        "version": "1.0",
+        "description": "A collection of questions and answers for a quiz application.",
+        "author": "Yotam Markman",
+        "totalQuestions": 300
+    },
+    "quiz_questions": [
+        {
+            "id": 1,
+            "category": "Premier League",
+            "question": "Who was the PFA Young Player of the Year for the 2011-12 season playing for Tottenham Hotspur, before moving to Real Madrid?",
+            "options": ["Gareth Bale", "Kyle Walker", "Dele Alli", "Aaron Lennon"]
+        },
+        {
+            "id": 2,
+            "category": "NBA",
+            "question": "Which player won the NBA Most Improved Player award in 2001, primarily for his increased scoring and rebounding with the Orlando Magic?",
+            "options": ["Tracy McGrady", "Jermaine O'Neal", "Gilbert Arenas", "Kevin Garnett"]
+        },
+        {
+            "id": 3,
+            "category": "Premier League",
+            "question": "Which club did Dimitar Berbatov play for when he won the Premier League Golden Boot (shared) in the 2010-11 season?",
+            "options": ["Manchester United", "Tottenham Hotspur", "Fulham", "Bayer Leverkusen"]
+        },
+        {
+            "id": 4,
+            "category": "NBA",
+            "question": "Who was the head coach of the Los Angeles Lakers when they won three consecutive NBA championships from 2000 to 2002?",
+            "options": ["Phil Jackson", "Pat Riley", "Rudy Tomjanovich", "Frank Hamblen"]
+        },
+        {
+            "id": 5,
+            "category": "Premier League",
+            "question": "Which season did Manchester United last win the Premier League title under Sir Alex Ferguson?",
+            "options": ["2012-13", "2010-11", "2008-09", "2006-07"]
+        },
+        {
+            "id": 6,
+            "category": "NBA",
+            "question": "Which player was the first overall pick in the 1985 NBA Draft, selected by the New York Knicks in the first-ever NBA Draft Lottery?",
+            "options": ["Patrick Ewing", "Wayman Tisdale", "Benoit Benjamin", "Chris Mullin"]
+        },
+        {
+            "id": 7,
+            "category": "Premier League",
+            "question": "Which Spanish midfielder was a key part of Manchester City's dominant era under Pep Guardiola, known for his vision and passing?",
+            "options": ["David Silva", "Xabi Alonso", "Cesc Fàbregas", "Juan Mata"]
+        },
+        {
+            "id": 8,
+            "category": "NBA",
+            "question": "Which player won the NBA MVP award in the 1987-88 season, also winning Defensive Player of the Year the same season?",
+            "options": ["Michael Jordan", "Larry Bird", "Magic Johnson", "Hakeem Olajuwon"]
+        },
+        {
+            "id": 9,
+            "category": "Premier League",
+            "question": "Which current Premier League stadium, opened in 2019, is home to Tottenham Hotspur?",
+            "options": ["Tottenham Hotspur Stadium", "Emirates Stadium", "London Stadium", "Wembley Stadium"]
+        },
+        {
+            "id": 10,
+            "category": "NBA",
+            "question": "Which team won the 2007 NBA Championship, sweeping LeBron James' Cleveland Cavaliers in the Finals?",
+            "options": ["San Antonio Spurs", "Detroit Pistons", "Boston Celtics", "Dallas Mavericks"]
+        },
+        {
+            "id": 11,
+            "category": "Premier League",
+            "question": "Who was the Premier League's top scorer in the 2014-15 season, helping Manchester City finish second?",
+            "options": ["Sergio Agüero", "Harry Kane", "Diego Costa", "Alexis Sánchez"]
+        },
+        {
+            "id": 12,
+            "category": "NBA",
+            "question": "Which player won the NBA Rookie of the Year award in 2008 playing for the Seattle SuperSonics/Oklahoma City Thunder?",
+            "options": ["Kevin Durant", "Al Horford", "Greg Oden", "Derrick Rose"]
+        },
+        {
+            "id": 13,
+            "category": "Premier League",
+            "question": "Which manager led Liverpool to UEFA Champions League glory in 2019 and their first Premier League title in 2020?",
+            "options": ["Jürgen Klopp", "Rafael Benítez", "Brendan Rodgers", "Kenny Dalglish"]
+        },
+        {
+            "id": 14,
+            "category": "NBA",
+            "question": "Which player was named the NBA Finals MVP in 2015 after helping the Golden State Warriors win their first title in 40 years?",
+            "options": ["Andre Iguodala", "Stephen Curry", "Klay Thompson", "LeBron James"]
+        },
+        {
+            "id": 15,
+            "category": "Premier League",
+            "question": "Which goalkeeper famously scored a last-minute equalizer for Everton against Bolton Wanderers in 2007?",
+            "options": ["Tim Howard", "Paul Robinson", "Peter Schmeichel", "Brad Friedel"]
+        },
+        {
+            "id": 16,
+            "category": "NBA",
+            "question": "What pick was Luka Dončić in the 2018 NBA Draft before being traded to the Dallas Mavericks?",
+            "options": ["3rd pick (Atlanta Hawks)", "1st pick (Phoenix Suns)", "5th pick (Dallas Mavericks)", "2nd pick (Sacramento Kings)"]
+        },
+        {
+            "id": 17,
+            "category": "Premier League",
+            "question": "Which team, managed by Alan Pardew, surprisingly finished 5th in the Premier League in the 2011-12 season?",
+            "options": ["Newcastle United", "Everton", "Fulham", "West Ham United"]
+        },
+        {
+            "id": 18,
+            "category": "NBA",
+            "question": "Which player won the NBA Most Improved Player award in 2018 with the Indiana Pacers?",
+            "options": ["Victor Oladipo", "Giannis Antetokounmpo", "CJ McCollum", "Jimmy Butler"]
+        },
+        {
+            "id": 19,
+            "category": "Premier League",
+            "question": "Who became Liverpool's all-time leading scorer in the Premier League era during the 2022-23 season?",
+            "options": ["Mohamed Salah", "Robbie Fowler", "Steven Gerrard", "Michael Owen"]
+        },
+        {
+            "id": 20,
+            "category": "NBA",
+            "question": "Which team did Charles Barkley notably play for, reaching the NBA Finals in 1993?",
+            "options": ["Phoenix Suns", "Philadelphia 76ers", "Houston Rockets", "Golden State Warriors"]
+        },
+        {
+            "id": 21,
+            "category": "Premier League",
+            "question": "Which defender, known for his captaincy, led Chelsea to multiple Premier League titles in the 2000s and 2010s?",
+            "options": ["John Terry", "Ricardo Carvalho", "Gary Cahill", "Ashley Cole"]
+        },
+        {
+            "id": 22,
+            "category": "NBA",
+            "question": "Which NBA legend, known as 'The Mailman', formed a formidable duo with John Stockton for the Utah Jazz?",
+            "options": ["Karl Malone", "Charles Barkley", "Larry Johnson", "Shawn Kemp"]
+        },
+        {
+            "id": 23,
+            "category": "Premier League",
+            "question": "Which country won the FIFA World Cup in 2010, with many of its key players playing in the Premier League?",
+            "options": ["Spain", "Netherlands", "Germany", "France"]
+        },
+        {
+            "id": 24,
+            "category": "NBA",
+            "question": "Which German player was the NBA Finals MVP in 2011, leading the Dallas Mavericks to the championship?",
+            "options": ["Dirk Nowitzki", "Detlef Schrempf", "Dennis Schröder", "Franz Wagner"]
+        },
+        {
+            "id": 25,
+            "category": "Premier League",
+            "question": "Who was the Premier League Manager of the Season when Leicester City won the title in 2015-16?",
+            "options": ["Claudio Ranieri", "Mauricio Pochettino", "Arsène Wenger", "Eddie Howe"]
+        },
+        {
+            "id": 26,
+            "category": "NBA",
+            "question": "Which player won the NBA MVP award in the 1999-2000 season, leading the Lakers to a championship?",
+            "options": ["Shaquille O'Neal", "Kobe Bryant", "Allen Iverson", "Tim Duncan"]
+        },
+        {
+            "id": 27,
+            "category": "Premier League",
+            "question": "Which club did Frank Lampard manage in the Premier League before returning to Chelsea as manager in 2019?",
+            "options": ["Derby County", "Everton", "Manchester City", "West Ham United"]
+        },
+        {
+            "id": 28,
+            "category": "NBA",
+            "question": "Which player was selected first overall in the 1997 NBA Draft by the San Antonio Spurs and went on to win 5 championships with them?",
+            "options": ["Tim Duncan", "Keith Van Horn", "Chauncey Billups", "Tracy McGrady"]
+        },
+        {
+            "id": 29,
+            "category": "Premier League",
+            "question": "In which season was Video Assistant Referee (VAR) first introduced in the Premier League?",
+            "options": ["2019-20", "2018-19", "2020-21", "2017-18"]
+        },
+        {
+            "id": 30,
+            "category": "NBA",
+            "question": "Which player won the NBA Defensive Player of the Year award for three consecutive seasons from 2014-15 to 2016-17?",
+            "options": ["Kawhi Leonard", "Draymond Green", "Rudy Gobert", "Dwight Howard"]
+        },
+        {
+            "id": 31,
+            "category": "Premier League",
+            "question": "Which team did Carlos Tevez controversially join from Manchester United in 2009, leading to the 'Welcome to Manchester' billboard?",
+            "options": ["Manchester City", "Liverpool", "Chelsea", "West Ham United"]
+        },
+        {
+            "id": 32,
+            "category": "NBA",
+            "question": "Which team drafted Vince Carter in 1998 and then traded him to the Toronto Raptors?",
+            "options": ["Golden State Warriors", "Toronto Raptors", "Denver Nuggets", "Vancouver Grizzlies"]
+        },
+        {
+            "id": 33,
+            "category": "Premier League",
+            "question": "Who was the top scorer in the inaugural Premier League season of 1992-93?",
+            "options": ["Teddy Sheringham", "Alan Shearer", "Ian Wright", "Les Ferdinand"]
+        },
+        {
+            "id": 34,
+            "category": "NBA",
+            "question": "Which player, known as 'Penny', formed an exciting duo with Shaquille O'Neal on the Orlando Magic in the mid-1990s?",
+            "options": ["Anfernee Hardaway", "Scottie Pippen", "Grant Hill", "Harold Miner"]
+        },
+        {
+            "id": 35,
+            "category": "Premier League",
+            "question": "Which former Arsenal captain controversially moved to Manchester United in 2012 and won the Premier League title in his first season there?",
+            "options": ["Robin van Persie", "Cesc Fàbregas", "Thierry Henry", "Patrick Vieira"]
+        },
+        {
+            "id": 36,
+            "category": "NBA",
+            "question": "Which team won the NBA championship in 2021, led by Giannis Antetokounmpo?",
+            "options": ["Milwaukee Bucks", "Phoenix Suns", "Los Angeles Lakers", "Brooklyn Nets"]
+        },
+        {
+            "id": 37,
+            "category": "Premier League",
+            "question": "Which player won the PFA Players' Player of the Year for the 2018-19 season playing for Liverpool?",
+            "options": ["Virgil van Dijk", "Mohamed Salah", "Sadio Mané", "Raheem Sterling"]
+        },
+        {
+            "id": 38,
+            "category": "NBA",
+            "question": "Who holds the record for the most three-pointers made in a single NBA regular season, set while playing for the Golden State Warriors?",
+            "options": ["Stephen Curry", "Klay Thompson", "James Harden", "Ray Allen"]
+        },
+        {
+            "id": 39,
+            "category": "Premier League",
+            "question": "Which manager was in charge of Chelsea when they won the UEFA Champions League for the first time in 2012?",
+            "options": ["Roberto Di Matteo", "José Mourinho", "Carlo Ancelotti", "Avram Grant"]
+        },
+        {
+            "id": 40,
+            "category": "NBA",
+            "question": "Which player was the first unanimous MVP in NBA history, achieving this in the 2015-16 season?",
+            "options": ["Stephen Curry", "LeBron James", "Michael Jordan", "Shaquille O'Neal"]
+        },
+        {
+            "id": 41,
+            "category": "Premier League",
+            "question": "Which Manchester City player won the PFA Young Player of the Year award for the 2017-18 season?",
+            "options": ["Leroy Sané", "Raheem Sterling", "Phil Foden", "Gabriel Jesus"]
+        },
+        {
+            "id": 42,
+            "category": "NBA",
+            "question": "Which team did LeBron James play for when he won his first two NBA championships in 2012 and 2013?",
+            "options": ["Miami Heat", "Cleveland Cavaliers", "Los Angeles Lakers", "Boston Celtics"]
+        },
+        {
+            "id": 43,
+            "category": "Premier League",
+            "question": "Which team gained promotion to the Premier League for the first time in their history in 2015 and managed to stay up for several seasons?",
+            "options": ["AFC Bournemouth", "Watford", "Norwich City", "Cardiff City"]
+        },
+        {
+            "id": 44,
+            "category": "NBA",
+            "question": "Who was the NBA's all-time leading scorer before LeBron James surpassed him in 2023?",
+            "options": ["Kareem Abdul-Jabbar", "Karl Malone", "Michael Jordan", "Kobe Bryant"]
+        },
+        {
+            "id": 45,
+            "category": "Premier League",
+            "question": "Who was the Premier League's top scorer (Golden Boot) in the 2023-24 season?",
+            "options": ["Erling Haaland", "Cole Palmer", "Alexander Isak", "Ollie Watkins"]
+        },
+        {
+            "id": 46,
+            "category": "NBA",
+            "question": "Which player won the NBA Finals MVP award for the Denver Nuggets in their 2023 championship run?",
+            "options": ["Nikola Jokić", "Jamal Murray", "Michael Porter Jr.", "Aaron Gordon"]
+        },
+        {
+            "id": 47,
+            "category": "Premier League",
+            "question": "Which club achieved the 'Quadruple' of winning the Premier League, FA Cup, League Cup, and Champions League in a single season?",
+            "options": ["No English club", "Manchester United", "Manchester City", "Liverpool"]
+        },
+        {
+            "id": 48,
+            "category": "NBA",
+            "question": "Which player, known for his 'finger roll', was a key part of the San Antonio Spurs championship teams in the 2000s?",
+            "options": ["George Gervin", "Tony Parker", "Manu Ginóbili", "Tim Duncan"]
+        },
+        {
+            "id": 49,
+            "category": "Premier League",
+            "question": "Which manager, known for his 'Gegenpressing' style, took over Liverpool in 2015?",
+            "options": ["Jürgen Klopp", "Thomas Tuchel", "Pep Guardiola", "Mauricio Pochettino"]
+        },
+        {
+            "id": 50,
+            "category": "NBA",
+            "question": "What players scored the most points in a single NBA game since 1984?",
+            "options": ["Kobe Bryant", "David Robinson", "Devin Booker", "Michael Jordan"]
+        },
+        {
+            "id": 51,
+            "category": "Premier League",
+            "question": "Which player won the PFA Players' Player of the Year award for the 2010-11 season while playing for Tottenham Hotspur?",
+            "options": ["Gareth Bale", "Luka Modrić", "Scott Parker", "Rafael van der Vaart"]
+        },
+        {
+            "id": 52,
+            "category": "NBA",
+            "question": "Which team won the NBA championship in 2004, upsetting the heavily favored Los Angeles Lakers?",
+            "options": ["Detroit Pistons", "San Antonio Spurs", "Boston Celtics", "Miami Heat"]
+        },
+        {
+            "id": 53,
+            "category": "Premier League",
+            "question": "Who was the Premier League Manager of the Season for 2021-22, after guiding Liverpool to a second-place finish with 92 points?",
+            "options": ["Jürgen Klopp", "Pep Guardiola", "Eddie Howe", "Patrick Vieira"]
+        },
+        {
+            "id": 54,
+            "category": "NBA",
+            "question": "Which player won the NBA MVP award in 2007 leading the Dallas Mavericks to a league-best 67 wins?",
+            "options": ["Dirk Nowitzki", "Steve Nash", "Kobe Bryant", "Tim Duncan"]
+        },
+        {
+            "id": 55,
+            "category": "Premier League",
+            "question": "Which team earned the nickname 'The Centurions' after achieving 100 points in their 2017-18 Premier League winning season?",
+            "options": ["Manchester City", "Liverpool", "Chelsea", "Arsenal"]
+        },
+        {
+            "id": 56,
+            "category": "NBA",
+            "question": "Who was named the NBA Finals MVP in 2008 when the Boston Celtics defeated the Los Angeles Lakers?",
+            "options": ["Paul Pierce", "Kevin Garnett", "Ray Allen", "Rajon Rondo"]
+        },
+        {
+            "id": 57,
+            "category": "Premier League",
+            "question": "Which striker was the Premier League's top scorer in the 2011-12 season playing for Arsenal before moving to Manchester United?",
+            "options": ["Robin van Persie", "Wayne Rooney", "Sergio Agüero", "Demba Ba"]
+        },
+        {
+            "id": 58,
+            "category": "NBA",
+            "question": "What pick was Kobe Bryant in the 1996 NBA Draft before being traded to the Los Angeles Lakers?",
+            "options": ["13th pick (Charlotte Hornets)", "1st pick (Philadelphia 76ers)", "5th pick (Minnesota Timberwolves)", "24th pick (Los Angeles Lakers)"]
+        },
+        {
+            "id": 59,
+            "category": "Premier League",
+            "question": "In what year did West Ham United move from the Boleyn Ground (Upton Park) to the London Stadium?",
+            "options": ["2016", "2014", "2018", "2012"]
+        },
+        {
+            "id": 60,
+            "category": "NBA",
+            "question": "Which player won the NBA Defensive Player of the Year award a record four times, including three times between 2001-02 and 2005-06?",
+            "options": ["Ben Wallace", "Dikembe Mutombo", "Dwight Howard", "Sidney Moncrief"]
+        },
+        {
+            "id": 61,
+            "category": "Premier League",
+            "question": "Who was the PFA Young Player of the Year in 2006-07 and 2007-08 playing for Manchester United?",
+            "options": ["Cristiano Ronaldo", "Wayne Rooney", "Cesc Fàbregas", "Ashley Young"]
+        },
+        {
+            "id": 62,
+            "category": "NBA",
+            "question": "Which team originally drafted Scottie Pippen before trading him to the Chicago Bulls on draft night in 1987?",
+            "options": ["Seattle SuperSonics", "New York Knicks", "Sacramento Kings", "Cleveland Cavaliers"]
+        },
+        {
+            "id": 63,
+            "category": "Premier League",
+            "question": "Which club did Fernando Torres famously join from Liverpool in January 2011 for a then British transfer record fee?",
+            "options": ["Chelsea", "Manchester City", "Real Madrid", "Manchester United"]
+        },
+        {
+            "id": 64,
+            "category": "NBA",
+            "question": "Who was the NBA's Sixth Man of the Year for three seasons with the Los Angeles Clippers?",
+            "options": ["Lou Williams", "Jamal Crawford", "Manu Ginóbili", "James Harden"]
+        },
+        {
+            "id": 65,
+            "category": "Premier League",
+            "question": "Which manager led Chelsea to the Premier League title in the 2009-10 season, also winning the FA Cup for a 'double'?",
+            "options": ["Carlo Ancelotti", "José Mourinho", "Guus Hiddink", "Antonio Conte"]
+        },
+        {
+            "id": 66,
+            "category": "NBA",
+            "question": "Which player was the NBA MVP for the 2003-04 season playing for the Minnesota Timberwolves?",
+            "options": ["Kevin Garnett", "Tim Duncan", "Shaquille O'Neal", "Kobe Bryant"]
+        },
+        {
+            "id": 67,
+            "category": "Premier League",
+            "question": "What was the points tally for Liverpool when they won their first Premier League title in 2019-20?",
+            "options": ["99 points", "100 points", "97 points", "92 points"]
+        },
+        {
+            "id": 68,
+            "category": "NBA",
+            "question": "Which international player from Argentina was a key member of the San Antonio Spurs dynasty, winning four NBA championships and an Olympic gold medal?",
+            "options": ["Manu Ginóbili", "Luis Scola", "Andrés Nocioni", "Fabricio Oberto"]
+        },
+        {
+            "id": 69,
+            "category": "Premier League",
+            "question": "Who scored the winning goal for Portsmouth in the 2008 FA Cup Final against Cardiff City?",
+            "options": ["Nwankwo Kanu", "Jermain Defoe", "Sulley Muntari", "Niko Kranjčar"]
+        },
+        {
+            "id": 70,
+            "category": "NBA",
+            "question": "Which city hosted the 1992 NBA All-Star Game where Magic Johnson won MVP after his initial retirement?",
+            "options": ["Orlando", "Salt Lake City", "Phoenix", "Charlotte"]
+        },
+        {
+            "id": 71,
+            "category": "Premier League",
+            "question": "Which player joined Manchester United from Everton in 2004 as an 18-year-old and became their all-time top scorer?",
+            "options": ["Wayne Rooney", "Cristiano Ronaldo", "Louis Saha", "Alan Smith"]
+        },
+        {
+            "id": 72,
+            "category": "NBA",
+            "question": "Which player, nicknamed 'The Klaw', won NBA Finals MVP with two different teams (Spurs in 2014, Raptors in 2019)?",
+            "options": ["Kawhi Leonard", "LeBron James", "Kevin Durant", "Andre Iguodala"]
+        },
+        {
+            "id": 73,
+            "category": "Premier League",
+            "question": "Who was the manager of Tottenham Hotspur when they reached the UEFA Champions League Final in 2019?",
+            "options": ["Mauricio Pochettino", "José Mourinho", "Harry Redknapp", "Antonio Conte"]
+        },
+        {
+            "id": 74,
+            "category": "NBA",
+            "question": "Which player famously hit 'The Shot' over Craig Ehlo in the 1989 NBA Playoffs for the Chicago Bulls?",
+            "options": ["Michael Jordan", "Scottie Pippen", "Horace Grant", "John Paxson"]
+        },
+        {
+            "id": 75,
+            "category": "Premier League",
+            "question": "Which club did Riyad Mahrez play for when he won the PFA Players' Player of the Year award in 2015-16?",
+            "options": ["Leicester City", "Manchester City", "Arsenal", "Chelsea"]
+        },
+        {
+            "id": 76,
+            "category": "NBA",
+            "question": "Which current NBA team was founded as the Charlotte Bobcats in 2004, with Michael Jordan later becoming a majority owner?",
+            "options": ["Charlotte Hornets", "New Orleans Pelicans", "Memphis Grizzlies", "Orlando Magic"]
+        },
+        {
+            "id": 77,
+            "category": "Premier League",
+            "question": "Who has been the primary owner of Chelsea FC since his takeover in 2003 until his sale in 2022?",
+            "options": ["Roman Abramovich", "Todd Boehly", "Ken Bates", "Sheikh Mansour"]
+        },
+        {
+            "id": 78,
+            "category": "NBA",
+            "question": "Which Serbian center won back-to-back NBA MVP awards in 2021 and 2022, and led the Denver Nuggets to their first championship in 2023?",
+            "options": ["Nikola Jokić", "Luka Dončić", "Bogdan Bogdanović", "Nikola Vučević"]
+        },
+        {
+            "id": 79,
+            "category": "Premier League",
+            "question": "Which team did Wigan Athletic famously beat in the 2013 FA Cup Final, only to be relegated from the Premier League days later?",
+            "options": ["Manchester City", "Manchester United", "Chelsea", "Arsenal"]
+        },
+        {
+            "id": 80,
+            "category": "NBA",
+            "question": "Which player won the NBA Rookie of the Year award in 2011 playing for the Los Angeles Clippers after being drafted #1 overall?",
+            "options": ["Blake Griffin", "John Wall", "Derrick Rose", "Tyreke Evans"]
+        },
+        {
+            "id": 81,
+            "category": "Premier League",
+            "question": "Which manager led Manchester City to their first FA Cup win in 42 years in 2011, a precursor to their league success?",
+            "options": ["Roberto Mancini", "Mark Hughes", "Manuel Pellegrini", "Sven-Göran Eriksson"]
+        },
+        {
+            "id": 82,
+            "category": "NBA",
+            "question": "Which coach led the 'Seven Seconds or Less' Phoenix Suns in the mid-2000s, featuring Steve Nash and Amar'e Stoudemire?",
+            "options": ["Mike D'Antoni", "Terry Porter", "Alvin Gentry", "Frank Johnson"]
+        },
+        {
+            "id": 83,
+            "category": "Premier League",
+            "question": "Which player scored the fastest goal in Premier League history (7.69 seconds) in 2019 for Southampton against Watford?",
+            "options": ["Shane Long", "Ledley King", "Alan Shearer", "Dwight Yorke"]
+        },
+        {
+            "id": 84,
+            "category": "NBA",
+            "question": "Which team did Ray Allen hit a famous game-tying three-pointer for in Game 6 of the 2013 NBA Finals?",
+            "options": ["Miami Heat", "Boston Celtics", "Seattle SuperSonics", "Milwaukee Bucks"]
+        },
+        {
+            "id": 85,
+            "category": "Premier League",
+            "question": "Which former Liverpool captain became manager of Aston Villa in 2021, later moving to manage in Saudi Arabia?",
+            "options": ["Steven Gerrard", "Jamie Carragher", "Jordan Henderson", "Graeme Souness"]
+        },
+        {
+            "id": 86,
+            "category": "NBA",
+            "question": "The 'Splash Brothers' nickname refers to which duo from the Golden State Warriors?",
+            "options": ["Stephen Curry and Klay Thompson", "Kevin Durant and Stephen Curry", "Draymond Green and Klay Thompson", "Chris Mullin and Tim Hardaway"]
+        },
+        {
+            "id": 87,
+            "category": "Premier League",
+            "question": "Who was the Premier League's top scorer in the 2020-21 season playing for Tottenham Hotspur?",
+            "options": ["Harry Kane", "Mohamed Salah", "Bruno Fernandes", "Son Heung-min"]
+        },
+        {
+            "id": 88,
+            "category": "NBA",
+            "question": "Which player was known as 'The Answer' and was the NBA MVP in 2001 with the Philadelphia 76ers?",
+            "options": ["Allen Iverson", "Kobe Bryant", "Tracy McGrady", "Vince Carter"]
+        },
+        {
+            "id": 89,
+            "category": "Premier League",
+            "question": "What year did Sir Alex Ferguson retire as manager of Manchester United, after winning his 13th Premier League title?",
+            "options": ["2013", "2011", "2015", "2010"]
+        },
+        {
+            "id": 90,
+            "category": "NBA",
+            "question": "Which team selected Zion Williamson with the first overall pick in the 2019 NBA Draft?",
+            "options": ["New Orleans Pelicans", "Memphis Grizzlies", "New York Knicks", "Atlanta Hawks"]
+        },
+        {
+            "id": 91,
+            "category": "Premier League",
+            "question": "Which goalkeeper holds the record for the most clean sheets in Premier League history?",
+            "options": ["Petr Čech", "David James", "Mark Schwarzer", "David Seaman"]
+        },
+        {
+            "id": 92,
+            "category": "NBA",
+            "question": "Which player won the NBA Finals MVP in 2006 leading the Miami Heat to their first championship?",
+            "options": ["Dwyane Wade", "Shaquille O'Neal", "Alonzo Mourning", "Gary Payton"]
+        },
+        {
+            "id": 93,
+            "category": "Premier League",
+            "question": "Which season saw Chelsea, managed by Antonio Conte, win the Premier League title playing a 3-4-3 formation effectively?",
+            "options": ["2016-17", "2014-15", "2017-18", "2015-16"]
+        },
+        {
+            "id": 94,
+            "category": "NBA",
+            "question": "Which team did Patrick Ewing play the majority of his NBA career for, leading them to the NBA Finals in 1994 and 1999?",
+            "options": ["New York Knicks", "Orlando Magic", "Seattle SuperSonics", "Houston Rockets"]
+        },
+        {
+            "id": 95,
+            "category": "Premier League",
+            "question": "Who was the PFA Players' Player of the Year for the 2014-15 season playing for Chelsea?",
+            "options": ["Eden Hazard", "Diego Costa", "Cesc Fàbregas", "Nemanja Matić"]
+        },
+        {
+            "id": 96,
+            "category": "NBA",
+            "question": "In what year did the original Charlotte Hornets NBA franchise relocate to New Orleans?",
+            "options": ["2002", "2004", "1999", "2007"]
+        },
+        {
+            "id": 97,
+            "category": "Premier League",
+            "question": "Which team did Liverpool famously come back from 3-0 down against to win the 2005 UEFA Champions League Final in Istanbul?",
+            "options": ["AC Milan", "Real Madrid", "Barcelona", "Bayern Munich"]
+        },
+        {
+            "id": 98,
+            "category": "NBA",
+            "question": "Which player, drafted in 1998, is the Dallas Mavericks' all-time leading scorer and won an NBA championship with them in 2011?",
+            "options": ["Dirk Nowitzki", "Luka Dončić", "Jason Terry", "Michael Finley"]
+        },
+        {
+            "id": 99,
+            "category": "Premier League",
+            "question": "Who took over as Arsenal manager after Arsène Wenger's departure in 2018?",
+            "options": ["Unai Emery", "Mikel Arteta", "Freddie Ljungberg", "Thomas Tuchel"]
+        },
+        {
+            "id": 100,
+            "category": "NBA",
+            "question": "Which player was named NBA MVP for the 2007-08 season, the only MVP award of his career, playing for the Los Angeles Lakers?",
+            "options": ["Kobe Bryant", "LeBron James", "Chris Paul", "Kevin Garnett"]
+        },
+        {
+            "id": 101,
+            "category": "NBA",
+            "question": "In Michael Jordan's rookie season (1984-85), which award did he win?",
+            "options": ["Rookie of the Year", "Most Valuable Player", "Defensive Player of the Year", "Sixth Man of the Year"]
+        },
+        {
+            "id": 102,
+            "category": "Premier League",
+            "question": "Which team won the Premier League title in the 2004-05 season, breaking Manchester United's and Arsenal's recent dominance?",
+            "options": ["Chelsea", "Liverpool", "Everton", "Bolton Wanderers"]
+        },
+        {
+            "id": 103,
+            "category": "NBA",
+            "question": "Who was the first pick in the 2003 NBA Draft, a famously strong draft class including LeBron James, Dwyane Wade, and Carmelo Anthony?",
+            "options": ["LeBron James (Cleveland Cavaliers)", "Darko Miličić (Detroit Pistons)", "Carmelo Anthony (Denver Nuggets)", "Chris Bosh (Toronto Raptors)"]
+        },
+        {
+            "id": 104,
+            "category": "Premier League",
+            "question": "Who was the top scorer in the Premier League in the 2007-08 season?",
+            "options": ["Cristiano Ronaldo", "Fernando Torres", "Emmanuel Adebayor", "Dimitar Berbatov"]
+        },
+        {
+            "id": 105,
+            "category": "NBA",
+            "question": "Which team achieved a 'three-peat' of NBA championships from 2000 to 2002?",
+            "options": ["Los Angeles Lakers", "San Antonio Spurs", "Detroit Pistons", "Chicago Bulls"]
+        },
+        {
+            "id": 106,
+            "category": "Premier League",
+            "question": "Which manager famously guided Leicester City to their improbable Premier League title in the 2015-16 season?",
+            "options": ["Claudio Ranieri", "Nigel Pearson", "Craig Shakespeare", "Brendan Rodgers"]
+        },
+        {
+            "id": 107,
+            "category": "NBA",
+            "question": "Which player won back-to-back NBA MVP awards in 2005 and 2006?",
+            "options": ["Steve Nash", "Kobe Bryant", "LeBron James", "Dirk Nowitzki"]
+        },
+        {
+            "id": 108,
+            "category": "Premier League",
+            "question": "Who scored the famous last-minute goal for Manchester City against QPR in 2012 to win their first Premier League title?",
+            "options": ["Sergio Agüero", "Edin Džeko", "Mario Balotelli", "David Silva"]
+        },
+        {
+            "id": 109,
+            "category": "NBA",
+            "question": "The 'Bad Boy' Pistons, known for their physical style of play, won NBA championships in which two consecutive years?",
+            "options": ["1989 and 1990", "1987 and 1988", "1991 and 1992", "1988 and 1989"]
+        },
+        {
+            "id": 110,
+            "category": "Premier League",
+            "question": "Which Liverpool player won the PFA Players' Player of the Year award for the 2013-14 season after a prolific goalscoring campaign?",
+            "options": ["Luis Suárez", "Steven Gerrard", "Daniel Sturridge", "Philippe Coutinho"]
+        },
+        {
+            "id": 111,
+            "category": "NBA",
+            "question": "Who did the Chicago Bulls defeat in the 1991 NBA Finals to win Michael Jordan's first championship?",
+            "options": ["Los Angeles Lakers", "Portland Trail Blazers", "Detroit Pistons", "Phoenix Suns"]
+        },
+        {
+            "id": 112,
+            "category": "Premier League",
+            "question": "Which team, managed by Jürgen Klopp, won their first Premier League title in the 2019-20 season?",
+            "options": ["Liverpool", "Manchester City", "Chelsea", "Manchester United"]
+        },
+        {
+            "id": 113,
+            "category": "NBA",
+            "question": "Which player, known for his exceptional three-point shooting, was named NBA MVP in 2015 and 2016 with the Golden State Warriors?",
+            "options": ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green"]
+        },
+        {
+            "id": 114,
+            "category": "Premier League",
+            "question": "Who holds the record for the most Premier League Golden Glove awards?",
+            "options": ["Petr Čech", "Joe Hart", "David de Gea", "Alisson Becker"]
+        },
+        {
+            "id": 115,
+            "category": "NBA",
+            "question": "The 'Dream Team,' representing the USA, famously won Olympic Gold in which year?",
+            "options": ["1992 (Barcelona)", "1996 (Atlanta)", "1988 (Seoul)", "2000 (Sydney)"]
+        },
+        {
+            "id": 116,
+            "category": "Premier League",
+            "question": "Which player won three consecutive Premier League Golden Boot awards from 2017-18 to 2019-20?",
+            "options": ["Mohamed Salah", "Harry Kane", "Jamie Vardy", "Sergio Agüero"]
+        },
+        {
+            "id": 117,
+            "category": "NBA",
+            "question": "Which franchise did LeBron James lead to their first-ever NBA championship in 2016, overcoming a 3-1 deficit in the Finals?",
+            "options": ["Cleveland Cavaliers", "Miami Heat", "Los Angeles Lakers", "Toronto Raptors"]
+        },
+        {
+            "id": 118,
+            "category": "Premier League",
+            "question": "Which manager achieved an 'Invincible' season with Arsenal in 2003-04, and continued to manage them until 2018?",
+            "options": ["Arsène Wenger", "Sir Alex Ferguson", "José Mourinho", "Rafael Benítez"]
+        },
+        {
+            "id": 119,
+            "category": "NBA",
+            "question": "What year did the San Antonio Spurs, led by Tim Duncan, win their first NBA championship in the Duncan era?",
+            "options": ["1999", "2003", "1997", "2001"]
+        },
+        {
+            "id": 120,
+            "category": "Premier League",
+            "question": "Who became the all-time top scorer for Manchester City in the Premier League era?",
+            "options": ["Sergio Agüero", "Raheem Sterling", "Kevin De Bruyne", "Yaya Touré"]
+        },
+        {
+            "id": 121,
+            "category": "NBA",
+            "question": "Dirk Nowitzki led which team to an NBA championship in 2011, defeating the Miami Heat's 'Big Three'?",
+            "options": ["Dallas Mavericks", "Phoenix Suns", "Denver Nuggets", "Houston Rockets"]
+        },
+        {
+            "id": 122,
+            "category": "Premier League",
+            "question": "Which midfielder won the PFA Players' Player of the Year and FWA Footballer of the Year in 2016-17?",
+            "options": ["N'Golo Kanté", "Eden Hazard", "Cesc Fàbregas", "Diego Costa"]
+        },
+        {
+            "id": 123,
+            "category": "NBA",
+            "question": "Which player was famously drafted #1 overall by the Orlando Magic in 1992?",
+            "options": ["Shaquille O'Neal", "Penny Hardaway", "Larry Johnson", "Chris Webber"]
+        },
+        {
+            "id": 124,
+            "category": "Premier League",
+            "question": "Tottenham Hotspur's Son Heung-min shared the Premier League Golden Boot in the 2021-22 season with which other player?",
+            "options": ["Mohamed Salah", "Harry Kane", "Cristiano Ronaldo", "Sadio Mané"]
+        },
+        {
+            "id": 125,
+            "category": "NBA",
+            "question": "Which player won the NBA Finals MVP award for the Toronto Raptors in their 2019 championship run?",
+            "options": ["Kawhi Leonard", "Kyle Lowry", "Pascal Siakam", "Fred VanVleet"]
+        },
+        {
+            "id": 126,
+            "category": "Premier League",
+            "question": "Who was the manager of Chelsea when they won back-to-back Premier League titles in 2004-05 and 2005-06?",
+            "options": ["José Mourinho", "Carlo Ancelotti", "Guus Hiddink", "Avram Grant"]
+        },
+        {
+            "id": 127,
+            "category": "NBA",
+            "question": "Which team selected Allen Iverson with the first overall pick in the 1996 NBA Draft?",
+            "options": ["Philadelphia 76ers", "Boston Celtics", "Vancouver Grizzlies", "Toronto Raptors"]
+        },
+        {
+            "id": 128,
+            "category": "Premier League",
+            "question": "Which player broke Alan Shearer's record for the most Premier League goals in a calendar year in 2017?",
+            "options": ["Harry Kane", "Mohamed Salah", "Robin van Persie", "Sergio Agüero"]
+        },
+        {
+            "id": 129,
+            "category": "NBA",
+            "question": "Which player won back-to-back NBA MVP awards in 2019 and 2020?",
+            "options": ["Giannis Antetokounmpo", "Thanasis Antetokounmpo", "Stephen Curry", "Jokic"]
+        },
+        {
+            "id": 130,
+            "category": "Premier League",
+            "question": "In the 2022-23 Premier League season, Erling Haaland broke the record for most goals in a single season. Which club does he play for?",
+            "options": ["Manchester City", "Manchester United", "Liverpool", "Arsenal"]
+        },
+        {
+            "id": 131,
+            "category": "NBA",
+            "question": "What is the name of the Chicago Bulls' home arena where Michael Jordan played most of his career with them?",
+            "options": ["United Center", "Chicago Stadium", "Allstate Arena", "Wintrust Arena"]
+        },
+        {
+            "id": 132,
+            "category": "Premier League",
+            "question": "Who captained Manchester United to their UEFA Champions League victory in 2008 and multiple Premier League titles?",
+            "options": ["Rio Ferdinand", "Wayne Rooney", "Ryan Giggs", "Paul Scholes"]
+        },
+        {
+            "id": 133,
+            "category": "NBA",
+            "question": "Which player is known for his 'fadeaway' shot and won 5 NBA championships with the Los Angeles Lakers between 2000 and 2010?",
+            "options": ["Kobe Bryant", "Shaquille O'Neal", "Pau Gasol", "Derek Fisher"]
+        },
+        {
+            "id": 134,
+            "category": "Premier League",
+            "question": "Which team dramatically avoided relegation on the final day of the 2004-05 Premier League season, a feat known as the 'Great Escape'?",
+            "options": ["West Bromwich Albion", "Crystal Palace", "Norwich City", "Southampton"]
+        },
+        {
+            "id": 135,
+            "category": "NBA",
+            "question": "Who coached the Chicago Bulls to their six NBA championships in the 1990s?",
+            "options": ["Phil Jackson", "Doug Collins", "Jerry Sloan", "Tex Winter"]
+        },
+        {
+            "id": 136,
+            "category": "Premier League",
+            "question": "Which striker was Chelsea's top scorer in their 2014-15 Premier League winning season?",
+            "options": ["Diego Costa", "Fernando Torres", "Didier Drogba", "Loïc Rémy"]
+        },
+        {
+            "id": 137,
+            "category": "NBA",
+            "question": "Which team did Michael Jordan briefly come out of retirement to play for from 2001 to 2003?",
+            "options": ["Washington Wizards", "Charlotte Hornets", "Chicago Bulls", "Los Angeles Lakers"]
+        },
+        {
+            "id": 138,
+            "category": "Premier League",
+            "question": "Kevin De Bruyne has won multiple PFA Players' Player of the Year awards playing for which club?",
+            "options": ["Manchester City", "Chelsea", "Wolfsburg", "Arsenal"]
+        },
+        {
+            "id": 139,
+            "category": "NBA",
+            "question": "Which dominant center was NBA MVP in 2000 and won three consecutive Finals MVPs from 2000-2002 with the Lakers?",
+            "options": ["Shaquille O'Neal", "Tim Duncan", "David Robinson", "Hakeem Olajuwon"]
+        },
+        {
+            "id": 140,
+            "category": "Premier League",
+            "question": "Which Welsh player, known for his blistering pace, transferred from Tottenham to Real Madrid in 2013 for a then-world record fee?",
+            "options": ["Gareth Bale", "Aaron Ramsey", "Ryan Giggs", "Craig Bellamy"]
+        },
+        {
+            "id": 141,
+            "category": "NBA",
+            "question": "Which player hit the iconic game-winning shot for the Chicago Bulls in Game 6 of the 1998 NBA Finals against the Utah Jazz?",
+            "options": ["Michael Jordan", "Scottie Pippen", "Steve Kerr", "Dennis Rodman"]
+        },
+        {
+            "id": 142,
+            "category": "Premier League",
+            "question": "Who was the manager of Manchester City when they first won the Premier League title in 2011-12?",
+            "options": ["Roberto Mancini", "Manuel Pellegrini", "Mark Hughes", "Pep Guardiola"]
+        },
+        {
+            "id": 143,
+            "category": "NBA",
+            "question": "The 'Malice at the Palace' brawl in 2004 involved players from which two NBA teams?",
+            "options": ["Indiana Pacers and Detroit Pistons", "Los Angeles Lakers and Boston Celtics", "New York Knicks and Miami Heat", "Sacramento Kings and Los Angeles Lakers"]
+        },
+        {
+            "id": 144,
+            "category": "Premier League",
+            "question": "Which player won the Premier League Golden Boot in 2009-10 playing for Chelsea?",
+            "options": ["Didier Drogba", "Frank Lampard", "Nicolas Anelka", "Wayne Rooney"]
+        },
+        {
+            "id": 145,
+            "category": "NBA",
+            "question": "Which power forward, known as 'The Big Fundamental', won five NBA championships with the San Antonio Spurs?",
+            "options": ["Tim Duncan", "Karl Malone", "Charles Barkley", "Kevin Garnett"]
+        },
+        {
+            "id": 146,
+            "category": "Premier League",
+            "question": "Which team finished second to Leicester City in the remarkable 2015-16 Premier League season?",
+            "options": ["Arsenal", "Tottenham Hotspur", "Manchester City", "Manchester United"]
+        },
+        {
+            "id": 147,
+            "category": "NBA",
+            "question": "Which player has the most All-NBA First Team selections in NBA history?",
+            "options": ["LeBron James", "Michael Jordan", "Kareem Abdul-Jabbar", "Kobe Bryant"]
+        },
+        {
+            "id": 148,
+            "category": "Premier League",
+            "question": "Which current Premier League manager guided AFC Bournemouth from League Two to the Premier League in a remarkable journey?",
+            "options": ["Eddie Howe", "Sean Dyche", "Graham Potter", "Thomas Frank"]
+        },
+        {
+            "id": 149,
+            "category": "NBA",
+            "question": "In what year did the Seattle SuperSonics relocate and become the Oklahoma City Thunder?",
+            "options": ["2008", "2005", "2011", "2001"]
+        },
+        {
+            "id": 150,
+            "category": "Premier League",
+            "question": "Who was the PFA Young Player of the Year for two consecutive seasons, 2019-20 and 2020-21?",
+            "options": ["Phil Foden", "Trent Alexander-Arnold", "Bukayo Saka", "Mason Mount"]
+        },
+        {
+            "id": 151,
+            "category": "Premier League",
+            "question": "Which team won their first Premier League title in the 2004-05 season?",
+            "options": ["Chelsea", "Arsenal", "Liverpool", "Manchester United"]
+        },
+        {
+            "id": 152,
+            "category": "NBA",
+            "question": "Who was the dominant center for the Minneapolis Lakers, leading them to five NBA championships in the 1950s?",
+            "options": ["George Mikan", "Bill Russell", "Wilt Chamberlain", "Kareem Abdul-Jabbar"]
+        },
+        {
+            "id": 153,
+            "category": "Premier League",
+            "question": "Who scored the famous last-minute goal for Manchester City against QPR in 2012 to win their first Premier League title?",
+            "options": ["Sergio Agüero", "Edin Džeko", "Mario Balotelli", "David Silva"]
+        },
+        {
+            "id": 154,
+            "category": "NBA",
+            "question": "In what year was the shot clock first introduced to the NBA?",
+            "options": ["1954", "1949", "1961", "1970"]
+        },
+        {
+            "id": 155,
+            "category": "Premier League",
+            "question": "Which team famously won the Premier League in the 2019-20 season, their first league title in 30 years?",
+            "options": ["Liverpool", "Manchester City", "Chelsea", "Arsenal"]
+        },
+        {
+            "id": 156,
+            "category": "NBA",
+            "question": "Which former ABA star, known for his athleticism and slam dunks, became a major NBA icon after the ABA-NBA merger in 1976?",
+            "options": ["Julius Erving", "George Gervin", "Rick Barry", "Artis Gilmore"]
+        },
+        {
+            "id": 157,
+            "category": "Premier League",
+            "question": "Which player won the PFA Players' Player of the Year award for his performances in Leicester City's 2015-16 title-winning season?",
+            "options": ["Riyad Mahrez", "Jamie Vardy", "N'Golo Kanté", "Danny Drinkwater"]
+        },
+        {
+            "id": 158,
+            "category": "NBA",
+            "question": "Who holds the NBA record for the most career blocked shots?",
+            "options": ["Hakeem Olajuwon", "Dikembe Mutombo", "Kareem Abdul-Jabbar", "Tim Duncan"]
+        },
+        {
+            "id": 159,
+            "category": "Premier League",
+            "question": "Who holds the record for the most goals scored by a midfielder in a single Premier League season?",
+            "options": ["Frank Lampard", "Steven Gerrard", "Yaya Touré", "Kevin De Bruyne"]
+        },
+        {
+            "id": 160,
+            "category": "NBA",
+            "question": "Which player has the most NBA All-Star selections in history?",
+            "options": ["LeBron James", "Kareem Abdul-Jabbar", "Kobe Bryant", "Michael Jordan"]
+        },
+        {
+            "id": 161,
+            "category": "Premier League",
+            "question": "Which manager has led Manchester City to multiple Premier League titles since taking charge in 2016?",
+            "options": ["Pep Guardiola", "Manuel Pellegrini", "Roberto Mancini", "Mark Hughes"]
+        },
+        {
+            "id": 162,
+            "category": "NBA",
+            "question": "Which player is the NBA's all-time leader in regular season steals?",
+            "options": ["John Stockton", "Jason Kidd", "Michael Jordan", "Gary Payton"]
+        },
+        {
+            "id": 163,
+            "category": "Premier League",
+            "question": "Cristiano Ronaldo first won the PFA Players' Player of the Year award in which season with Manchester United?",
+            "options": ["2006-07", "2007-08", "2005-06", "2003-04"]
+        },
+        {
+            "id": 164,
+            "category": "NBA",
+            "question": "Which of these players won an NBA MVP award and a Defensive Player of the Year award in the same season?",
+            "options": ["Hakeem Olajuwon", "Michael Jordan", "David Robinson", "Kevin Garnett"]
+        },
+        {
+            "id": 165,
+            "category": "Premier League",
+            "question": "Which striker won the Premier League Golden Boot playing for Arsenal in 2011-12 before moving to Manchester United?",
+            "options": ["Robin van Persie", "Thierry Henry", "Emmanuel Adebayor", "Pierre-Emerick Aubameyang"]
+        },
+        {
+            "id": 166,
+            "category": "NBA",
+            "question": "The fierce rivalry between Magic Johnson and Larry Bird in the 1980s is credited with revitalizing the NBA. Which teams did they play for respectively?",
+            "options": ["Los Angeles Lakers and Boston Celtics", "Detroit Pistons and Philadelphia 76ers", "Chicago Bulls and New York Knicks", "Houston Rockets and Utah Jazz"]
+        },
+        {
+            "id": 167,
+            "category": "Premier League",
+            "question": "Who won the Premier League Golden Boot in the 2013-14 season with 31 goals?",
+            "options": ["Luis Suárez", "Daniel Sturridge", "Sergio Agüero", "Robin van Persie"]
+        },
+        {
+            "id": 168,
+            "category": "NBA",
+            "question": "Which San Antonio Spurs trio, coached by Gregg Popovich, won multiple NBA championships together in the 2000s and 2010s?",
+            "options": ["Tim Duncan, Tony Parker, Manu Ginóbili", "David Robinson, Avery Johnson, Sean Elliott", "Kawhi Leonard, LaMarcus Aldridge, Danny Green", "Bruce Bowen, Robert Horry, Michael Finley"]
+        },
+        {
+            "id": 169,
+            "category": "Premier League",
+            "question": "N'Golo Kanté won back-to-back Premier League titles with which two different clubs in 2015-16 and 2016-17?",
+            "options": ["Leicester City and Chelsea", "Chelsea and Manchester City", "Leicester City and Arsenal", "Chelsea and Liverpool"]
+        },
+        {
+            "id": 170,
+            "category": "NBA",
+            "question": "Which team, led by Stephen Curry, Klay Thompson, and Draymond Green, won multiple NBA championships in the 2010s and 2020s?",
+            "options": ["Golden State Warriors", "Cleveland Cavaliers", "Miami Heat", "Oklahoma City Thunder"]
+        },
+        {
+            "id": 171,
+            "category": "Premier League",
+            "question": "Who was the PFA Players' Player of the Year in the 2017-18 season?",
+            "options": ["Mohamed Salah", "Kevin De Bruyne", "Harry Kane", "Sadio Mané"]
+        },
+        {
+            "id": 172,
+            "category": "NBA",
+            "question": "Which German player, known for his signature one-legged fadeaway, led the Dallas Mavericks to their first NBA championship in 2011?",
+            "options": ["Dirk Nowitzki", "Detlef Schrempf", "Dennis Schröder", "Franz Wagner"]
+        },
+        {
+            "id": 173,
+            "category": "Premier League",
+            "question": "What was the points tally of Arsenal's 'Invincibles' when they won the Premier League in 2003-04?",
+            "options": ["90 points", "92 points", "88 points", "86 points"]
+        },
+        {
+            "id": 174,
+            "category": "Premier League",
+            "question": "Who is the all-time top scorer in the Premier League?",
+            "options": ["Alan Shearer", "Wayne Rooney", "Harry Kane", "Thierry Henry"]
+        },
+        {
+            "id": 175,
+            "category": "NBA",
+            "question": "Which player has won the most NBA championships as a player?",
+            "options": ["Bill Russell", "Michael Jordan", "LeBron James", "Kareem Abdul-Jabbar"]
+        },
+        {
+            "id": 176,
+            "category": "Premier League",
+            "question": "Which club has won the most Premier League titles?",
+            "options": ["Manchester United", "Liverpool", "Arsenal", "Chelsea"]
+        },
+        {
+            "id": 177,
+            "category": "NBA",
+            "question": "Who is the NBA's all-time leading scorer?",
+            "options": ["LeBron James", "Kareem Abdul-Jabbar", "Karl Malone", "Michael Jordan"]
+        },
+        {
+            "id": 178,
+            "category": "Premier League",
+            "question": "Who holds the record for the most goals scored in a single 38-game Premier League season?",
+            "options": ["Erling Haaland", "Mohamed Salah", "Alan Shearer", "Cristiano Ronaldo"]
+        },
+        {
+            "id": 179,
+            "category": "NBA",
+            "question": "Which player has won the most NBA MVP (Most Valuable Player) awards?",
+            "options": ["Kareem Abdul-Jabbar", "Michael Jordan", "Bill Russell", "LeBron James"]
+        },
+        {
+            "id": 180,
+            "category": "Premier League",
+            "question": "Which manager has won the most Premier League titles?",
+            "options": ["Sir Alex Ferguson", "Arsène Wenger", "José Mourinho", "Pep Guardiola"]
+        },
+        {
+            "id": 181,
+            "category": "NBA",
+            "question": "Which player has won the most NBA Finals MVP awards?",
+            "options": ["Michael Jordan", "LeBron James", "Magic Johnson", "Tim Duncan"]
+        },
+        {
+            "id": 182,
+            "category": "Premier League",
+            "question": "In what year was the inaugural Premier League season?",
+            "options": ["1992-93", "1990-91", "1994-95", "1988-89"]
+        },
+        {
+            "id": 183,
+            "category": "NBA",
+            "question": "Which NBA team holds the record for the best regular season record?",
+            "options": ["Golden State Warriors", "Chicago Bulls", "Los Angeles Lakers", "Boston Celtics"]
+        },
+        {
+            "id": 184,
+            "category": "Premier League",
+            "question": "Who holds the record for the most appearances in the Premier League?",
+            "options": ["Gareth Barry", "Ryan Giggs", "Frank Lampard", "James Milner"]
+        },
+        {
+            "id": 185,
+            "category": "NBA",
+            "question": "Who is the NBA's all-time leader in assists?",
+            "options": ["John Stockton", "Jason Kidd", "Chris Paul", "Steve Nash"]
+        },        {
+            "id": 186,
+            "category": "NBA",
+            "question": "Which team did Tracy McGrady and Yao Ming play for together in the mid-2000s?",
+            "options": ["Houston Rockets", "Orlando Magic", "Toronto Raptors", "Phoenix Suns"]
+        },        {
+            "id": 187,
+            "category": "Premier League",
+            "question": "Which club won the first-ever Premier League title in 1992-93?",
+            "options": ["Manchester United", "Liverpool", "Arsenal", "Leeds United"]
+        },        {
+            "id": 188,
+            "category": "NBA",
+            "question": "Who won the 2020 NBA Finals MVP award in the Orlando 'bubble'?",
+            "options": ["LeBron James", "Anthony Davis", "Jimmy Butler", "Kawhi Leonard"]
+        },        {
+            "id": 189,
+            "category": "Premier League",
+            "question": "Which player holds the record for the fastest Premier League goal (9.7 seconds)?",
+            "options": ["Ledley King", "Shane Long", "Alan Shearer", "Dwight Yorke"]
+        },        {
+            "id": 190,
+            "category": "NBA",
+            "question": "Which player was known as 'The Big Ticket'?",
+            "options": ["Kevin Garnett", "Tim Duncan", "Dirk Nowitzki", "Chris Weber"]
+        },        {
+            "id": 191,
+            "category": "Premier League",
+            "question": "Which club did Luis Suarez play for before joining Barcelona?",
+            "options": ["Liverpool", "Ajax", "Manchester City", "Chelsea"]
+        },        {
+            "id": 192,
+            "category": "NBA",
+            "question": "Which player won the 2019 NBA Most Improved Player award while playing for the Toronto Raptors?",
+            "options": ["Pascal Siakam", "Fred VanVleet", "OG Anunoby", "Norman Powell"]
+        },        {
+            "id": 193,
+            "category": "Premier League",
+            "question": "Who scored the winning penalty for Chelsea in the 2012 UEFA Champions League Final?",
+            "options": ["Didier Drogba", "Frank Lampard", "Juan Mata", "Ashley Cole"]
+        },        {
+            "id": 194,
+            "category": "NBA",
+            "question": "Which coach is known for creating the 'Triangle Offense'?",
+            "options": ["Tex Winter", "Phil Jackson", "Pat Riley", "Jerry Sloan"]
+        },        {
+            "id": 195,
+            "category": "Premier League",
+            "question": "Which player has received the most red cards in Premier League history (8)?",
+            "options": ["Patrick Vieira", "Duncan Ferguson", "Richard Dunne", "Roy Keane"]
+        },        {
+            "id": 196,
+            "category": "NBA",
+            "question": "Which team did Chris Paul first play for when he entered the NBA?",
+            "options": ["New Orleans Hornets", "Los Angeles Clippers", "Houston Rockets", "Phoenix Suns"]
+        },        {
+            "id": 197,
+            "category": "Premier League",
+            "question": "Which goalkeeper scored from inside his own penalty area against Watford in 2007?",
+            "options": ["Paul Robinson", "Tim Howard", "David Seaman", "Peter Schmeichel"]
+        },        {
+            "id": 198,
+            "category": "NBA",
+            "question": "Who was the NBA Finals MVP when the Warriors won their first championship in 1975?",
+            "options": ["Rick Barry", "Phil Smith", "Jamaal Wilkes", "Clifford Ray"]
+        },        {
+            "id": 199,
+            "category": "Premier League",
+            "question": "Which stadium is famously known as 'The Theatre of Dreams'?",
+            "options": ["Old Trafford", "Anfield", "Stamford Bridge", "Emirates Stadium"]
+        },        {
+            "id": 200,
+            "category": "NBA",
+            "question": "Which player was drafted by the Charlotte Hornets and immediately traded for Vlade Divac?",
+            "options": ["Kobe Bryant", "Kevin Garnett", "Tracy McGrady", "Paul Pierce"]
+        },        {
+            "id": 201,
+            "category": "Premier League",
+            "question": "Who was Manchester United's goalkeeper during their 1999 treble-winning season?",
+            "options": ["Peter Schmeichel", "David Seaman", "Edwin van der Sar", "Fabien Barthez"]
+        },        {
+            "id": 202,
+            "category": "NBA",
+            "question": "Which player famously guaranteed a victory in the 1994 Eastern Conference Semifinals?",
+            "options": ["Reggie Miller", "Patrick Ewing", "Michael Jordan", "Shaquille O'Neal"]
+        },        {
+            "id": 203,
+            "category": "Premier League",
+            "question": "Which club did Pep Guardiola manage immediately before joining Manchester City?",
+            "options": ["Bayern Munich", "Barcelona", "Juventus", "Real Madrid"]
+        },        {
+            "id": 204,
+            "category": "NBA",
+            "question": "Who scored 13 points in 33 seconds against the San Antonio Spurs in 2004?",
+            "options": ["Tracy McGrady", "Kobe Bryant", "Reggie Miller", "Ray Allen"]
+        },        {
+            "id": 205,
+            "category": "Premier League",
+            "question": "Which players share the record for most assists in a single Premier League season (20)?",
+            "options": ["Thierry Henry and Kevin De Bruyne", "Frank Lampard and Mesut Özil", "David Silva and Christian Eriksen", "Cesc Fàbregas and Ryan Giggs"]
+        },        {
+            "id": 206,
+            "category": "NBA",
+            "question": "Which team originally drafted Pau Gasol before he was traded to the Lakers?",
+            "options": ["Memphis Grizzlies", "Atlanta Hawks", "Charlotte Hornets", "Vancouver Grizzlies"]
+        },        {
+            "id": 207,
+            "category": "Premier League",
+            "question": "Which striker was known as 'The King' at Newcastle United?",
+            "options": ["Alan Shearer", "Les Ferdinand", "Andy Cole", "Peter Beardsley"]
+        },        {
+            "id": 208,
+            "category": "NBA",
+            "question": "Who was the coach of the 'Showtime' Lakers during most of the 1980s?",
+            "options": ["Pat Riley", "Paul Westhead", "Mike Dunleavy", "Del Harris"]
+        },        {
+            "id": 209,
+            "category": "Premier League",
+            "question": "Which team has won the League Cup a record 9 times?",
+            "options": ["Liverpool", "Manchester City", "Chelsea", "Manchester United"]
+        },        {
+            "id": 210,
+            "category": "NBA",
+            "question": "Which player was known as 'The Human Highlight Reel'?",
+            "options": ["Dominique Wilkins", "Vince Carter", "Michael Jordan", "Julius Erving"]
+        },        {
+            "id": 211,
+            "category": "Premier League",
+            "question": "Which manager famously said 'I have nothing to say' in a press conference?",
+            "options": ["José Mourinho", "Sir Alex Ferguson", "Arsène Wenger", "Pep Guardiola"]
+        },        {
+            "id": 212,
+            "category": "NBA",
+            "question": "Which team did Dwight Howard win Defensive Player of the Year three times with?",
+            "options": ["Orlando Magic", "Los Angeles Lakers", "Houston Rockets", "Atlanta Hawks"]
+        },        {
+            "id": 213,
+            "category": "Premier League",
+            "question": "Which club has the motto 'You'll Never Walk Alone'?",
+            "options": ["Liverpool", "Celtic", "Manchester United", "Chelsea"]
+        },        {
+            "id": 214,
+            "category": "NBA",
+            "question": "Who was the youngest player to score 50 points in an NBA game?",
+            "options": ["Brandon Jennings", "LeBron James", "Devin Booker", "Jayson Tatum"]
+        },        {
+            "id": 215,
+            "category": "Premier League",
+            "question": "Which player scored an incredible long-range goal for Newcastle United against Manchester City in 2012?",
+            "options": ["Papiss Cissé", "Philippe Albert", "David Ginola", "Laurent Robert"]
+        },        {
+            "id": 216,
+            "category": "NBA",
+            "question": "What was the name of the arena that the Lakers and Clippers shared before it became Crypto.com Arena?",
+            "options": ["Staples Center", "The Forum", "Rose Garden", "Oracle Arena"]
+        },        {
+            "id": 217,
+            "category": "Premier League",
+            "question": "Who was Everton's top scorer when they finished 4th in 2004-05?",
+            "options": ["Tim Cahill", "Duncan Ferguson", "Marcus Bent", "James Beattie"]
+        },        {
+            "id": 218,
+            "category": "NBA",
+            "question": "Which player won the 2022 NBA Finals MVP?",
+            "options": ["Stephen Curry", "Jaylen Brown", "Jayson Tatum", "Andrew Wiggins"]
+        },        {
+            "id": 219,
+            "category": "Premier League",
+            "question": "Which club plays at the King Power Stadium?",
+            "options": ["Leicester City", "Southampton", "Crystal Palace", "Burnley"]
+        },        {
+            "id": 220,
+            "category": "NBA",
+            "question": "Who was the first European player to win NBA MVP?",
+            "options": ["Dirk Nowitzki", "Tony Parker", "Pau Gasol", "Peja Stojaković"]
+        },        {
+            "id": 221,
+            "category": "Premier League",
+            "question": "Which player scored four goals against Norwich City in 2013 for Liverpool?",
+            "options": ["Luis Suárez", "Daniel Sturridge", "Steven Gerrard", "Raheem Sterling"]
+        },        {
+            "id": 222,
+            "category": "NBA",
+            "question": "Which team drafted Kevin Durant before relocating to Oklahoma City?",
+            "options": ["Seattle SuperSonics", "Vancouver Grizzlies", "New Orleans Hornets", "Charlotte Bobcats"]
+        },        {
+            "id": 223,
+            "category": "Premier League",
+            "question": "Who was Arsenal's captain during the 'Invincibles' season?",
+            "options": ["Patrick Vieira", "Tony Adams", "Thierry Henry", "Dennis Bergkamp"]
+        },        {
+            "id": 224,
+            "category": "NBA",
+            "question": "Which player is known as 'The Slim Reaper'?",
+            "options": ["Kevin Durant", "Giannis Antetokounmpo", "Brandon Ingram", "Chet Holmgren"]
+        },        {
+            "id": 225,
+            "category": "Premier League",
+            "question": "Which stadium has the largest capacity in the Premier League?",
+            "options": ["Old Trafford", "Tottenham Hotspur Stadium", "Emirates Stadium", "Anfield"]
+        },        {
+            "id": 226,
+            "category": "NBA",
+            "question": "Who hit 'The Shot' over Bryon Russell in the 1998 NBA Finals?",
+            "options": ["Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Steve Kerr"]
+        },        {
+            "id": 227,
+            "category": "Premier League",
+            "question": "Which player has scored the most goals in London derbies?",
+            "options": ["Thierry Henry", "Frank Lampard", "Harry Kane", "Didier Drogba"]
+        },
+        {
+            "id": 228,
+            "category": "NBA",
+            "question": "Which team did Carmelo Anthony win a scoring title with?",
+            "options": ["New York Knicks", "Denver Nuggets", "Portland Trail Blazers", "Oklahoma City Thunder"]
+        },
+        {
+            "id": 229,
+            "category": "Premier League",
+            "question": "Who was the first goalkeeper to score a Premier League goal from open play?",
+            "options": ["Peter Schmeichel", "Paul Robinson", "Brad Friedel", "Tim Howard"]
+        },
+        {
+            "id": 230,
+            "category": "NBA",
+            "question": "In 1980, which team traded five draft picks to acquire a single player?",
+            "options": ["Cleveland Cavaliers", "New York Knicks", "Philadelphia 76ers", "Boston Celtics"]
+        },
+        {
+            "id": 231,
+            "category": "Premier League",
+            "question": "Which club did Jurgen Klopp manage immediately before Liverpool?",
+            "options": ["Borussia Dortmund", "Bayern Munich", "Mainz 05", "Schalke 04"]
+        },
+        {
+            "id": 232,
+            "category": "NBA",
+            "question": "Who was the first player to win MVP with a sub-.500 team?",
+            "options": ["Kareem Abdul-Jabbar", "Bob McAdoo", "Moses Malone", "Russell Westbrook"]
+        },
+        {
+            "id": 233,
+            "category": "Premier League",
+            "question": "Which player is known for scoring spectacular 'rabona' goals?",
+            "options": ["Erik Lamela", "Angel Di María", "Ricardo Quaresma", "Cristiano Ronaldo"]
+        },
+        {
+            "id": 234,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Round Mound of Rebound'?",
+            "options": ["Charles Barkley", "Kevin Love", "Zach Randolph", "Moses Malone"]
+        },
+        {
+            "id": 235,
+            "category": "Premier League",
+            "question": "Which team plays at Goodison Park?",
+            "options": ["Everton", "Liverpool", "Burnley", "Stoke City"]
+        },
+        {
+            "id": 236,
+            "category": "NBA",
+            "question": "Who was the first player to lead both teams in all five major statistics in an NBA Finals series?",
+            "options": ["LeBron James", "Michael Jordan", "Magic Johnson", "Tim Duncan"]
+        },
+        {
+            "id": 237,
+            "category": "Premier League",
+            "question": "Which player holds the record for most Premier League goals in a calendar year (39)?",
+            "options": ["Harry Kane", "Alan Shearer", "Mohamed Salah", "Cristiano Ronaldo"]
+        },
+        {
+            "id": 238,
+            "category": "NBA",
+            "question": "Which franchise won the NBA championship in 1977 and hasn't made the Finals since?",
+            "options": ["Portland Trail Blazers", "Seattle SuperSonics", "Washington Bullets", "Milwaukee Bucks"]
+        },
+        {
+            "id": 239,
+            "category": "Premier League",
+            "question": "Who was the first South American player to win PFA Player of the Year?",
+            "options": ["Luis Suárez", "Carlos Tévez", "Alexis Sánchez", "Roberto Firmino"]
+        },
+        {
+            "id": 240,
+            "category": "NBA",
+            "question": "Which player was known as 'Agent Zero'?",
+            "options": ["Gilbert Arenas", "Russell Westbrook", "Damian Lillard", "John Wall"]
+        },
+        {
+            "id": 241,
+            "category": "Premier League",
+            "question": "Which manager was known for his 'Mind Games' with other managers?",
+            "options": ["Sir Alex Ferguson", "José Mourinho", "Kevin Keegan", "Arsène Wenger"]
+        },
+        {
+            "id": 242,
+            "category": "NBA",
+            "question": "Who was the first player to record a quadruple-double in NBA history?",
+            "options": ["Nate Thurmond", "Hakeem Olajuwon", "David Robinson", "Alvin Robertson"]
+        },
+        {
+            "id": 243,
+            "category": "Premier League",
+            "question": "Which club is known as 'The Saints'?",
+            "options": ["Southampton", "Newcastle United", "Crystal Palace", "West Ham United"]
+        },
+        {
+            "id": 244,
+            "category": "NBA",
+            "question": "Which player won the 2023 NBA Clutch Player of the Year award?",
+            "options": ["De'Aaron Fox", "Jimmy Butler", "Damian Lillard", "DeMar DeRozan"]
+        },
+        {
+            "id": 245,
+            "category": "Premier League",
+            "question": "Who scored the infamous 'Beach Ball Goal' for Sunderland against Liverpool?",
+            "options": ["Darren Bent", "Kenwyne Jones", "Djibril Cisse", "Asamoah Gyan"]
+        },
+        {
+            "id": 246,
+            "category": "NBA",
+            "question": "Which team had the 'Jail Blazers' era in the early 2000s?",
+            "options": ["Portland Trail Blazers", "Detroit Pistons", "Sacramento Kings", "Memphis Grizzlies"]
+        },
+        {
+            "id": 247,
+            "category": "Premier League",
+            "question": "Which player scored the fastest FA Cup Final goal (25 seconds)?",
+            "options": ["Louis Saha", "Roberto Di Matteo", "John Aloisi", "Ian Rush"]
+        },
+        {
+            "id": 248,
+            "category": "NBA",
+            "question": "Who was the first player to be drafted straight from high school in the modern era?",
+            "options": ["Kevin Garnett", "Kobe Bryant", "LeBron James", "Tracy McGrady"]
+        },
+        {
+            "id": 249,
+            "category": "Premier League",
+            "question": "Which player scored a famous long-range chip against Wimbledon from the halfway line?",
+            "options": ["David Beckham", "Wayne Rooney", "Paul Scholes", "Eric Cantona"]
+        },
+        {
+            "id": 250,
+            "category": "NBA",
+            "question": "Which team did Jason Kidd lead to consecutive NBA Finals in 2002 and 2003?",
+            "options": ["New Jersey Nets", "Dallas Mavericks", "Phoenix Suns", "New York Knicks"]
+        },
+        {
+            "id": 251,
+            "category": "Premier League",
+            "question": "Which player scored six goals in a single Premier League game?",
+            "options": ["No player has achieved this", "Andy Cole", "Alan Shearer", "Jermain Defoe"]
+        },
+        {
+            "id": 252,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Truth'?",
+            "options": ["Paul Pierce", "Kevin Garnett", "Ray Allen", "Rajon Rondo"]
+        },
+        {
+            "id": 253,
+            "category": "Premier League",
+            "question": "Which team won the Premier League in the 2006-07 season?",
+            "options": ["Manchester United", "Chelsea", "Arsenal", "Liverpool"]
+        },
+        {
+            "id": 254,
+            "category": "NBA",
+            "question": "Which player won the 2012 NBA Most Improved Player award?",
+            "options": ["Ryan Anderson", "Kevin Love", "Jeremy Lin", "Paul George"]
+        },
+        {
+            "id": 255,
+            "category": "Premier League",
+            "question": "Who was Chelsea's manager when they won their first Premier League title?",
+            "options": ["José Mourinho", "Claudio Ranieri", "Carlo Ancelotti", "Roberto Di Matteo"]
+        },
+        {
+            "id": 256,
+            "category": "NBA",
+            "question": "Which player was drafted #2 overall in the 2007 NBA Draft?",
+            "options": ["Kevin Durant", "Greg Oden", "Mike Conley", "Al Horford"]
+        },
+        {
+            "id": 257,
+            "category": "Premier League",
+            "question": "Which player has the most consecutive Premier League appearances (310)?",
+            "options": ["Brad Friedel", "David James", "Frank Lampard", "Gary Speed"]
+        },
+        {
+            "id": 258,
+            "category": "NBA",
+            "question": "Which coach won an NBA championship with the Boston Celtics in 1986?",
+            "options": ["K.C. Jones", "Red Auerbach", "Bill Fitch", "Chris Ford"]
+        },
+        {
+            "id": 259,
+            "category": "Premier League",
+            "question": "Which team plays at St. James' Park?",
+            "options": ["Newcastle United", "Exeter City", "Southampton", "Sunderland"]
+        },
+        {
+            "id": 260,
+            "category": "NBA",
+            "question": "Which player was known as 'The Captain'?",
+            "options": ["Willis Reed", "Kareem Abdul-Jabbar", "Bill Russell", "Bob Cousy"]
+        },
+        {
+            "id": 261,
+            "category": "Premier League",
+            "question": "Which club did Diego Costa join Chelsea from in 2014?",
+            "options": ["Atlético Madrid", "Real Madrid", "Valencia", "Sevilla"]
+        },
+        {
+            "id": 262,
+            "category": "NBA",
+            "question": "Which player won the 2001 NBA MVP award?",
+            "options": ["Allen Iverson", "Shaquille O'Neal", "Tim Duncan", "Kobe Bryant"]
+        },
+        {
+            "id": 263,
+            "category": "Premier League",
+            "question": "Who scored the famous 'Hand of God' goal?",
+            "options": ["Diego Maradona", "Thierry Henry", "Luis Suarez", "Lionel Messi"]
+        },
+        {
+            "id": 264,
+            "category": "NBA",
+            "question": "Which team did Steve Nash win his MVP awards with?",
+            "options": ["Phoenix Suns", "Dallas Mavericks", "Los Angeles Lakers", "Golden State Warriors"]
+        },
+        {
+            "id": 265,
+            "category": "Premier League",
+            "question": "Which player has won the most FA Cups (7)?",
+            "options": ["Ashley Cole", "Ryan Giggs", "Paul Scholes", "John Terry"]
+        },
+        {
+            "id": 266,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Matrix'?",
+            "options": ["Shawn Marion", "Gerald Wallace", "Andre Kirilenko", "Josh Smith"]
+        },
+        {
+            "id": 267,
+            "category": "Premier League",
+            "question": "Which team did Pep Guardiola first face as Manchester City manager?",
+            "options": ["Sunderland", "Stoke City", "Manchester United", "West Ham"]
+        },
+        {
+            "id": 268,
+            "category": "NBA",
+            "question": "Which team had the longest winning streak in NBA history (33 games)?",
+            "options": ["Los Angeles Lakers (1971-72)", "Golden State Warriors (2015-16)", "Miami Heat (2012-13)", "Houston Rockets (2007-08)"]
+        },
+        {
+            "id": 269,
+            "category": "Premier League",
+            "question": "Which player has the most hat-tricks in Premier League history?",
+            "options": ["Sergio Agüero", "Alan Shearer", "Harry Kane", "Michael Owen"]
+        },
+        {
+            "id": 270,
+            "category": "NBA",
+            "question": "Which player was the first to be named MVP, Finals MVP, and Olympic gold medalist in the same year?",
+            "options": ["Michael Jordan", "LeBron James", "Larry Bird", "Magic Johnson"]
+        },
+        {
+            "id": 271,
+            "category": "Premier League",
+            "question": "Which team has the record for most goals scored in a Premier League season (106)?",
+            "options": ["Manchester City (2017-18)", "Liverpool (2013-14)", "Manchester United (1999-2000)", "Chelsea (2009-10)"]
+        },
+        {
+            "id": 272,
+            "category": "NBA",
+            "question": "Which player was known as 'The Iceman'?",
+            "options": ["George Gervin", "Wilt Chamberlain", "Julius Erving", "David Thompson"]
+        },
+        {
+            "id": 273,
+            "category": "Premier League",
+            "question": "Which manager has the most Premier League Manager of the Month awards?",
+            "options": ["Sir Alex Ferguson", "Arsène Wenger", "José Mourinho", "Pep Guardiola"]
+        },
+        {
+            "id": 274,
+            "category": "NBA",
+            "question": "Which player hit 8 three-pointers in a quarter, setting an NBA record?",
+            "options": ["Klay Thompson", "Stephen Curry", "Ray Allen", "Reggie Miller"]
+        },
+        {
+            "id": 275,
+            "category": "Premier League",
+            "question": "Which team has spent the most consecutive seasons in the Premier League?",
+            "options": ["Everton", "Arsenal", "Chelsea", "Liverpool"]
+        },
+        {
+            "id": 276,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Glove'?",
+            "options": ["Gary Payton", "Jason Kidd", "John Stockton", "Mark Jackson"]
+        },
+        {
+            "id": 277,
+            "category": "Premier League",
+            "question": "Which player scored the first Premier League goal?",
+            "options": ["Brian Deane", "Mark Hughes", "Alan Shearer", "Ian Wright"]
+        },
+        {
+            "id": 278,
+            "category": "NBA",
+            "question": "Which team selected Damian Lillard in the 2012 NBA Draft?",
+            "options": ["Portland Trail Blazers", "Charlotte Bobcats", "Cleveland Cavaliers", "Detroit Pistons"]
+        },
+        {
+            "id": 279,
+            "category": "Premier League",
+            "question": "Which manager was known as 'The Special One'?",
+            "options": ["José Mourinho", "Pep Guardiola", "Carlo Ancelotti", "Louis van Gaal"]
+        },
+        {
+            "id": 280,
+            "category": "NBA",
+            "question": "Which player scored 60 points in his final NBA game?",
+            "options": ["Kobe Bryant", "Michael Jordan", "Wilt Chamberlain", "David Robinson"]
+        },
+        {
+            "id": 281,
+            "category": "Premier League",
+            "question": "Which team won the 'double' in the 1997-98 season?",
+            "options": ["Arsenal", "Manchester United", "Chelsea", "Liverpool"]
+        },
+        {
+            "id": 282,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Admiral'?",
+            "options": ["David Robinson", "Patrick Ewing", "Alonzo Mourning", "Dikembe Mutombo"]
+        },
+        {
+            "id": 283,
+            "category": "Premier League",
+            "question": "Which team has the nickname 'The Toffees'?",
+            "options": ["Everton", "Leeds United", "Aston Villa", "West Ham United"]
+        },
+        {
+            "id": 284,
+            "category": "NBA",
+            "question": "Which player won the 2016 NBA Three-Point Contest?",
+            "options": ["Klay Thompson", "Stephen Curry", "Devin Booker", "James Harden"]
+        },
+        {
+            "id": 285,
+            "category": "Premier League",
+            "question": "Which player has scored the most penalties in Premier League history?",
+            "options": ["Alan Shearer", "Frank Lampard", "Steven Gerrard", "Wayne Rooney"]
+        },
+        {
+            "id": 286,
+            "category": "NBA",
+            "question": "Which team did Kevin McHale play his entire career for?",
+            "options": ["Boston Celtics", "Houston Rockets", "Minnesota Timberwolves", "New York Knicks"]
+        },
+        {
+            "id": 287,
+            "category": "Premier League",
+            "question": "Which club is known as 'The Foxes'?",
+            "options": ["Leicester City", "Nottingham Forest", "Sheffield United", "Wolverhampton Wanderers"]
+        },
+        {
+            "id": 288,
+            "category": "NBA",
+            "question": "Which player was the youngest to reach 20,000 career points?",
+            "options": ["LeBron James", "Kobe Bryant", "Kevin Durant", "Michael Jordan"]
+        },
+        {
+            "id": 289,
+            "category": "NBA",
+            "question": "Which player was known as 'Half Man, Half Amazing'?",
+            "options": ["Vince Carter", "Michael Jordan", "Dominique Wilkins", "Kobe Bryant"]
+        },
+        {
+            "id": 290,
+            "category": "Premier League",
+            "question": "Which stadium is known as 'The Home of Football'?",
+            "options": ["Wembley Stadium", "Old Trafford", "Anfield", "Emirates Stadium"]
+        },
+        {
+            "id": 291,
+            "category": "NBA",
+            "question": "Which player won the 1984 NBA Rookie of the Year award?",
+            "options": ["Michael Jordan", "Hakeem Olajuwon", "Charles Barkley", "John Stockton"]
+        },
+        {
+            "id": 292,
+            "category": "Premier League",
+            "question": "Which team is known as 'The Hammers'?",
+            "options": ["West Ham United", "Birmingham City", "Bolton Wanderers", "Sheffield United"]
+        },
+        {
+            "id": 293,
+            "category": "NBA",
+            "question": "Which player was nicknamed 'The Black Mamba'?",
+            "options": ["Kobe Bryant", "Michael Jordan", "Kevin Durant", "LeBron James"]
+        },
+        {
+            "id": 294,
+            "category": "Premier League",
+            "question": "Which player has made the most substitute appearances in Premier League history?",
+            "options": ["Peter Crouch", "Jermain Defoe", "Shola Ameobi", "Olivier Giroud"]
+        },
+        {
+            "id": 295,
+            "category": "NBA",
+            "question": "Which team selected Giannis Antetokounmpo in the 2013 NBA Draft?",
+            "options": ["Milwaukee Bucks", "Atlanta Hawks", "Philadelphia 76ers", "Utah Jazz"]
+        },
+        {
+            "id": 296,
+            "category": "Premier League",
+            "question": "Which player scored the 'Goal of the Season' bicycle kick against Manchester City in 2018?",
+            "options": ["Wayne Rooney", "Olivier Giroud", "Christian Benteke", "Andy Carroll"]
+        },
+        {
+            "id": 297,
+            "category": "NBA",
+            "question": "Which player has the most career playoff points in NBA history?",
+            "options": ["LeBron James", "Michael Jordan", "Kareem Abdul-Jabbar", "Kobe Bryant"]
+        },
+        {
+            "id": 298,
+            "category": "Premier League",
+            "question": "Which club is nicknamed 'The Gunners'?",
+            "options": ["Arsenal", "Manchester United", "Chelsea", "Tottenham Hotspur"]
+        },
+        {
+            "id": 299,
+            "category": "NBA",
+            "question": "Which player scored 37 points in a single quarter?",
+            "options": ["Klay Thompson", "Stephen Curry", "Kobe Bryant", "James Harden"]
+        }
+    ]
+}
