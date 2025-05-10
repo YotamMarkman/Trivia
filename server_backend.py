@@ -35,6 +35,7 @@ class Player:
         self.current_answer = None
         self.answered = False
         self.connected = True
+        self.timetaken = 0
         
     def to_dict(self):
         """
@@ -91,6 +92,7 @@ class GameRoom:
         self.players = {}  # {session_id: Player}
         self.questions = []  # List of questions for this game
         self.marked_for_deletion = False
+        self.category_choosen = None  # Category chosen by the host
     
     def add_player(self, player):
         """
@@ -166,14 +168,39 @@ class GameRoom:
         - Send first question to all players
         - Start question timer
         """
-        self.game_state = "playing"
-        self.questions = load_questions()  # Load questions from JSON
-        random.shuffle(self.questions)  # Shuffle questions
-        self.current_question = 1
-        self.time_remaining = self.question_duration
-        self.start_question_timer()  # Start the timer for the first question
-        self.send_question()  # Send the first question to all players
+        if self.game_state != "waiting":
+            return False
+    
+        if len(self.players) < 2:  # Minimum players check
+            return False
         
+        # Load questions based on category (if using categories)
+        all_questions = load_questions(self.category_choosen) 
+        
+        if not all_questions:
+            return False
+        
+        # Select 15 random questions
+        self.questions = random.sample(all_questions, min(15, len(all_questions)))
+        
+        # Initialize game state
+        self.game_state = "playing"
+        self.current_question = 0  # Should start at 0, not 1 (zero-indexed)
+        
+        # Reset all players
+        for player in self.players.values():
+            player.score = 0
+            player.answered = False
+            player.current_answer = None
+        
+        # Send first question
+        self.send_current_question()  # Use send_current_question, not send_question
+        
+        # Start timer
+        self.start_question_timer()
+        
+        return True
+            
     
     def submit_answer(self, session_id, answer):
         """
@@ -186,7 +213,91 @@ class GameRoom:
         - Check if all players have answered
         - Return result
         """
-        pass
+        # Check if player exists in this room
+        if session_id not in self.players:
+            return {'status': 'error', 'message': 'Player not in this room'}
+        player = self.players[session_id]
+        # Validate that player hasn't already answered
+        if player.answered:
+            return {'status': 'error', 'message': 'Already answered this question'}
+        # Validate game state
+        if self.game_state != "playing":
+            return {'status': 'error', 'message': 'Game not in progress'}
+        # Check if we have a current question
+        if self.current_question >= len(self.questions):
+            return {'status': 'error', 'message': 'No active question'}
+        # Store the answer
+        player.current_answer = answer
+        player.answered = True
+        # Check if answer is correct and update score
+        current_question = self.questions[self.current_question]
+        is_correct = (answer == current_question['correct_answer'])
+        if is_correct:
+            player.score += 1
+        # Check if all players have answered
+        all_answered = all(p.answered for p in self.players.values())
+        # Prepare result
+        result = {
+            'status': 'success',
+            'is_correct': is_correct,
+            'current_score': player.score,
+            'all_answered': all_answered
+        }
+        # If all players have answered, we might want to move to next question
+        if all_answered:
+            # Stop the timer since everyone has answered
+            if self.timer_thread and self.timer_thread.is_alive():
+                self.time_remaining = 0  # This will stop the timer
+            
+            # You might want to show results and then move to next question
+            # This could be handled by a separate method
+            result['should_advance'] = True
+        
+        return result
+    
+    def reveal_answer(self):
+        """
+        Reveal the correct answer to all players"""
+        if self.current_question >= len(self.questions):
+            return
+    
+        current_question = self.questions[self.current_question]
+    
+        # Prepare results for all players
+        results = {
+            'correct_answer': current_question['correct_answer'],
+            'player_results': []
+        }
+        
+        for player in self.players.values():
+            player_result = {
+                'name': player.name,
+                'answer': player.current_answer,
+                'is_correct': player.current_answer == current_question['correct_answer'],
+                'score': player.score
+            }
+            results['player_results'].append(player_result)
+        
+        # Sort by score for leaderboard
+        results['player_results'].sort(key=lambda x: x['score'], reverse=True)
+        
+        # Emit results to all players
+        emit('question_results', results, room=self.room_id)
+        
+        # Schedule next question after a delay
+        threading.Timer(5.0, self.next_question).start()
+
+    def time_up(self):
+        """Called when timer expires"""
+        # Mark all unanswered players as having no answer
+        for player in self.players.values():
+            if not player.answered:
+                player.answered = True
+                player.current_answer = None
+        
+        # Reveal answers and move on
+        self.reveal_answers()
+            
     
     def next_question(self):
         """
@@ -198,8 +309,53 @@ class GameRoom:
         - Send new question or end game if no more questions
         - Start new timer
         """
-        pass
+        
+        if self.current_question >= len(self.questions):
+            self.end_game()
+            return
     
+        # Reset all players' answered status
+        for player in self.players.values():
+            player.answered = False
+            player.current_answer = None
+        
+        # Send the new question
+        self.send_current_question()
+        
+        # Start new timer (note: it's a function call, needs parentheses)
+        self.start_question_timer()
+
+    def send_current_question(self):
+        """Send the current question to all players"""
+        # Check if we're out of questions
+        if self.current_question >= len(self.questions):
+            self.end_game()
+            return
+        
+        # Get the current question
+        question = self.questions[self.current_question]
+        
+        # Shuffle the options
+        shuffled_options = random.sample(question['options'], len(question['options']))
+        
+        # Prepare question data
+        question_data = {
+            'question_number': self.current_question + 1,
+            'total_questions': len(self.questions),
+            'question': question['question'],
+            'options': shuffled_options,
+            'time_limit': self.question_duration
+        }
+        
+        # Reset player states
+        for player in self.players.values():
+            player.answered = False
+            player.current_answer = None
+        
+        # Send to all players in room
+        emit('new_question', question_data, room=self.room_id)
+        
+        
     def end_game(self):
         """
         End the game and show final results
@@ -210,8 +366,37 @@ class GameRoom:
         - Determine winner(s)
         - Emit final results to all players
         """
-        pass
-    
+        self.game_state = 'finished'
+        
+        # Stop any running timer
+        self.time_remaining = 0
+        
+        # Prepare final results
+        final_results = {
+            'players': []
+        }
+        
+        # Compile all player scores
+        for player in self.players.values():
+            player_data = {
+                'name': player.name,
+                'score': player.score,
+                'session_id': player.session_id
+            }
+            final_results['players'].append(player_data)
+        
+        # Sort by score (highest first)
+        final_results['players'].sort(key=lambda x: x['score'], reverse=True)
+        
+        # Determine winner(s) - handle ties
+        if final_results['players']:
+            highest_score = final_results['players'][0]['score']
+            winners = [p for p in final_results['players'] if p['score'] == highest_score]
+            final_results['winners'] = winners
+        
+        # Emit final results to all players
+        emit('game_ended', final_results, room=self.room_id)
+
     def start_question_timer(self):
         """
         Start a timer for the current question
@@ -222,8 +407,29 @@ class GameRoom:
         - Emit time updates to room
         - Auto-advance when time expires
         """
-        pass
-    
+        # Set initial time
+        self.time_remaining = self.question_duration
+        
+        # Define timer function
+        def timer_countdown():
+            while self.time_remaining > 0 and self.game_state == 'playing':
+                time.sleep(1)
+                self.time_remaining -= 1
+                
+                # Emit time update to all players
+                emit('timer_update', {
+                    'time_remaining': self.time_remaining
+                }, room=self.room_id)
+                
+            # Time's up - handle timeout
+            if self.time_remaining == 0 and self.game_state == 'playing':
+                self.time_up()
+        
+        # Start timer in a new thread
+        self.timer_thread = threading.Thread(target=timer_countdown)
+        self.timer_thread.daemon = True  # Thread will stop when main program exits
+        self.timer_thread.start()
+
     def broadcast_scores(self):
         """
         Send current scores to all players
@@ -232,7 +438,29 @@ class GameRoom:
         - Compile score data
         - Emit to all players in room
         """
-        pass
+        # Compile score data
+        scores_data = {
+            'scores': []
+        }
+        
+        for player in self.players.values():
+            player_score = {
+                'name': player.name,
+                'score': player.score,
+                'session_id': player.session_id,
+                'answered': player.answered
+            }
+            scores_data['scores'].append(player_score)
+        
+        # Sort by score (highest first)
+        scores_data['scores'].sort(key=lambda x: x['score'], reverse=True)
+        
+        # Add current question info
+        scores_data['current_question'] = self.current_question + 1
+        scores_data['total_questions'] = len(self.questions)
+        
+        # Emit to all players in room
+        emit('scores_update', scores_data, room=self.room_id)
 
 # Utility functions
 def generate_room_id():
@@ -244,27 +472,44 @@ def generate_room_id():
     - Ensure it's not already in use
     - Return the unique ID
     """
-    pass
-
-def load_questions():
+    unique_ID = f"{random.randint(0,999999):06d}"
+    while unique_ID  in active_rooms:
+        unique_ID = f"{random.randint(0,999999):06d}"
+    
+    return unique_ID
+    
+def load_questions(category_choosen):
     """
     Load questions from your JSON file
     
     TODO:
     - Read questions from file
-    - Parse JSON data
+    - Parse SQL data
     - Return list of questions
     """
+    category_choosen = category_choosen.lower()
     try:
         # Connect to your database (adjust the path as needed)
-        conn = sqlite3.connect('quiz_database.db')
+        conn = sqlite3.connect('quiz_questions.db')
         cursor = conn.cursor()
         
-        # Fetch all questions from your database
-        cursor.execute('''
-            SELECT id, question, correct_answer, wrong1, wrong2, wrong3
-            FROM questions
-        ''')
+        if category_choosen == 'all':
+            cursor.execute('''
+                SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category
+                FROM quiz_questions
+            ''')
+        elif category_choosen == 'premier league':
+            cursor.execute('''
+                SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category
+                FROM quiz_questions
+                WHERE category = 'Premier League'
+            ''')
+        elif category_choosen == 'nba':
+            cursor.execute('''
+            SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category
+            FROM quiz_questions
+            WHERE category = 'NBA'
+            ''')
         
         rows = cursor.fetchall()
         questions = []
@@ -300,7 +545,13 @@ def validate_answer(question, submitted_answer):
     - Compare submitted answer with correct answer
     - Return boolean result
     """
-    pass
+    if question.
+
+def correct_answer (player, correct_answer):
+    if correct_answer == player.current_answer:
+        player.score = player.score + (1000 - player.timetaken*10)
+    else:
+        player.score = player.score
 
 # Socket.IO event handlers
 @socketio.on('connect')
