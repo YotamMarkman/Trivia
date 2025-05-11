@@ -56,7 +56,7 @@ class Player:
         self.current_answer = None
         self.answered = False
         
-    def sumit_answer(self, answer):
+    def submit_answer(self, answer):
         
         if not self.answered:
             self.current_answer = answer
@@ -576,182 +576,429 @@ def correct_answer (player, correct_answer):
 # Socket.IO event handlers
 @socketio.on('connect')
 def handle_connect():
-    """
-    Handle new client connection
+    """Handle new client connection"""
+    session_id = request.sid
+    print(f"Client connected: {session_id}")
     
-    TODO:
-    - Log connection
-    - Initialize player session if needed
-    - Send connection acknowledgment
-    """
-    pass
+    # Initialize player session
+    player_sessions[session_id] = {
+        'connected_at': datetime.now().isoformat(),
+        'player': None,
+        'room_id': None
+    }
+    
+    # Send connection acknowledgment
+    emit('connected', {
+        'status': 'connected',
+        'session_id': session_id,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    """
-    Handle client disconnection
+    """Handle client disconnection"""
+    session_id = request.sid
+    print(f"Client disconnected: {session_id}")
     
-    TODO:
-    - Find player's room
-    - Remove player from room
-    - Notify other players
-    - Clean up empty rooms
-    """
-    pass
+    # Find player's room
+    if session_id in player_sessions and player_sessions[session_id]['room_id']:
+        room_id = player_sessions[session_id]['room_id']
+        
+        # Remove player from room
+        if room_id in active_rooms:
+            room = active_rooms[room_id]
+            room.remove_player(session_id)
+            
+            # Notify other players
+            emit('player_disconnected', {
+                'player_id': session_id,
+                'message': 'Player disconnected'
+            }, room=room_id)
+            
+            # Mark room for deletion if empty
+            if room.marked_for_deletion:
+                del active_rooms[room_id]
+                print(f"Room {room_id} deleted - no players remaining")
+    
+    # Clean up player session
+    if session_id in player_sessions:
+        del player_sessions[session_id]
 
 @socketio.on('create_room')
 def handle_create_room(data):
-    """
-    Create a new game room
+    """Create a new game room"""
+    session_id = request.sid
+    player_name = data.get('player_name', 'Anonymous')
+    category = data.get('category', 'all')
     
-    TODO:
-    - Extract player name from data
-    - Generate room ID
-    - Create new GameRoom instance
-    - Create Player instance for host
-    - Add host to room
-    - Join socket.io room
-    - Send room info back to client
-    """
-    pass
+    # Generate room ID
+    room_id = generate_room_id()
+    
+    # Create new GameRoom instance
+    game_room = GameRoom(room_id, session_id)
+    game_room.category_choosen = category
+    active_rooms[room_id] = game_room
+    
+    # Create Player instance for host
+    player = Player(session_id, player_name)
+    
+    # Add host to room
+    if game_room.add_player(player):
+        # Join socket.io room
+        join_room(room_id)
+        
+        # Update player session
+        player_sessions[session_id]['player'] = player
+        player_sessions[session_id]['room_id'] = room_id
+        
+        # Send room info back to client
+        emit('room_created', {
+            'room_id': room_id,
+            'player': player.to_dict(),
+            'is_host': True,
+            'category': category,
+            'max_players': game_room.max_players
+        })
+        
+        # Broadcast updated room state
+        emit('room_update', {
+            'room_id': room_id,
+            'players': [p.to_dict() for p in game_room.players.values()],
+            'host_id': game_room.host_id,
+            'game_state': game_room.game_state
+        }, room=room_id)
+    else:
+        emit('error', {'message': 'Failed to create room'})
 
 @socketio.on('join_room')
 def handle_join_room(data):
-    """
-    Join an existing game room
+    """Join an existing game room"""
+    session_id = request.sid
+    room_id = data.get('room_id')
+    player_name = data.get('player_name', 'Anonymous')
     
-    TODO:
-    - Extract room_id and player_name from data
-    - Validate room exists and isn't full
-    - Create Player instance
-    - Add player to room
-    - Join socket.io room
-    - Notify other players
-    - Send room state to joining player
-    """
-    pass
+    # Validate room exists
+    if room_id not in active_rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+    
+    room = active_rooms[room_id]
+    
+    # Validate room isn't full
+    if len(room.players) >= room.max_players:
+        emit('error', {'message': 'Room is full'})
+        return
+    
+    # Validate game hasn't started
+    if room.game_state != "waiting":
+        emit('error', {'message': 'Game already in progress'})
+        return
+    
+    # Create Player instance
+    player = Player(session_id, player_name)
+    
+    # Add player to room
+    if room.add_player(player):
+        # Join socket.io room
+        join_room(room_id)
+        
+        # Update player session
+        player_sessions[session_id]['player'] = player
+        player_sessions[session_id]['room_id'] = room_id
+        
+        # Send room state to joining player
+        emit('joined_room', {
+            'room_id': room_id,
+            'player': player.to_dict(),
+            'is_host': False,
+            'players': [p.to_dict() for p in room.players.values()],
+            'host_id': room.host_id,
+            'category': room.category_choosen,
+            'game_state': room.game_state
+        })
+        
+        # Notify other players
+        emit('player_joined', {
+            'player': player.to_dict(),
+            'players': [p.to_dict() for p in room.players.values()]
+        }, room=room_id)
+    else:
+        emit('error', {'message': 'Failed to join room'})
 
 @socketio.on('leave_room')
 def handle_leave_room(data):
-    """
-    Leave a game room
+    """Leave a game room"""
+    session_id = request.sid
     
-    TODO:
-    - Find player's current room
-    - Remove player from game room
-    - Leave socket.io room
-    - Notify other players
-    - Handle host leaving
-    """
-    pass
+    # Find player's current room
+    if session_id not in player_sessions or not player_sessions[session_id]['room_id']:
+        emit('error', {'message': 'Not in a room'})
+        return
+    
+    room_id = player_sessions[session_id]['room_id']
+    
+    if room_id not in active_rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+    
+    room = active_rooms[room_id]
+    
+    # Remove player from game room
+    if room.remove_player(session_id):
+        # Leave socket.io room
+        leave_room(room_id)
+        
+        # Update player session
+        player_sessions[session_id]['room_id'] = None
+        
+        # Notify other players
+        emit('player_left', {
+            'player_id': session_id,
+            'players': [p.to_dict() for p in room.players.values()],
+            'new_host_id': room.host_id
+        }, room=room_id)
+        
+        # Send confirmation to leaving player
+        emit('left_room', {
+            'status': 'success',
+            'room_id': room_id
+        })
+        
+        # Handle empty room
+        if room.marked_for_deletion:
+            del active_rooms[room_id]
+            print(f"Room {room_id} deleted - no players remaining")
+    else:
+        emit('error', {'message': 'Failed to leave room'})
 
 @socketio.on('start_game')
 def handle_start_game(data):
-    """
-    Start the game (host only)
+    """Start the game (host only)"""
+    session_id = request.sid
     
-    TODO:
-    - Verify request is from host
-    - Check minimum players requirement
-    - Start the game
-    - Send first question to all players
-    """
-    pass
+    # Get player's room
+    if session_id not in player_sessions or not player_sessions[session_id]['room_id']:
+        emit('error', {'message': 'Not in a room'})
+        return
+    
+    room_id = player_sessions[session_id]['room_id']
+    
+    if room_id not in active_rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+    
+    room = active_rooms[room_id]
+    
+    # Verify request is from host
+    if room.host_id != session_id:
+        emit('error', {'message': 'Only host can start the game'})
+        return
+    
+    # Check minimum players requirement
+    if len(room.players) < 2:
+        emit('error', {'message': 'Need at least 2 players to start'})
+        return
+    
+    # Start the game
+    if room.start_game():
+        emit('game_started', {
+            'status': 'started',
+            'message': 'Game has started!',
+            'total_questions': len(room.questions)
+        }, room=room_id)
+    else:
+        emit('error', {'message': 'Failed to start game'})
 
 @socketio.on('submit_answer')
 def handle_submit_answer(data):
-    """
-    Handle answer submission
+    """Handle answer submission"""
+    session_id = request.sid
+    answer = data.get('answer')
     
-    TODO:
-    - Extract room_id and answer from data
-    - Submit answer to game room
-    - Check if all players have answered
-    - Send acknowledgment to player
-    """
-    pass
+    # Get player's room
+    if session_id not in player_sessions or not player_sessions[session_id]['room_id']:
+        emit('error', {'message': 'Not in a room'})
+        return
+    
+    room_id = player_sessions[session_id]['room_id']
+    
+    if room_id not in active_rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+    
+    room = active_rooms[room_id]
+    
+    # Submit answer to game room
+    result = room.submit_answer(session_id, answer)
+    
+    # Send acknowledgment to player
+    emit('answer_submitted', result)
+    
+    # If all players have answered, reveal answers
+    if result.get('all_answered'):
+        room.reveal_answer()
+    
+    # Broadcast updated scores
+    room.broadcast_scores()
 
 @socketio.on('request_next_question')
 def handle_next_question(data):
-    """
-    Move to next question (host only)
+    """Move to next question (host only)"""
+    session_id = request.sid
     
-    TODO:
-    - Verify request is from host
-    - Advance to next question
-    - Or end game if no more questions
-    """
-    pass
+    # Get player's room
+    if session_id not in player_sessions or not player_sessions[session_id]['room_id']:
+        emit('error', {'message': 'Not in a room'})
+        return
+    
+    room_id = player_sessions[session_id]['room_id']
+    
+    if room_id not in active_rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+    
+    room = active_rooms[room_id]
+    
+    # Verify request is from host
+    if room.host_id != session_id:
+        emit('error', {'message': 'Only host can advance questions'})
+        return
+    
+    # Advance to next question or end game
+    room.next_question()
 
 @socketio.on('chat_message')
 def handle_chat(data):
-    """
-    Handle chat messages in room
+    """Handle chat messages in room"""
+    session_id = request.sid
+    message = data.get('message', '')
     
-    TODO:
-    - Extract message and room_id
-    - Broadcast to all players in room
-    - Include sender information
-    """
-    pass
+    # Get player's room
+    if session_id not in player_sessions or not player_sessions[session_id]['room_id']:
+        emit('error', {'message': 'Not in a room'})
+        return
+    
+    room_id = player_sessions[session_id]['room_id']
+    player = player_sessions[session_id]['player']
+    
+    if not player:
+        emit('error', {'message': 'Player not found'})
+        return
+    
+    # Broadcast to all players in room
+    emit('chat_message', {
+        'sender': player.name,
+        'message': message,
+        'timestamp': datetime.now().isoformat()
+    }, room=room_id)
 
 # Error handlers
 @socketio.on_error()
 def error_handler(e):
-    """
-    Handle socket.io errors
+    """Handle socket.io errors"""
+    session_id = request.sid
+    print(f"SocketIO Error for session {session_id}: {str(e)}")
     
-    TODO:
-    - Log error details
-    - Send error message to client
-    """
-    pass
+    # Log error details
+    import traceback
+    traceback.print_exc()
+    
+    # Send error message to client
+    emit('error', {
+        'message': 'An error occurred',
+        'details': str(e)
+    })
 
 # Background tasks
 def cleanup_empty_rooms():
-    """
-    Periodically clean up empty rooms
-    
-    TODO:
-    - Run in background thread
-    - Check for empty or abandoned rooms
-    - Remove them from active_rooms
-    """
-    pass
+    """Periodically clean up empty rooms"""
+    while True:
+        try:
+            time.sleep(300)  # Run every 5 minutes
+            
+            rooms_to_delete = []
+            
+            # Check for empty or abandoned rooms
+            for room_id, room in active_rooms.items():
+                # Remove if marked for deletion
+                if room.marked_for_deletion:
+                    rooms_to_delete.append(room_id)
+                    continue
+                
+                # Remove if game finished more than 10 minutes ago
+                if room.game_state == "finished":
+                    # You might want to add a finished_at timestamp to GameRoom
+                    rooms_to_delete.append(room_id)
+                    continue
+                
+                # Remove if no players for more than 5 minutes
+                if len(room.players) == 0:
+                    rooms_to_delete.append(room_id)
+            
+            # Remove identified rooms
+            for room_id in rooms_to_delete:
+                del active_rooms[room_id]
+                print(f"Cleaned up room {room_id}")
+            
+            if rooms_to_delete:
+                print(f"Cleanup: Removed {len(rooms_to_delete)} rooms")
+                
+        except Exception as e:
+            print(f"Error in cleanup thread: {e}")
 
 def emit_to_room(room_id, event, data):
-    """
-    Utility function to emit to all players in a room
-    
-    TODO:
-    - Use socketio.emit with room parameter
-    - Handle any errors
-    """
-    pass
+    """Utility function to emit to all players in a room"""
+    try:
+        socketio.emit(event, data, room=room_id)
+    except Exception as e:
+        print(f"Error emitting to room {room_id}: {e}")
 
 # HTTP routes (optional)
 @app.route('/')
 def index():
-    """
-    Basic index page
-    
-    TODO:
-    - Return simple HTML or redirect
-    """
-    pass
+    """Basic index page"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Quiz Game Server</title>
+    </head>
+    <body>
+        <h1>Quiz Game Server</h1>
+        <p>Server is running!</p>
+        <p>Active rooms: {}</p>
+        <p>Connected players: {}</p>
+    </body>
+    </html>
+    '''.format(len(active_rooms), len(player_sessions))
 
 @app.route('/health')
 def health_check():
-    """
-    Health check endpoint
-    
-    TODO:
-    - Return server status
-    - Include active rooms count
-    """
-    pass
+    """Health check endpoint"""
+    return {
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'active_rooms': len(active_rooms),
+        'connected_players': len(player_sessions),
+        'uptime': (datetime.now() - server_start_time).total_seconds() if 'server_start_time' in globals() else 0
+    }
 
+# Add this to your main startup
 if __name__ == '__main__':
-    # TODO: Start background cleanup thread
-    # TODO: Load questions on startup
+    # Track server start time
+    server_start_time = datetime.now()
+    
+    # Start background cleanup thread
+    cleanup_thread = threading.Thread(target=cleanup_empty_rooms, daemon=True)
+    cleanup_thread.start()
+    
+    # Import and register single player handlers
+    from singleplayer import register_single_player_handlers
+    register_single_player_handlers(socketio)
+    
+    # Import and register head-to-head handlers
+    from head_to_head import register_head_to_head_handlers
+    register_head_to_head_handlers(socketio)
+    
+    print("Starting Quiz Game Server...")
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
