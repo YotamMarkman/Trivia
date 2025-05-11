@@ -528,6 +528,12 @@ def load_questions(category_choosen):
             FROM quiz_questions
             WHERE category = 'NBA'
             ''')
+        elif category_choosen == 'international footbal':
+            cursor.execute('''
+            SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category
+            FROM quiz_questions
+            WHERE category = 'International Football'
+            ''')
         
         rows = cursor.fetchall()
         questions = []

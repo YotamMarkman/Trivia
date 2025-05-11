@@ -1757,6 +1757,636 @@
             "category": "NBA",
             "question": "Which player scored 37 points in a single quarter?",
             "options": ["Klay Thompson", "Stephen Curry", "Kobe Bryant", "James Harden"]
+        },
+        {
+            "id": 300,
+            "category": "International Football",
+            "question": "Which country won the FIFA World Cup in 2014?",
+            "options": ["Germany", "Argentina", "Brazil", "Netherlands"]
+        },
+        {
+            "id": 301,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the Brazilian national team?",
+            "options": ["Neymar", "Pelé", "Ronaldo", "Romário"]
+        },
+        {
+            "id": 302,
+            "category": "International Football",
+            "question": "Which country hosted and won the first ever FIFA World Cup in 1930?",
+            "options": ["Uruguay", "Italy", "Brazil", "France"]
+        },
+        {
+            "id": 303,
+            "category": "International Football",
+            "question": "Which player won the Golden Boot at the 2018 FIFA World Cup?",
+            "options": ["Harry Kane", "Antoine Griezmann", "Romelu Lukaku", "Kylian Mbappé"]
+        },
+        {
+            "id": 304,
+            "category": "International Football",
+            "question": "Which nation has won the most UEFA European Championship titles?",
+            "options": ["Germany", "Spain", "France", "Italy"]
+        },
+        {
+            "id": 305,
+            "category": "International Football",
+            "question": "Who scored the 'Hand of God' goal for Argentina against England in the 1986 World Cup?",
+            "options": ["Diego Maradona", "Lionel Messi", "Mario Kempes", "Gabriel Batistuta"]
+        },
+        {
+            "id": 306,
+            "category": "International Football",
+            "question": "Which African country was the first to reach the World Cup quarter-finals in 1990?",
+            "options": ["Cameroon", "Nigeria", "Senegal", "Ghana"]
+        },
+        {
+            "id": 307,
+            "category": "International Football",
+            "question": "Who won the Ballon d'Or a record 8 times?",
+            "options": ["Lionel Messi", "Cristiano Ronaldo", "Johan Cruyff", "Michel Platini"]
+        },
+        {
+            "id": 308,
+            "category": "International Football",
+            "question": "Which country won the UEFA Euro 2020 (held in 2021)?",
+            "options": ["Italy", "England", "Spain", "Denmark"]
+        },
+        {
+            "id": 309,
+            "category": "International Football",
+            "question": "Who is the only player to have won three FIFA World Cups?",
+            "options": ["Pelé", "Diego Maradona", "Franz Beckenbauer", "Ronaldo"]
+        },
+        {
+            "id": 310,
+            "category": "International Football",
+            "question": "Which nation famously defeated Brazil 7-1 in the semi-final of the 2014 World Cup?",
+            "options": ["Germany", "Argentina", "Netherlands", "France"]
+        },
+        {
+            "id": 311,
+            "category": "International Football",
+            "question": "Who was the top scorer at the 1998 FIFA World Cup?",
+            "options": ["Davor Šuker", "Gabriel Batistuta", "Ronaldo", "Christian Vieri"]
+        },
+        {
+            "id": 312,
+            "category": "International Football",
+            "question": "Which country won the first ever UEFA European Championship in 1960?",
+            "options": ["Soviet Union", "Yugoslavia", "Czechoslovakia", "Spain"]
+        },
+        {
+            "id": 313,
+            "category": "International Football",
+            "question": "Which player scored the winning goal for Spain in the 2010 World Cup final?",
+            "options": ["Andrés Iniesta", "David Villa", "Xavi Hernandez", "Fernando Torres"]
+        },
+        {
+            "id": 314,
+            "category": "International Football",
+            "question": "Which nation is known as the 'Azzurri'?",
+            "options": ["Italy", "France", "Spain", "Portugal"]
+        },
+        {
+            "id": 315,
+            "category": "International Football",
+            "question": "Who captained France to victory in the 1998 FIFA World Cup?",
+            "options": ["Didier Deschamps", "Zinedine Zidane", "Marcel Desailly", "Laurent Blanc"]
+        },
+        {
+            "id": 316,
+            "category": "International Football",
+            "question": "Which country has appeared in the most FIFA World Cup finals without ever winning?",
+            "options": ["Netherlands", "Hungary", "Czechoslovakia", "Sweden"]
+        },
+        {
+            "id": 317,
+            "category": "International Football",
+            "question": "Who is Portugal's all-time leading goalscorer?",
+            "options": ["Cristiano Ronaldo", "Eusébio", "Luís Figo", "Pauleta"]
+        },
+        {
+            "id": 318,
+            "category": "International Football",
+            "question": "Which nation won the Copa América in 2021, with Lionel Messi leading the team?",
+            "options": ["Argentina", "Brazil", "Uruguay", "Colombia"]
+        },
+        {
+            "id": 319,
+            "category": "International Football",
+            "question": "Who managed the England team that reached the semi-finals of the 2018 World Cup?",
+            "options": ["Gareth Southgate", "Roy Hodgson", "Sam Allardyce", "Fabio Capello"]
+        },
+        {
+            "id": 320,
+            "category": "International Football",
+            "question": "Which country is the current (as of early 2024) holder of the Africa Cup of Nations title, winning in 2023 (held in 2024)?",
+            "options": ["Ivory Coast", "Senegal", "Nigeria", "Algeria"]
+        },
+        {
+            "id": 321,
+            "category": "International Football",
+            "question": "Who scored the fastest hat-trick in World Cup history (8 minutes)?",
+            "options": ["László Kiss (Hungary, 1982)", "Gabriel Batistuta (Argentina, 1994)", "Pelé (Brazil, 1958)", "Gerd Müller (West Germany, 1970)"]
+        },
+        {
+            "id": 322,
+            "category": "International Football",
+            "question": "Which nation is known as 'La Roja'?",
+            "options": ["Spain", "Chile", "Mexico", "Colombia"]
+        },
+        {
+            "id": 323,
+            "category": "International Football",
+            "question": "Who won the Golden Ball (best player) at the 2006 FIFA World Cup despite being sent off in the final?",
+            "options": ["Zinedine Zidane", "Fabio Cannavaro", "Andrea Pirlo", "Ronaldinho"]
+        },
+        {
+            "id": 324,
+            "category": "International Football",
+            "question": "Which country famously won Euro 1992 despite initially failing to qualify?",
+            "options": ["Denmark", "Greece", "Netherlands", "Sweden"]
+        },
+        {
+            "id": 325,
+            "category": "International Football",
+            "question": "Who is the all-time leading scorer in FIFA World Cup history?",
+            "options": ["Miroslav Klose", "Ronaldo", "Gerd Müller", "Just Fontaine"]
+        },
+        {
+            "id": 326,
+            "category": "International Football",
+            "question": "Which South American nation has won the most Copa América titles?",
+            "options": ["Uruguay", "Argentina", "Brazil", "Chile"]
+        },
+        {
+            "id": 327,
+            "category": "International Football",
+            "question": "Who was the captain of the German team that won the 2014 World Cup?",
+            "options": ["Philipp Lahm", "Bastian Schweinsteiger", "Manuel Neuer", "Thomas Müller"]
+        },
+        {
+            "id": 328,
+            "category": "International Football",
+            "question": "Which country hosted the 2002 FIFA World Cup jointly with South Korea?",
+            "options": ["Japan", "China", "Thailand", "North Korea"]
+        },
+        {
+            "id": 329,
+            "category": "International Football",
+            "question": "Who is the only African player to have won the Ballon d'Or?",
+            "options": ["George Weah", "Didier Drogba", "Samuel Eto'o", "Yaya Touré"]
+        },
+        {
+            "id": 330,
+            "category": "International Football",
+            "question": "Which nation is known for the 'Total Football' philosophy popularized in the 1970s?",
+            "options": ["Netherlands", "Germany", "Brazil", "Argentina"]
+        },
+        {
+            "id": 331,
+            "category": "International Football",
+            "question": "Who scored the iconic 'scorpion kick' goal for Colombia against England at Wembley?",
+            "options": ["René Higuita", "Carlos Valderrama", "Faustino Asprilla", "James Rodríguez"]
+        },
+        {
+            "id": 332,
+            "category": "International Football",
+            "question": "Which country won the FIFA Women's World Cup in 2023?",
+            "options": ["Spain", "England", "USA", "Australia"]
+        },
+        {
+            "id": 333,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the England national team?",
+            "options": ["Harry Kane", "Wayne Rooney", "Bobby Charlton", "Gary Lineker"]
+        },
+        {
+            "id": 334,
+            "category": "International Football",
+            "question": "Which nation did Zlatan Ibrahimović represent at international level?",
+            "options": ["Sweden", "Bosnia and Herzegovina", "Croatia", "Denmark"]
+        },
+        {
+            "id": 335,
+            "category": "International Football",
+            "question": "Who was the top scorer at UEFA Euro 2016?",
+            "options": ["Antoine Griezmann", "Cristiano Ronaldo", "Gareth Bale", "Olivier Giroud"]
+        },
+        {
+            "id": 336,
+            "category": "International Football",
+            "question": "Which country did George Best represent internationally?",
+            "options": ["Northern Ireland", "Republic of Ireland", "Wales", "England"]
+        },
+        {
+            "id": 337,
+            "category": "International Football",
+            "question": "Who won the Golden Glove (best goalkeeper) at the 2022 FIFA World Cup?",
+            "options": ["Emiliano Martínez", "Yassine Bounou", "Dominik Livaković", "Hugo Lloris"]
+        },
+        {
+            "id": 338,
+            "category": "International Football",
+            "question": "Which nation is nicknamed 'Die Mannschaft'?",
+            "options": ["Germany", "Austria", "Switzerland", "Belgium"]
+        },
+        {
+            "id": 339,
+            "category": "International Football",
+            "question": "Who scored the winning penalty for Italy in the 2006 World Cup final shootout against France?",
+            "options": ["Fabio Grosso", "Andrea Pirlo", "Francesco Totti", "Alessandro Del Piero"]
+        },
+        {
+            "id": 340,
+            "category": "International Football",
+            "question": "Which country has won the most FIFA U-20 World Cup titles?",
+            "options": ["Argentina", "Brazil", "Portugal", "Serbia"]
+        },
+        {
+            "id": 341,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the French national team?",
+            "options": ["Olivier Giroud", "Thierry Henry", "Kylian Mbappé", "Antoine Griezmann"]
+        },
+        {
+            "id": 342,
+            "category": "International Football",
+            "question": "Which nation famously won Euro 2004 as major underdogs, coached by Otto Rehhagel?",
+            "options": ["Greece", "Portugal", "Czech Republic", "Latvia"]
+        },
+        {
+            "id": 343,
+            "category": "International Football",
+            "question": "Who holds the record for the most goals scored in a single FIFA World Cup tournament (13 goals)?",
+            "options": ["Just Fontaine", "Gerd Müller", "Pelé", "Eusébio"]
+        },
+        {
+            "id": 344,
+            "category": "International Football",
+            "question": "Which country hosted the 1994 FIFA World Cup?",
+            "options": ["USA", "Mexico", "Brazil", "Canada"]
+        },
+        {
+            "id": 345,
+            "category": "International Football",
+            "question": "Who is the only player to score in two World Cup finals for different winning teams?",
+            "options": ["Vavá (Brazil)", "Pelé (Brazil)", "Diego Maradona (Argentina)", "Zinedine Zidane (France)"]
+        },
+        {
+            "id": 346,
+            "category": "International Football",
+            "question": "Which nation is known as the 'Three Lions'?",
+            "options": ["England", "Scotland", "Wales", "Netherlands"]
+        },
+        {
+            "id": 347,
+            "category": "International Football",
+            "question": "Who won the Best Young Player award at the 2002 FIFA World Cup?",
+            "options": ["Landon Donovan", "Michael Owen", "Ronaldinho", "Kaka"]
+        },
+        {
+            "id": 348,
+            "category": "International Football",
+            "question": "Which country won the first ever FIFA Women's World Cup in 1991?",
+            "options": ["USA", "Norway", "Germany", "China"]
+        },
+        {
+            "id": 349,
+            "category": "International Football",
+            "question": "Who is the most capped player in the history of men's international football?",
+            "options": ["Cristiano Ronaldo", "Bader Al-Mutawa", "Ahmed Hassan", "Sergio Ramos"]
+        },
+        {
+            "id": 350,
+            "category": "International Football",
+            "question": "Which nation did Ferenc Puskás famously captain in the 1950s, known as the 'Magical Magyars'?",
+            "options": ["Hungary", "Austria", "Czechoslovakia", "Romania"]
+        },
+        {
+            "id": 351,
+            "category": "International Football",
+            "question": "Who scored the 'Goal of the Century' for Argentina against England in the 1986 World Cup?",
+            "options": ["Diego Maradona", "Lionel Messi", "Claudio Caniggia", "Jorge Valdano"]
+        },
+        {
+            "id": 352,
+            "category": "International Football",
+            "question": "Which country won the UEFA Nations League in 2023?",
+            "options": ["Spain", "Croatia", "Italy", "Netherlands"]
+        },
+        {
+            "id": 353,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the German national team?",
+            "options": ["Miroslav Klose", "Gerd Müller", "Lukas Podolski", "Jürgen Klinsmann"]
+        },
+        {
+            "id": 354,
+            "category": "International Football",
+            "question": "Which nation did Johan Cruyff lead to the World Cup final in 1974?",
+            "options": ["Netherlands", "West Germany", "Sweden", "Poland"]
+        },
+        {
+            "id": 355,
+            "category": "International Football",
+            "question": "Who won the Golden Boot at the 1994 FIFA World Cup (shared)?",
+            "options": ["Oleg Salenko & Hristo Stoichkov", "Romário & Roberto Baggio", "Jürgen Klinsmann & Kennet Andersson", "Dennis Bergkamp & Martin Dahlin"]
+        },
+        {
+            "id": 356,
+            "category": "International Football",
+            "question": "Which country won the Africa Cup of Nations a record 7 times?",
+            "options": ["Egypt", "Cameroon", "Ghana", "Nigeria"]
+        },
+        {
+            "id": 357,
+            "category": "International Football",
+            "question": "Who was the first player to score in five different World Cup tournaments?",
+            "options": ["Cristiano Ronaldo", "Lionel Messi", "Miroslav Klose", "Pelé"]
+        },
+        {
+            "id": 358,
+            "category": "International Football",
+            "question": "Which nation is known as the 'Oranje'?",
+            "options": ["Netherlands", "Belgium", "South Africa", "Ivory Coast"]
+        },
+        {
+            "id": 359,
+            "category": "International Football",
+            "question": "Who managed Italy to their 2006 World Cup victory?",
+            "options": ["Marcello Lippi", "Giovanni Trapattoni", "Arrigo Sacchi", "Fabio Capello"]
+        },
+        {
+            "id": 360,
+            "category": "International Football",
+            "question": "Which country hosted and won the 1998 FIFA World Cup?",
+            "options": ["France", "Brazil", "Italy", "Germany"]
+        },
+        {
+            "id": 361,
+            "category": "International Football",
+            "question": "Who is the only goalkeeper to have won the Ballon d'Or?",
+            "options": ["Lev Yashin", "Gianluigi Buffon", "Manuel Neuer", "Oliver Kahn"]
+        },
+        {
+            "id": 362,
+            "category": "International Football",
+            "question": "Which nation did Luis Suárez represent at international level?",
+            "options": ["Uruguay", "Argentina", "Brazil", "Paraguay"]
+        },
+        {
+            "id": 363,
+            "category": "International Football",
+            "question": "Who scored the memorable free-kick for Brazil against France in 1997 that seemed to defy physics?",
+            "options": ["Roberto Carlos", "Ronaldinho", "Rivaldo", "Juninho Pernambucano"]
+        },
+        {
+            "id": 364,
+            "category": "International Football",
+            "question": "Which country won the UEFA Euro 2000, co-hosted by Belgium and Netherlands?",
+            "options": ["France", "Italy", "Portugal", "Netherlands"]
+        },
+        {
+            "id": 365,
+            "category": "International Football",
+            "question": "Who won the Golden Ball at the 2014 FIFA World Cup?",
+            "options": ["Lionel Messi", "Thomas Müller", "James Rodríguez", "Arjen Robben"]
+        },
+        {
+            "id": 366,
+            "category": "International Football",
+            "question": "Which Asian country has made the most FIFA World Cup appearances?",
+            "options": ["South Korea", "Japan", "Saudi Arabia", "Iran"]
+        },
+        {
+            "id": 367,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the Argentinian national team?",
+            "options": ["Lionel Messi", "Gabriel Batistuta", "Sergio Agüero", "Diego Maradona"]
+        },
+        {
+            "id": 368,
+            "category": "International Football",
+            "question": "Which nation did Roger Milla famously represent, known for his World Cup goal celebrations at an advanced age?",
+            "options": ["Cameroon", "Nigeria", "Ghana", "Ivory Coast"]
+        },
+        {
+            "id": 369,
+            "category": "International Football",
+            "question": "Who was the top scorer at the 2002 FIFA World Cup?",
+            "options": ["Ronaldo", "Miroslav Klose", "Rivaldo", "Christian Vieri"]
+        },
+        {
+            "id": 370,
+            "category": "International Football",
+            "question": "Which country won the 1966 FIFA World Cup, hosted in England?",
+            "options": ["England", "West Germany", "Portugal", "Brazil"]
+        },
+        {
+            "id": 371,
+            "category": "International Football",
+            "question": "Who is the only player to have scored a hat-trick in a World Cup final?",
+            "options": ["Kylian Mbappé", "Geoff Hurst", "Pelé", "Paolo Rossi"]
+        },
+        {
+            "id": 372,
+            "category": "International Football",
+            "question": "Which nation is known as 'Seleção das Quinas'?",
+            "options": ["Portugal", "Brazil", "Spain", "Angola"]
+        },
+        {
+            "id": 373,
+            "category": "International Football",
+            "question": "Who managed Spain to their victories at Euro 2008 and the 2010 World Cup?",
+            "options": ["Luis Aragonés & Vicente del Bosque", "Vicente del Bosque & Julen Lopetegui", "Luis Aragonés & Pep Guardiola", "Rafael Benítez & Vicente del Bosque"]
+        },
+        {
+            "id": 374,
+            "category": "International Football",
+            "question": "Which country hosted the 2022 FIFA World Cup?",
+            "options": ["Qatar", "USA", "Russia", "Australia"]
+        },
+        {
+            "id": 375,
+            "category": "International Football",
+            "question": "Who won the Puskás Award for the best goal of 2014 for his flying header at the World Cup?",
+            "options": ["James Rodríguez", "Robin van Persie", "Zlatan Ibrahimović", "Cristiano Ronaldo"]
+        },
+        {
+            "id": 376,
+            "category": "International Football",
+            "question": "Which nation did Eusébio, the 'Black Panther', represent?",
+            "options": ["Portugal", "Mozambique", "Brazil", "Angola"]
+        },
+        {
+            "id": 377,
+            "category": "International Football",
+            "question": "Who was the top scorer at UEFA Euro 2004?",
+            "options": ["Milan Baroš", "Ruud van Nistelrooy", "Wayne Rooney", "Angelos Charisteas"]
+        },
+        {
+            "id": 378,
+            "category": "International Football",
+            "question": "Which country has the most participations in the FIFA World Cup without ever winning it?",
+            "options": ["Mexico", "Netherlands", "Sweden", "Spain (before 2010)"]
+        },
+        {
+            "id": 379,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the Netherlands national team?",
+            "options": ["Robin van Persie", "Klaas-Jan Huntelaar", "Patrick Kluivert", "Dennis Bergkamp"]
+        },
+        {
+            "id": 380,
+            "category": "International Football",
+            "question": "Which nation won the CONCACAF Gold Cup the most times?",
+            "options": ["Mexico", "USA", "Canada", "Costa Rica"]
+        },
+        {
+            "id": 381,
+            "category": "International Football",
+            "question": "Who scored the 'Golden Goal' for France in the Euro 2000 final against Italy?",
+            "options": ["David Trezeguet", "Zinedine Zidane", "Thierry Henry", "Sylvain Wiltord"]
+        },
+        {
+            "id": 382,
+            "category": "International Football",
+            "question": "Which country did Lev Yashin, the 'Black Spider', play for?",
+            "options": ["Soviet Union", "Russia", "Ukraine", "Belarus"]
+        },
+        {
+            "id": 383,
+            "category": "International Football",
+            "question": "Who won the Golden Boot at the 2010 FIFA World Cup (shared)?",
+            "options": ["Thomas Müller, David Villa, Wesley Sneijder, Diego Forlán", "Miroslav Klose", "Luis Suárez", "Gonzalo Higuaín"]
+        },
+        {
+            "id": 384,
+            "category": "International Football",
+            "question": "Which nation is the only one to have played in every FIFA World Cup tournament?",
+            "options": ["Brazil", "Germany", "Italy", "Argentina"]
+        },
+        {
+            "id": 385,
+            "category": "International Football",
+            "question": "Who captained Italy to their 2006 World Cup triumph?",
+            "options": ["Fabio Cannavaro", "Gianluigi Buffon", "Francesco Totti", "Alessandro Del Piero"]
+        },
+        {
+            "id": 386,
+            "category": "International Football",
+            "question": "Which country won the 2004 Copa América, defeating Argentina in the final?",
+            "options": ["Brazil", "Colombia", "Peru", "Uruguay"]
+        },
+        {
+            "id": 387,
+            "category": "International Football",
+            "question": "Who is the all-time leading female international goalscorer?",
+            "options": ["Christine Sinclair (Canada)", "Abby Wambach (USA)", "Mia Hamm (USA)", "Birgit Prinz (Germany)"]
+        },
+        {
+            "id": 388,
+            "category": "International Football",
+            "question": "Which nation did Franz Beckenbauer captain and later manage to World Cup victory?",
+            "options": ["West Germany", "Germany", "Austria", "Bayern Munich (as a club)"]
+        },
+        {
+            "id": 389,
+            "category": "International Football",
+            "question": "Who scored the infamous own goal for Colombia in the 1994 World Cup that allegedly led to his murder?",
+            "options": ["Andrés Escobar", "Carlos Valderrama", "René Higuita", "Faustino Asprilla"]
+        },
+        {
+            "id": 390,
+            "category": "International Football",
+            "question": "Which country won the UEFA Euro 1988, featuring stars like Marco van Basten and Ruud Gullit?",
+            "options": ["Netherlands", "Soviet Union", "West Germany", "Italy"]
+        },
+        {
+            "id": 391,
+            "category": "International Football",
+            "question": "Who is the youngest player ever to score in a FIFA World Cup final?",
+            "options": ["Pelé", "Kylian Mbappé", "Michael Owen", "Norman Whiteside"]
+        },
+        {
+            "id": 392,
+            "category": "International Football",
+            "question": "Which nation is known as 'La Albiceleste'?",
+            "options": ["Argentina", "Uruguay", "Paraguay", "Colombia"]
+        },
+        {
+            "id": 393,
+            "category": "International Football",
+            "question": "Who won the FIFA World Player of the Year award three times in a row from 1996 to 1998?",
+            "options": ["Ronaldo", "Zinedine Zidane", "George Weah", "Romário"]
+        },
+        {
+            "id": 394,
+            "category": "International Football",
+            "question": "Which country did Michel Platini captain to victory in the 1984 UEFA European Championship?",
+            "options": ["France", "Italy", "Spain", "West Germany"]
+        },
+        {
+            "id": 395,
+            "category": "International Football",
+            "question": "Who scored the winning goal for Germany in the 1990 World Cup final against Argentina?",
+            "options": ["Andreas Brehme", "Lothar Matthäus", "Jürgen Klinsmann", "Rudi Völler"]
+        },
+        {
+            "id": 396,
+            "category": "International Football",
+            "question": "Which Oceanian nation has qualified for the FIFA World Cup finals most recently (excluding Australia when they were part of OFC)?",
+            "options": ["New Zealand", "Fiji", "Tahiti", "Solomon Islands"]
+        },
+        {
+            "id": 397,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the Spanish national team?",
+            "options": ["David Villa", "Raúl González", "Fernando Torres", "Álvaro Morata"]
+        },
+        {
+            "id": 398,
+            "category": "International Football",
+            "question": "Which nation did Hristo Stoichkov lead to the semi-finals of the 1994 FIFA World Cup?",
+            "options": ["Bulgaria", "Romania", "Sweden", "Yugoslavia"]
+        },
+        {
+            "id": 399,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer in UEFA European Championship history?",
+            "options": ["Cristiano Ronaldo", "Michel Platini", "Alan Shearer", "Thierry Henry"]
+        },
+        {
+            "id": 400,
+            "category": "International Football",
+            "question": "Which country won the Copa América in 2019?",
+            "options": ["Brazil", "Argentina", "Chile", "Colombia"]
+        },
+        {
+            "id": 401,
+            "category": "International Football",
+            "question": "Which nation is known as 'The Indomitable Lions'?",
+            "options": ["Cameroon", "Nigeria", "Ivory Coast", "Ghana"]
+        },
+        {
+            "id": 402,
+            "category": "International Football",
+            "question": "Who was the first player to score a hat-trick in a World Cup final?",
+            "options": ["Geoff Hurst", "Pelé", "Vavá", "Zinedine Zidane"]
+        },
+        {
+            "id": 403,
+            "category": "International Football",
+            "question": "Which country won the UEFA Euro 2012?",
+            "options": ["Spain", "Italy", "Germany", "Portugal"]
+        },
+        {
+            "id": 404,
+            "category": "International Football",
+            "question": "Who is the all-time top scorer for the Italian national team?",
+            "options": ["Luigi Riva", "Francesco Totti", "Gigi Riva", "Roberto Baggio"]
         }
     ]
 }
