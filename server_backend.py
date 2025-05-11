@@ -216,45 +216,63 @@ class GameRoom:
         # Check if player exists in this room
         if session_id not in self.players:
             return {'status': 'error', 'message': 'Player not in this room'}
+        
         player = self.players[session_id]
+        
         # Validate that player hasn't already answered
         if player.answered:
             return {'status': 'error', 'message': 'Already answered this question'}
+        
         # Validate game state
         if self.game_state != "playing":
             return {'status': 'error', 'message': 'Game not in progress'}
+        
         # Check if we have a current question
         if self.current_question >= len(self.questions):
             return {'status': 'error', 'message': 'No active question'}
-        # Store the answer
+        
+        # Store the answer and calculate time taken
         player.current_answer = answer
         player.answered = True
+        player.timetaken = self.question_duration - self.time_remaining
+        
         # Check if answer is correct and update score
         current_question = self.questions[self.current_question]
         is_correct = (answer == current_question['correct_answer'])
+        
+        # Update score using time-based scoring
+        points_earned = 0
         if is_correct:
-            player.score += 1
+            points_earned = max(0, 1000 - player.timetaken * 10)
+            player.score += points_earned
+        
         # Check if all players have answered
         all_answered = all(p.answered for p in self.players.values())
+        
         # Prepare result
         result = {
             'status': 'success',
             'is_correct': is_correct,
+            'points_earned': points_earned,
             'current_score': player.score,
-            'all_answered': all_answered
+            'all_answered': all_answered,
+            'time_taken': player.timetaken
         }
+        
         # If all players have answered, we might want to move to next question
         if all_answered:
             # Stop the timer since everyone has answered
             if self.timer_thread and self.timer_thread.is_alive():
                 self.time_remaining = 0  # This will stop the timer
             
-            # You might want to show results and then move to next question
-            # This could be handled by a separate method
+            # Show results and then move to next question
             result['should_advance'] = True
+            
+            # Schedule the reveal answer and next question
+            threading.Timer(1.0, self.reveal_answer).start()
         
         return result
-    
+        
     def reveal_answer(self):
         """
         Reveal the correct answer to all players"""
@@ -294,9 +312,8 @@ class GameRoom:
             if not player.answered:
                 player.answered = True
                 player.current_answer = None
-        
-        # Reveal answers and move on
-        self.reveal_answers()
+
+        self.reveal_answer()  # Changed from reveal_answers()
             
     
     def next_question(self):
@@ -310,6 +327,7 @@ class GameRoom:
         - Start new timer
         """
         
+        self.current_question += 1
         if self.current_question >= len(self.questions):
             self.end_game()
             return
@@ -545,13 +563,15 @@ def validate_answer(question, submitted_answer):
     - Compare submitted answer with correct answer
     - Return boolean result
     """
-    if question.
+    if question['correct_answer'] == submitted_answer:
+        return True
+    else:
+        return False
 
 def correct_answer (player, correct_answer):
     if correct_answer == player.current_answer:
-        player.score = player.score + (1000 - player.timetaken*10)
-    else:
-        player.score = player.score
+        points = max(0, 1000 - player.timetaken * 10)  # Ensure non-negative
+        player.score += points
 
 # Socket.IO event handlers
 @socketio.on('connect')
