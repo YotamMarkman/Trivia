@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import socket from '../services/socket';
 import useGameState from '../hooks/useGameState';
+import GameLayout from '../components/layouts/GameLayout';
 import QuestionDisplay from '../components/game/QuestionDisplay';
 import Timer from '../components/common/Timer';
 import GameResults from '../components/game/GameResults';
 import Loading from '../components/common/Loading';
+import CategorySelector from '../components/lobby/CategorySelector';
 import { SOCKET_EVENTS, GAME_STATES, CATEGORIES } from '../utils/constants';
 
 const SinglePlayer = () => {
@@ -79,6 +81,38 @@ const SinglePlayer = () => {
     };
   }, [setGameState, updateQuestion, updateTimer, setResults]);
 
+  // Layout title based on game state
+  const getLayoutTitle = () => {
+    switch (gameState) {
+      case GAME_STATES.SETUP:
+        return 'Single Player Setup';
+      case GAME_STATES.PLAYING:
+        return `Question ${currentQuestion?.question_number || 1}`;
+      case GAME_STATES.PAUSED:
+        return 'Game Paused';
+      case GAME_STATES.FINISHED:
+        return 'Game Results';
+      default:
+        return 'Single Player';
+    }
+  };
+
+  // Right content for header (score, timer, etc.)
+  const getRightContent = () => {
+    if (gameState === GAME_STATES.PLAYING) {
+      return (
+        <div className="header-game-info">
+          <div className="score">Score: {currentQuestion?.current_score || 0}</div>
+          {timeRemaining > 0 && <Timer time={timeRemaining} />}
+          <button className="pause-button" onClick={pauseGame}>
+            Pause
+          </button>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const startGame = () => {
     if (!playerName.trim()) {
       setError('Please enter your name');
@@ -116,14 +150,21 @@ const SinglePlayer = () => {
   };
 
   if (loading) {
-    return <Loading message="Starting game..." />;
+    return (
+      <GameLayout title="Loading...">
+        <Loading message="Starting game..." />
+      </GameLayout>
+    );
   }
 
   return (
-    <div className="single-player-container">
+    <GameLayout 
+      title={getLayoutTitle()}
+      onBack={() => navigate('/')}
+      rightContent={getRightContent()}
+    >
       {gameState === GAME_STATES.SETUP && (
         <div className="game-setup">
-          <h2>Single Player Mode</h2>
           <div className="setup-form">
             <div className="form-group">
               <label htmlFor="playerName">Your Name</label>
@@ -137,20 +178,10 @@ const SinglePlayer = () => {
               />
             </div>
             
-            <div className="form-group">
-              <label htmlFor="category">Category</label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                {CATEGORIES.map(cat => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CategorySelector 
+              selectedCategory={category}
+              onCategoryChange={setCategory}
+            />
             
             {error && <div className="error-message">{error}</div>}
             
@@ -163,14 +194,6 @@ const SinglePlayer = () => {
 
       {gameState === GAME_STATES.PLAYING && currentQuestion && (
         <div className="game-area">
-          <div className="game-header">
-            <Timer time={timeRemaining} />
-            <div className="score">Score: {currentQuestion.current_score || 0}</div>
-            <button className="pause-button" onClick={pauseGame}>
-              Pause
-            </button>
-          </div>
-          
           <QuestionDisplay
             question={currentQuestion}
             onAnswer={submitAnswer}
@@ -201,7 +224,7 @@ const SinglePlayer = () => {
           onGoHome={() => navigate('/')}
         />
       )}
-    </div>
+    </GameLayout>
   );
 };
 

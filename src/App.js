@@ -1,7 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import useSocket from './hooks/useSocket';
+import useSocket from './hooks/UseSocket';
 import MainLayout from './components/layouts/MainLayout';
 import Home from './pages/Home';
 import SinglePlayer from './pages/SinglePlayer';
