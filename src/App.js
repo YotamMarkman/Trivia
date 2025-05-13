@@ -1,11 +1,11 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import useSocket from './hooks/UseSocket';
+import useSocket from './hooks/useSocket';
 import MainLayout from './components/layouts/MainLayout';
 import Home from './pages/Home';
 import SinglePlayer from './pages/SinglePlayer';
-import MultiPlayer from './pages/MultiPlayer';
+import MultiPlayer from './pages/Multiplayer';
 import HeadToHead from './pages/HeadToHead';
 import Leaderboard from './pages/Leaderboard';
 import NotFound from './pages/NotFound';

@@ -6,13 +6,14 @@ import useGameState from '../hooks/useGameState';
 import GameLayout from '../components/layouts/GameLayout';
 import RoomCreator from '../components/lobby/RoomCreator';
 import RoomJoiner from '../components/lobby/RoomJoiner';
-import PlayerList from '../components/common/PlayerList';
+import PlayerList from 'src/components/common/PLayerList';
 import QuestionDisplay from '../components/game/QuestionDisplay';
 import Scoreboard from '../components/game/Scoreboard';
 import CategorySelector from '../components/lobby/CategorySelector';
 import Chat from '../components/common/Chat';
 import Loading from '../components/common/Loading';
 import GameResults from '../components/game/GameResults';
+import Timer from '../components/common/Timer';
 import { SOCKET_EVENTS, GAME_STATES, CATEGORIES } from '../utils/constants';
 
 const MultiPlayer = () => {
