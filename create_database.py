@@ -105,16 +105,19 @@ def create_quiz_db():
     )
     ''')
     
-    # Create player stats table
+    # Create player_stats table for single player personal statistics
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS player_stats (
         player_name TEXT PRIMARY KEY,
         games_played INTEGER DEFAULT 0,
         total_score INTEGER DEFAULT 0,
-        questions_answered INTEGER DEFAULT 0,
-        correct_answers INTEGER DEFAULT 0,
-        best_score INTEGER DEFAULT 0,
-        total_time INTEGER DEFAULT 0
+        highest_score INTEGER DEFAULT 0,
+        total_questions_answered INTEGER DEFAULT 0,
+        total_correct_answers INTEGER DEFAULT 0,
+        total_game_duration REAL DEFAULT 0,
+        average_score REAL DEFAULT 0,
+        average_accuracy REAL DEFAULT 0,
+        last_played_date TEXT
     )
     ''')
     

@@ -3,7 +3,7 @@
         "version": "1.0",
         "description": "A collection of questions and answers for a quiz application.",
         "author": "Yotam Markman",
-        "totalQuestions": 300
+        "totalQuestions": 404
     },
     "quiz_questions": [
         {

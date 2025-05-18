@@ -1,4 +1,4 @@
-from server_backend import GameRoom, Player, active_rooms
+from server_backend import GameRoom, Player, active_rooms, BotPlayer
 from flask_socketio import emit, join_room, leave_room
 import random
 import threading
@@ -16,11 +16,23 @@ class HeadToHeadGame(GameRoom):
         self.num_questions = 10  # Fewer questions for quick matches
         self.head_to_head_stats = {}  # Track head-to-head specific stats
         self.first_to_answer = None  # Track who answered first each question
+        self.bot_opponent = None  # To store BotPlayer instance if playing against AI
         
+    def add_player(self, player):
+        super().add_player(player)
+        if isinstance(player, BotPlayer):
+            self.bot_opponent = player
+        return True
+
     def start_game(self):
-        """Start head-to-head game with exactly 2 players"""
-        # Validate exactly 2 players
-        if len(self.players) != 2:
+        """Start head-to-head game with exactly 2 players (or 1 player + 1 bot)"""
+        # Validate 1 human player if bot is present, or 2 human players
+        human_players = [p for p in self.players.values() if not isinstance(p, BotPlayer)]
+        if self.bot_opponent and len(human_players) != 1:
+            emit('error', {'message': 'Cannot start Human vs Bot game without exactly one human player.'}, room=self.host_id)
+            return False
+        if not self.bot_opponent and len(self.players) != 2:
+            emit('error', {'message': 'Head-to-head requires exactly two human players to start.'}, room=self.host_id)
             return False
             
         if self.game_state != "waiting":
@@ -72,6 +84,25 @@ class HeadToHeadGame(GameRoom):
         
         return True
     
+    def send_current_question(self):
+        super().send_current_question()  # Call parent method to send to human players
+        # If playing against a bot, make the bot choose an answer after a delay
+        if self.bot_opponent and self.game_state == "playing":
+            current_question_obj = self.questions[self.current_question]
+            options = current_question_obj['options']
+            correct_answer = current_question_obj['correct_answer']
+            
+            chosen_answer, response_time = self.bot_opponent.choose_answer(options, correct_answer)
+            
+            # Schedule bot's answer submission
+            threading.Timer(response_time, self._bot_submit_answer, args=[chosen_answer]).start()
+
+    def _bot_submit_answer(self, answer):
+        if self.bot_opponent and self.game_state == "playing" and not self.bot_opponent.answered:
+            self.submit_answer(self.bot_opponent.session_id, answer)
+            # Potentially emit an event that bot has answered, if UI needs to reflect this
+            emit('player_answered', {'player_id': self.bot_opponent.session_id}, room=self.room_id)
+
     def end_game(self):
         """End the head-to-head game and declare winner"""
         # Call parent end_game
@@ -129,10 +160,9 @@ class HeadToHeadGame(GameRoom):
     def submit_answer(self, session_id, answer):
         """Process answer submission with head-to-head specific features"""
         # Get current state before calling parent
-        if session_id not in self.players:
+        player = self.players.get(session_id)  # Use .get for safety
+        if not player:
             return {'status': 'error', 'message': 'Player not in this room'}
-        
-        player = self.players[session_id]
         
         # Track if this is the first answer for the question
         is_first_answer = not any(p.answered for p in self.players.values())
@@ -176,127 +206,6 @@ class HeadToHeadGame(GameRoom):
             result['current_streak'] = self.head_to_head_stats[session_id]['correct_streak']
         
         return result
-    
-    def reveal_answer(self):
-        """Reveal answers with head-to-head comparison"""
-        if self.current_question >= len(self.questions):
-            return
-        
-        current_question = self.questions[self.current_question]
-        
-        # Show both players' answers side by side
-        results = {
-            'correct_answer': current_question['correct_answer'],
-            'question': current_question['question'],
-            'players_comparison': []
-        }
-        
-        # Get players' answers and create comparison
-        for player in self.players.values():
-            player_result = {
-                'name': player.name,
-                'answer': player.current_answer,
-                'is_correct': player.current_answer == current_question['correct_answer'],
-                'score': player.score,
-                'answered_first': player.session_id == self.first_to_answer
-            }
-            results['players_comparison'].append(player_result)
-        
-        # Sort by score for display
-        results['players_comparison'].sort(key=lambda x: x['score'], reverse=True)
-        
-        # Add point differential
-        if len(results['players_comparison']) == 2:
-            score_diff = abs(results['players_comparison'][0]['score'] - results['players_comparison'][1]['score'])
-            results['score_difference'] = score_diff
-            results['leader'] = results['players_comparison'][0]['name'] if score_diff > 0 else None
-        
-        # Include head-to-head specific stats
-        results['questions_remaining'] = len(self.questions) - self.current_question - 1
-        
-        # Reset first_to_answer for next question
-        self.first_to_answer = None
-        
-        # Emit results
-        emit('head_to_head_question_results', results, room=self.room_id)
-        
-        # Schedule next question
-        threading.Timer(5.0, self.next_question).start()
-    
-    def broadcast_scores(self):
-        """Broadcast scores with head-to-head specific info"""
-        scores_data = {
-            'scores': []
-        }
-        
-        # Get both players' scores
-        players_list = list(self.players.values())
-        if len(players_list) == 2:
-            player1, player2 = players_list[0], players_list[1]
-            
-            # Calculate score difference
-            score_diff = player1.score - player2.score
-            
-            scores_data = {
-                'player1': {
-                    'name': player1.name,
-                    'score': player1.score,
-                    'answered': player1.answered,
-                    'streak': self.head_to_head_stats[player1.session_id]['correct_streak']
-                },
-                'player2': {
-                    'name': player2.name,
-                    'score': player2.score,
-                    'answered': player2.answered,
-                    'streak': self.head_to_head_stats[player2.session_id]['correct_streak']
-                },
-                'score_difference': abs(score_diff),
-                'leader': player1.name if score_diff > 0 else (player2.name if score_diff < 0 else None),
-                'current_question': self.current_question + 1,
-                'total_questions': len(self.questions),
-                'questions_remaining': len(self.questions) - self.current_question - 1
-            }
-        
-        # Emit score update
-        emit('head_to_head_scores', scores_data, room=self.room_id)
-    
-    def update_head_to_head_record(self, player1_id, player2_id, winner_id):
-        """Update head-to-head record in database"""
-        try:
-            conn = sqlite3.connect('quiz_questions.db')
-            cursor = conn.cursor()
-            
-            # Create head-to-head table if it doesn't exist
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS head_to_head_records (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    player1_name TEXT NOT NULL,
-                    player2_name TEXT NOT NULL,
-                    winner_name TEXT,
-                    date TEXT NOT NULL,
-                    player1_score INTEGER,
-                    player2_score INTEGER
-                )
-            ''')
-            
-            # Get player names and scores
-            player1 = self.players[player1_id]
-            player2 = self.players[player2_id]
-            winner = self.players[winner_id] if winner_id else None
-            
-            # Insert record
-            cursor.execute('''
-                INSERT INTO head_to_head_records 
-                (player1_name, player2_name, winner_name, date, player1_score, player2_score)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (player1.name, player2.name, winner.name if winner else None,
-                  datetime.now().isoformat(), player1.score, player2.score))
-            
-            conn.commit()
-            conn.close()
-            
-        except sqlite3.Error as e:
-            print(f"Database error: {e}")
 
 class HeadToHeadMatchmaking:
     """Handle matchmaking for head-to-head games"""
@@ -349,7 +258,7 @@ class HeadToHeadMatchmaking:
                     
                     return {
                         'room_id': room_id,
-                        'players': [player, opponent]
+                        'players': [player, opponent] # Send original player_info dicts
                     }
             
             return None
@@ -406,31 +315,43 @@ def register_head_to_head_handlers(socketio):
     
     @socketio.on('create_private_head_to_head')
     def handle_create_private_head_to_head(data):
-        """Create private head-to-head room with invite code"""
+        """Create private head-to-head room with invite code, optionally vs Bot"""
         from flask import request
         from server_backend import generate_room_id
         
         session_id = request.sid
         player_name = data.get('player_name', 'Anonymous')
+        play_vs_bot = data.get('vs_bot', False)
+        bot_difficulty = data.get('bot_difficulty', 'medium')
+
+        invite_code = generate_room_id()  # Use consistent room ID generation
         
-        # Generate a special invite code (6 characters)
-        invite_code = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=6))
-        
-        # Create game
         game = HeadToHeadGame(invite_code, session_id)
         active_rooms[invite_code] = game
         
-        # Add host player
         player = Player(session_id, player_name)
         game.add_player(player)
-        
-        # Join room
-        join_room(invite_code)
-        
-        emit('private_room_created', {
-            'room_code': invite_code,
-            'status': 'waiting_for_opponent'
-        })
+        join_room(invite_code, sid=session_id)
+
+        if play_vs_bot:
+            bot_id = f"bot_{generate_room_id(4)}"  # Unique ID for bot
+            bot_name = random.choice(["QuizBot Alpha", "TriviaBot Beta", "QueryBot Gamma"])
+            bot = BotPlayer(bot_id, bot_name, bot_difficulty)
+            game.add_player(bot)
+            emit('private_room_created', {
+                'room_code': invite_code,
+                'status': 'ready_to_start',  # Game can start immediately with bot
+                'opponent_is_bot': True,
+                'bot_name': bot_name
+            }, room=session_id)
+            # Automatically start the game if it's vs bot
+            game.start_game()
+        else:
+            emit('private_room_created', {
+                'room_code': invite_code,
+                'status': 'waiting_for_opponent',
+                'opponent_is_bot': False
+            }, room=session_id)
     
     @socketio.on('join_private_head_to_head')
     def handle_join_private_head_to_head(data):

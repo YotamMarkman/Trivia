@@ -6,7 +6,7 @@ import threading
 from datetime import datetime
 import json
 import sqlite3
-import os
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -36,6 +36,7 @@ class Player:
         self.answered = False
         self.connected = True
         self.timetaken = 0
+        self.correct_streak = 0 # Added for streak bonus
         
     def to_dict(self):
         """
@@ -61,11 +62,60 @@ class Player:
         if not self.answered:
             self.current_answer = answer
             self.answered = True
+            # self.correct_streak will be updated in GameRoom.submit_answer
             return True
         return False
 
+class BotPlayer(Player):
+    def __init__(self, session_id, name, difficulty="medium"):
+        super().__init__(session_id, name)
+        self.is_bot = True
+        self.difficulty = difficulty # easy, medium, hard
+        # Define behavior based on difficulty
+        if self.difficulty == "easy":
+            self.accuracy = 0.5  # 50% chance of being correct
+            self.min_response_time = 3  # seconds
+            self.max_response_time = 7  # seconds
+        elif self.difficulty == "hard":
+            self.accuracy = 0.9 # 90% chance of being correct
+            self.min_response_time = 1
+            self.max_response_time = 3
+        else: # medium
+            self.accuracy = 0.7 # 70% chance of being correct
+            self.min_response_time = 2
+            self.max_response_time = 5
+        self.avatar = f"/avatars/bot_{name.lower().replace(' ', '_')}.png" # Example avatar path
+
+    def to_dict(self):
+        player_dict = super().to_dict()
+        player_dict['is_bot'] = True
+        player_dict['avatar'] = self.avatar
+        return player_dict
+
+    def choose_answer(self, question_options, correct_answer_value):
+        """
+        Bot decides on an answer based on its difficulty.
+        Returns the chosen answer option.
+        """
+        # Simulate thinking time
+        response_time = random.uniform(self.min_response_time, self.max_response_time)
+        
+        # Decide if the bot gets it right
+        if random.random() < self.accuracy:
+            # Bot answers correctly
+            chosen_answer = correct_answer_value
+        else:
+            # Bot answers incorrectly
+            incorrect_options = [opt for opt in question_options if opt != correct_answer_value]
+            if incorrect_options:
+                chosen_answer = random.choice(incorrect_options)
+            else: # Should not happen if there's always more than one option
+                chosen_answer = random.choice(question_options) 
+                
+        return chosen_answer, response_time
+
 class GameRoom:
-    def __init__(self, room_id, host_id):
+    def __init__(self, room_id, host_id, num_questions=15, category='all', max_players=8): # Added num_questions, category, max_players
         """
         Initialize a game room
         
@@ -80,11 +130,13 @@ class GameRoom:
         - time_remaining: seconds left for current question
         - max_players: maximum allowed players (e.g., 8)
         - question_duration: seconds per question (e.g., 15)
+        - num_questions: number of questions for the game
         """
         self.room_id = room_id
         self.host_id = host_id
         self.question_duration = 15
-        self.max_players = 4
+        self.max_players = max_players # Updated to use argument
+        self.num_questions = num_questions # Added
         self.timer_thread = None
         self.time_remaining = 0
         self.game_state = "waiting"
@@ -92,7 +144,12 @@ class GameRoom:
         self.players = {}  # {session_id: Player}
         self.questions = []  # List of questions for this game
         self.marked_for_deletion = False
-        self.category_choosen = None  # Category chosen by the host
+        self.category_choosen = category # Updated to use argument
+        self.answer_revealed_for_current_question = False # Added flag
+        self.bot_id_counter = 0 # Added for unique bot identification within the room
+        self.bot_names_pool = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel"] # Added for varied bot names
+        random.shuffle(self.bot_names_pool) # Shuffle for variety
+        self.bot_difficulties = ["easy", "medium", "hard"]
     
     def add_player(self, player):
         """
@@ -164,6 +221,7 @@ class GameRoom:
         
         TODO:
         - Change game_state to "playing"
+        - Add AI bots if player count < max_players
         - Select random questions from question bank
         - Send first question to all players
         - Start question timer
@@ -171,36 +229,83 @@ class GameRoom:
         if self.game_state != "waiting":
             return False
     
-        if len(self.players) < 2:  # Minimum players check
+        if not self.players: # Ensure there's at least one player (usually the host)
+            print(f"Room {self.room_id}: No players in room to start game.")
+            return False # Or emit error to host
+        
+        # Add AI bots if player count < max_players
+        num_current_players = len(self.players)
+        num_bots_to_add = self.max_players - num_current_players
+
+        if num_bots_to_add > 0:
+            print(f"Room {self.room_id}: Adding {num_bots_to_add} bot(s). Current players: {num_current_players}, Max players: {self.max_players}")
+            for i in range(num_bots_to_add):
+                self.bot_id_counter += 1
+                bot_session_id = f"bot_{self.room_id}_{self.bot_id_counter}"
+                
+                # Try to get a unique name from the pool, or fallback to generic
+                bot_name_suffix = self.bot_names_pool.pop(0) if self.bot_names_pool else str(self.bot_id_counter)
+                bot_name = f"Bot {bot_name_suffix}"
+                
+                bot_difficulty = random.choice(self.bot_difficulties)
+                
+                # Ensure bot name doesn't clash with existing players (human or bot)
+                all_player_names = [p.name for p in self.players.values()]
+                original_bot_name = bot_name
+                name_suffix_counter = 1
+                while bot_name in all_player_names:
+                    bot_name = f"{original_bot_name} {name_suffix_counter}"
+                    name_suffix_counter +=1
+
+                bot_player = BotPlayer(session_id=bot_session_id, name=bot_name, difficulty=bot_difficulty)
+                
+                if self.add_player(bot_player):
+                    print(f"Added {bot_difficulty} bot: {bot_player.name} (ID: {bot_session_id}) to room {self.room_id}")
+                else:
+                    # This case should ideally not be reached if max_players logic is correct
+                    print(f"Error: Failed to add bot {bot_player.name} to room {self.room_id}. Room might be unexpectedly full.")
+                    # Decrement counter if add_player failed, to avoid skipping numbers if retried
+                    self.bot_id_counter -=1 
+                    # If bot_names_pool was used, add name back
+                    if original_bot_name == f"Bot {bot_name_suffix}":
+                        self.bot_names_pool.insert(0, bot_name_suffix)
+
+
+        # Minimum players check (after adding bots, ensure we have enough to play)
+        # This check might be redundant if bots always fill up to max_players and max_players >= desired min (e.g. 2)
+        if len(self.players) < 1: # Should be at least 1 (host) or 2 if bots are added.
+            print(f"Room {self.room_id}: Not enough players to start even after attempting to add bots. Found {len(self.players)}")
             return False
         
-        # Load questions based on category (if using categories)
         all_questions = load_questions(self.category_choosen) 
         
         if not all_questions:
+            print(f"Room {self.room_id}: Failed to load questions for category {self.category_choosen}")
             return False
         
-        # Select 15 random questions
-        self.questions = random.sample(all_questions, min(15, len(all_questions)))
+        self.questions = random.sample(all_questions, min(self.num_questions, len(all_questions)))
         
-        # Initialize game state
+        if not self.questions:
+            print(f"Room {self.room_id}: No questions available after sampling for category {self.category_choosen} with num_questions {self.num_questions}")
+            return False
+
         self.game_state = "playing"
-        self.current_question = 0  # Should start at 0, not 1 (zero-indexed)
+        self.current_question = 0
+        self.answer_revealed_for_current_question = False
         
-        # Reset all players
         for player in self.players.values():
             player.score = 0
             player.answered = False
             player.current_answer = None
+            player.correct_streak = 0
         
-        # Send first question
-        self.send_current_question()  # Use send_current_question, not send_question
-        
-        # Start timer
+        self.send_current_question()
         self.start_question_timer()
         
+        # It's good practice for the calling socket handler to emit 'game_started' or 'room_update'
+        # with the new player list (including bots) and game state.
+        print(f"Room {self.room_id} game started with players: {[p.name for p in self.players.values()]}")
         return True
-            
     
     def submit_answer(self, session_id, answer):
         """
@@ -234,17 +339,23 @@ class GameRoom:
         # Store the answer and calculate time taken
         player.current_answer = answer
         player.answered = True
-        player.timetaken = self.question_duration - self.time_remaining
+        time_left_at_answer = self.time_remaining 
+        player.timetaken = self.question_duration - time_left_at_answer
         
         # Check if answer is correct and update score
-        current_question = self.questions[self.current_question]
-        is_correct = (answer == current_question['correct_answer'])
+        current_question_obj = self.questions[self.current_question] # Renamed for clarity
+        is_correct = (answer == current_question_obj['correct_answer'])
         
-        # Update score using time-based scoring
         points_earned = 0
         if is_correct:
-            points_earned = max(0, 1000 - player.timetaken * 10)
+            player.correct_streak += 1
+            base_points = 100  # Base points for correct answer
+            speed_bonus = time_left_at_answer * 10 # Speed bonus: remaining time * 10
+            streak_bonus = player.correct_streak * 10 # Streak bonus: streak count * 10
+            points_earned = base_points + speed_bonus + streak_bonus
             player.score += points_earned
+        else:
+            player.correct_streak = 0 # Reset streak on incorrect answer
         
         # Check if all players have answered
         all_answered = all(p.answered for p in self.players.values())
@@ -263,19 +374,17 @@ class GameRoom:
         if all_answered:
             # Stop the timer since everyone has answered
             if self.timer_thread and self.timer_thread.is_alive():
-                self.time_remaining = 0  # This will stop the timer
-            
-            # Show results and then move to next question
-            result['should_advance'] = True
-            
-            # Schedule the reveal answer and next question
-            threading.Timer(1.0, self.reveal_answer).start()
+                self.time_remaining = 0  # This will signal the timer loop to stop and call time_up -> reveal_answer
         
         return result
         
     def reveal_answer(self):
         """
         Reveal the correct answer to all players"""
+        if self.answer_revealed_for_current_question:
+            return # Already revealed or in the process of revealing for this question
+        self.answer_revealed_for_current_question = True
+
         if self.current_question >= len(self.questions):
             return
     
@@ -326,6 +435,7 @@ class GameRoom:
         - Send new question or end game if no more questions
         - Start new timer
         """
+        self.answer_revealed_for_current_question = False # Reset flag for the new question
         
         self.current_question += 1
         if self.current_question >= len(self.questions):
@@ -344,19 +454,14 @@ class GameRoom:
         self.start_question_timer()
 
     def send_current_question(self):
-        """Send the current question to all players"""
-        # Check if we're out of questions
+        """Send the current question to all players and trigger bot answers"""
         if self.current_question >= len(self.questions):
             self.end_game()
             return
         
-        # Get the current question
         question = self.questions[self.current_question]
-        
-        # Shuffle the options
         shuffled_options = random.sample(question['options'], len(question['options']))
         
-        # Prepare question data
         question_data = {
             'question_number': self.current_question + 1,
             'total_questions': len(self.questions),
@@ -365,15 +470,53 @@ class GameRoom:
             'time_limit': self.question_duration
         }
         
-        # Reset player states
         for player in self.players.values():
             player.answered = False
             player.current_answer = None
         
-        # Send to all players in room
         emit('new_question', question_data, room=self.room_id)
-        
-        
+        print(f"Room {self.room_id}: Sent question {self.current_question + 1}")
+
+        # Trigger bot answers
+        for player_id, player in self.players.items():
+            if isinstance(player, BotPlayer): # Check if the player is a bot
+                chosen_answer, response_time = player.choose_answer(question['options'], question['correct_answer'])
+                # Ensure response_time is not negative or excessively long
+                response_time = max(0.5, min(response_time, self.question_duration -1)) # Ensure bot answers before time runs out
+                
+                print(f"Room {self.room_id}: Bot {player.name} will answer in {response_time:.2f}s. Correct: {question['correct_answer']}, Chosen: {chosen_answer}")
+                
+                # Schedule the bot's answer submission
+                # Pass player.session_id instead of player object to avoid issues with stale objects in closures
+                threading.Timer(response_time, self._bot_submit_answer_action, args=[player.session_id, chosen_answer]).start()
+                
+    def _bot_submit_answer_action(self, bot_session_id, chosen_answer):
+        """Helper method to submit a bot's answer and update clients."""
+        # Ensure game is still playing and bot exists and hasn't answered yet
+        if self.game_state == "playing" and bot_session_id in self.players:
+            bot_player = self.players[bot_session_id]
+            if isinstance(bot_player, BotPlayer) and not bot_player.answered:
+                print(f"Room {self.room_id}: Bot {bot_player.name} (ID: {bot_session_id}) is submitting answer: {chosen_answer} for question {self.current_question + 1}")
+                
+                # Record the time the bot is "submitting"
+                # This is an approximation as the actual time_remaining is ticking down.
+                # For simplicity, we can assume the bot's pre-calculated response_time was its "thinking time".
+                # The scoring logic uses self.time_remaining at the moment of submit_answer.
+                
+                self.submit_answer(bot_session_id, chosen_answer)
+                
+                # Notify clients that a player (bot) has answered, and update scores
+                self.broadcast_scores() # This sends updated scores and answered status
+                
+                # Check if all players (including other bots that might be faster) have answered
+                all_answered = all(p.answered for p in self.players.values())
+                if all_answered and self.timer_thread and self.timer_thread.is_alive():
+                    print(f"Room {self.room_id}: All players (including bot {bot_player.name}) have answered. Attempting to advance.")
+                    self.time_remaining = 0 # This will trigger time_up -> reveal_answer in the timer loop
+            elif bot_player.answered:
+                print(f"Room {self.room_id}: Bot {bot_player.name} (ID: {bot_session_id}) tried to answer but already answered q {self.current_question + 1}.")
+            # else: bot might have disconnected or game state changed
+
     def end_game(self):
         """
         End the game and show final results
@@ -636,13 +779,30 @@ def handle_create_room(data):
     session_id = request.sid
     player_name = data.get('player_name', 'Anonymous')
     category = data.get('category', 'all')
+    num_questions = data.get('num_questions', 15) # Get num_questions from client
+    max_players = data.get('max_players', 8) # Get max_players from client, default 8
+
+    # Validate num_questions (e.g., between 5 and 50)
+    try:
+        num_questions = int(num_questions)
+        if not (5 <= num_questions <= 50): # Example range
+            num_questions = 15 # Default if out of range
+    except ValueError:
+        num_questions = 15 # Default if not a valid integer
+
+    # Validate max_players (e.g., between 2 and 8)
+    try:
+        max_players = int(max_players)
+        if not (2 <= max_players <= 8): # Game supports 3-8, but room can be for 2 (e.g. H2H)
+            max_players = 8 # Default if out of range
+    except ValueError:
+        max_players = 8 # Default if not a valid integer
     
     # Generate room ID
     room_id = generate_room_id()
     
     # Create new GameRoom instance
-    game_room = GameRoom(room_id, session_id)
-    game_room.category_choosen = category
+    game_room = GameRoom(room_id, session_id, num_questions=num_questions, category=category, max_players=max_players) # Pass num_questions, category, max_players
     active_rooms[room_id] = game_room
     
     # Create Player instance for host
@@ -663,7 +823,8 @@ def handle_create_room(data):
             'player': player.to_dict(),
             'is_host': True,
             'category': category,
-            'max_players': game_room.max_players
+            'num_questions': num_questions, # Send num_questions
+            'max_players': game_room.max_players # Send max_players
         })
         
         # Broadcast updated room state
@@ -671,7 +832,10 @@ def handle_create_room(data):
             'room_id': room_id,
             'players': [p.to_dict() for p in game_room.players.values()],
             'host_id': game_room.host_id,
-            'game_state': game_room.game_state
+            'game_state': game_room.game_state,
+            'category': game_room.category_choosen, # Send category
+            'num_questions': game_room.num_questions, # Send num_questions
+            'max_players': game_room.max_players # Send max_players
         }, room=room_id)
     else:
         emit('error', {'message': 'Failed to create room'})
@@ -720,13 +884,20 @@ def handle_join_room(data):
             'players': [p.to_dict() for p in room.players.values()],
             'host_id': room.host_id,
             'category': room.category_choosen,
+            'num_questions': room.num_questions, # Send num_questions
+            'max_players': room.max_players, # Send max_players
             'game_state': room.game_state
         })
         
         # Notify other players
-        emit('player_joined', {
-            'player': player.to_dict(),
-            'players': [p.to_dict() for p in room.players.values()]
+        emit('room_update', {
+            'room_id': room_id,
+            'players': [p.to_dict() for p in room.players.values()],
+            'host_id': room.host_id,
+            'game_state': room.game_state,
+            'category': room.category_choosen,
+            'num_questions': room.num_questions,
+            'max_players': room.max_players
         }, room=room_id)
     else:
         emit('error', {'message': 'Failed to join room'})

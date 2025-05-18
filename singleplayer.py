@@ -184,8 +184,8 @@ class SinglePlayerGame:
         leaderboard_manager.add_entry(leaderboard_entry)
         
         # Update player stats
-        stats = SinglePlayerStats(self.player_name)
-        stats.update_stats({
+        stats_manager = SinglePlayerStatsManager() # Use the new manager
+        stats_manager.update_stats(self.player_name, {
             'score': self.score,
             'questions_answered': self.total_questions_answered,
             'correct_answers': self.correct_answers,
@@ -396,6 +396,90 @@ class LeaderboardManager:
         except sqlite3.Error as e:
             print(f"Database error: {e}")
             return None
+
+# Single Player Statistics Management
+class SinglePlayerStatsManager:
+    """Manage personal statistics for single player games"""
+    def __init__(self, db_path='quiz_questions.db'):
+        """Initialize stats manager"""
+        self.db_path = db_path
+        self._ensure_table_exists()
+
+    def _ensure_table_exists(self):
+        """Ensure player_stats table exists in the database"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS player_stats (
+                player_name TEXT PRIMARY KEY,
+                games_played INTEGER DEFAULT 0,
+                total_score INTEGER DEFAULT 0,
+                highest_score INTEGER DEFAULT 0,
+                total_questions_answered INTEGER DEFAULT 0,
+                total_correct_answers INTEGER DEFAULT 0,
+                total_game_duration REAL DEFAULT 0,
+                average_score REAL DEFAULT 0,
+                average_accuracy REAL DEFAULT 0,
+                last_played_date TEXT
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    def get_stats(self, player_name):
+        """Retrieve statistics for a given player"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM player_stats WHERE player_name = ?", (player_name,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            columns = [desc[0] for desc in cursor.description]
+            return dict(zip(columns, row))
+        return None
+
+    def update_stats(self, player_name, game_data):
+        """Update player statistics after a game"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        current_stats = self.get_stats(player_name)
+        
+        if current_stats:
+            new_games_played = current_stats['games_played'] + 1
+            new_total_score = current_stats['total_score'] + game_data['score']
+            new_highest_score = max(current_stats['highest_score'], game_data['score'])
+            new_total_questions = current_stats['total_questions_answered'] + game_data['questions_answered']
+            new_total_correct = current_stats['total_correct_answers'] + game_data['correct_answers']
+            new_total_duration = current_stats['total_game_duration'] + game_data['game_duration']
+            
+            new_avg_score = new_total_score / new_games_played if new_games_played > 0 else 0
+            new_avg_accuracy = (new_total_correct / new_total_questions * 100) if new_total_questions > 0 else 0
+            
+            cursor.execute('''
+                UPDATE player_stats 
+                SET games_played = ?, total_score = ?, highest_score = ?, 
+                    total_questions_answered = ?, total_correct_answers = ?, total_game_duration = ?, 
+                    average_score = ?, average_accuracy = ?, last_played_date = ?
+                WHERE player_name = ?
+            ''', (new_games_played, new_total_score, new_highest_score, 
+                  new_total_questions, new_total_correct, new_total_duration, 
+                  new_avg_score, new_avg_accuracy, datetime.now().isoformat(), player_name))
+        else:
+            # First game for this player
+            avg_score = game_data['score']
+            avg_accuracy = (game_data['correct_answers'] / game_data['questions_answered'] * 100) if game_data['questions_answered'] > 0 else 0
+            cursor.execute('''
+                INSERT INTO player_stats (player_name, games_played, total_score, highest_score, 
+                                        total_questions_answered, total_correct_answers, total_game_duration, 
+                                        average_score, average_accuracy, last_played_date)
+                VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (player_name, game_data['score'], game_data['score'], 
+                  game_data['questions_answered'], game_data['correct_answers'], game_data['game_duration'],
+                  avg_score, avg_accuracy, datetime.now().isoformat()))
+        
+        conn.commit()
+        conn.close()
 
 # Utility functions
 def calculate_points(time_taken, is_correct):
