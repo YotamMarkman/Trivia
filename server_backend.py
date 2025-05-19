@@ -22,7 +22,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-DB_PATH = 'c:\\\\Users\\\\yotam\\\\OneDrive\\\\Documents\\\\Recihmann\\\\Computer_Science_Yr_2\\\\Sem_2\\\\Idea_To_App\\\\Assignment3\\\\Exercise2\\\\quiz_questions.db'
+DB_PATH = 'c:\\\\Users\\\\yotam\\\\OneDrive\\\\Documents\\\\Recihmann\\\\Computer_Science_Yr_2\\\\Sem_2\\\\Idea_To_App\\\\Assignment3\\\\Exercise2\\\\quiz_questions.sqlite'
 
 active_rooms = {}
 player_sessions = {}

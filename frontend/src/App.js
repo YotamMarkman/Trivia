@@ -1,63 +1,46 @@
+// src/App.js
 import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import HomePage from './pages/Home';
-import SinglePlayerPage from './pages/SinglePlayer';
-import HeadToHeadPage from './pages/HeadToHead';
-import MultiplayerPage from './pages/Multiplayer';
-import LeaderboardPage from './pages/Leaderboard';
-import NotFoundPage from './pages/NotFound';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
-import { AuthContext } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { AuthContext, AuthProvider } from './context/AuthContext'; 
+import { SocketProvider } from './context/SocketContext'; 
+import MainLayout from './components/layouts/MainLayout';
+import Home from './pages/Home';
+import SinglePlayer from './pages/SinglePlayer';
+import MultiPlayer from './pages/Multiplayer';
+import HeadToHead from './pages/HeadToHead';
+import Leaderboard from './pages/Leaderboard';
+import NotFound from './pages/NotFound';
 
-function App() {
-  const { user, logout, loading, isAuthenticated } = useContext(AuthContext);
-
-  if (loading) {
-    return <div>Loading application...</div>;
-  }
+function AppContent() {
+  const location = useLocation();
+  const { token, isAuthenticated } = useContext(AuthContext);
 
   return (
-    <SocketProvider token={localStorage.getItem('userToken')} isAuthenticated={isAuthenticated}>
-      <Router>
-        <div className="App">
-          <nav>
-            <ul>
-              <li><Link to="/">Home</Link></li>
-              <li><Link to="/singleplayer">Single Player</Link></li>
-              <li><Link to="/head-to-head">Head-to-Head</Link></li>
-              <li><Link to="/multiplayer">Multiplayer</Link></li>
-              <li><Link to="/leaderboard">Leaderboard</Link></li>
-              {isAuthenticated ? (
-                <>
-                  <li><Link to="/profile">My Profile</Link></li>
-                  <li><button onClick={logout}>Logout ({user?.username})</button></li>
-                </>
-              ) : (
-                <>
-                  <li><Link to="/login">Login</Link></li>
-                  <li><Link to="/register">Register</Link></li>
-                </>
-              )}
-            </ul>
-          </nav>
-
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
-            <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" />} />
-            <Route path="/singleplayer" element={isAuthenticated ? <SinglePlayerPage /> : <Navigate to="/login" />} />
-            <Route path="/head-to-head" element={isAuthenticated ? <HeadToHeadPage /> : <Navigate to="/login" />} />
-            <Route path="/multiplayer" element={isAuthenticated ? <MultiplayerPage /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </div>
-      </Router>
+    <SocketProvider token={token} isAuthenticated={isAuthenticated}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="single-player" element={<SinglePlayer />} />
+            <Route path="multiplayer" element={<MultiPlayer />} />
+            <Route path="head-to-head" element={<HeadToHead />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </AnimatePresence>
     </SocketProvider>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 }
 

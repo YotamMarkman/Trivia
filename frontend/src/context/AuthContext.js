@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import authService from './services/authService';
+import authService from '../services/authService'; // Corrected path
 import { jwtDecode } from 'jwt-decode'; // Corrected import
 
 export const AuthContext = createContext(null);
@@ -48,9 +48,18 @@ export const AuthProvider = ({ children }) => {
     updateUserFromToken(null);
   };
 
+  const authContextValue = {
+    user,
+    token,
+    login,
+    logout,
+    loading,
+    isAuthenticated: !!user
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, isAuthenticated: !!user }}>
-      {children}
+    <AuthContext.Provider value={authContextValue}>
+      {typeof children === 'function' ? children(authContextValue) : children}
     </AuthContext.Provider>
   );
 };

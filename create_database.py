@@ -4,7 +4,7 @@ import os
 
 def create_quiz_db():
     # Check if database already exists
-    if os.path.exists('quiz_questions.db'):
+    if os.path.exists('quiz_questions.sqlite'):
         print("Database already exists. Do you want to recreate it? (y/n)")
         response = input().strip().lower()
         if response != 'y':
@@ -12,7 +12,7 @@ def create_quiz_db():
             return
 
     # Connect to database
-    conn = sqlite3.connect('quiz_questions.db')
+    conn = sqlite3.connect('quiz_questions.sqlite')
     cursor = conn.cursor()
     
     # Create tables
