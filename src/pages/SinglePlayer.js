@@ -1,5 +1,5 @@
 // src/pages/SinglePlayer.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Add useRef
 import { useNavigate } from 'react-router-dom';
 import socket from '../services/socket';
 import useGameState from '../hooks/useGameState';
@@ -9,7 +9,8 @@ import Timer from '../components/common/Timer';
 import GameResults from '../components/game/GameResults';
 import Loading from '../components/common/Loading';
 import CategorySelector from '../components/lobby/CategorySelector';
-import { SOCKET_EVENTS, GAME_STATES, CATEGORIES } from '../utils/constants';
+import { SOCKET_EVENTS, GAME_STATES } from '../utils/constants';
+import '../index.css';
 
 const SinglePlayer = () => {
   const navigate = useNavigate();
@@ -17,12 +18,12 @@ const SinglePlayer = () => {
   const [category, setCategory] = useState('all');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+  const gameStartTimeoutRef = useRef(null); // Ref to store timeout ID
+
   const {
     gameState,
     setGameState,
     currentQuestion,
-    scores,
     timeRemaining,
     questionResults,
     updateQuestion,
@@ -32,8 +33,17 @@ const SinglePlayer = () => {
   } = useGameState(GAME_STATES.SETUP);
 
   useEffect(() => {
+    // Function to clear the game start timeout
+    const clearGameStartTimeout = () => {
+      if (gameStartTimeoutRef.current) {
+        clearTimeout(gameStartTimeoutRef.current);
+        gameStartTimeoutRef.current = null;
+      }
+    };
+
     // Socket event listeners
     socket.on(SOCKET_EVENTS.SINGLE_PLAYER_STARTED, (data) => {
+      clearGameStartTimeout(); // Clear timeout on receiving response
       if (data.status === 'success') {
         setGameState(GAME_STATES.PLAYING);
         setLoading(false);
@@ -69,8 +79,19 @@ const SinglePlayer = () => {
       setGameState(GAME_STATES.PLAYING);
     });
 
+    // Generic error handler
+    const handleSocketError = (errData) => {
+      console.error('Socket error received on client:', errData);
+      clearGameStartTimeout(); // Clear timeout on error
+      setError(errData.message || 'A connection error occurred.');
+      setLoading(false);
+    };
+    socket.on('error', handleSocketError); // Listen for generic 'error' events from server
+    socket.on('connect_error', handleSocketError); // Listen for connection errors
+
     // Cleanup
     return () => {
+      clearGameStartTimeout(); // Clear timeout on component unmount
       socket.off(SOCKET_EVENTS.SINGLE_PLAYER_STARTED);
       socket.off(SOCKET_EVENTS.SINGLE_PLAYER_QUESTION);
       socket.off(SOCKET_EVENTS.TIMER_UPDATE);
@@ -78,8 +99,10 @@ const SinglePlayer = () => {
       socket.off(SOCKET_EVENTS.SINGLE_PLAYER_ENDED);
       socket.off('game_paused');
       socket.off('game_resumed');
+      socket.off('error', handleSocketError);
+      socket.off('connect_error', handleSocketError);
     };
-  }, [setGameState, updateQuestion, updateTimer, setResults]);
+  }, [setGameState, updateQuestion, updateTimer, setResults, loading, gameState]);
 
   // Layout title based on game state
   const getLayoutTitle = () => {
@@ -121,6 +144,18 @@ const SinglePlayer = () => {
 
     setError('');
     setLoading(true);
+
+    // Clear any existing timeout
+    if (gameStartTimeoutRef.current) {
+      clearTimeout(gameStartTimeoutRef.current);
+    }
+
+    // Set a timeout for game start
+    gameStartTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to start game: Server did not respond in time.');
+    }, 10000); // 10 seconds timeout
+
     socket.emit(SOCKET_EVENTS.START_SINGLE_PLAYER, {
       player_name: playerName.trim(),
       category: category

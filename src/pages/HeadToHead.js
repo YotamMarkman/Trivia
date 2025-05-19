@@ -1,5 +1,5 @@
 // src/pages/HeadToHead.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Add useRef
 import { useNavigate } from 'react-router-dom';
 import socket from '../services/socket';
 import useGameState from '../hooks/useGameState';
@@ -7,23 +7,20 @@ import GameLayout from '../components/layouts/GameLayout';
 import QuestionDisplay from '../components/game/QuestionDisplay';
 import Timer from '../components/common/Timer';
 import Loading from '../components/common/Loading';
-import { SOCKET_EVENTS, GAME_STATES, MAX_PLAYER_NAME_LENGTH, ROOM_CODE_LENGTH } from '../utils/constants';
+import { SOCKET_EVENTS, MAX_PLAYER_NAME_LENGTH, ROOM_CODE_LENGTH } from '../utils/constants';
 
 const HeadToHead = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState('choose'); // choose, queuing, private, waiting, playing, finished
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const [opponent, setOpponent] = useState(null);
   const [queuePosition, setQueuePosition] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+  const operationTimeoutRef = useRef(null); // Ref for timeouts
+
   const {
-    gameState,
-    setGameState,
     currentQuestion,
-    scores,
     timeRemaining,
     questionResults,
     updateQuestion,
@@ -33,8 +30,17 @@ const HeadToHead = () => {
   } = useGameState();
 
   useEffect(() => {
+    // Function to clear the operation timeout
+    const clearOperationTimeout = () => {
+      if (operationTimeoutRef.current) {
+        clearTimeout(operationTimeoutRef.current);
+        operationTimeoutRef.current = null;
+      }
+    };
+
     // Matchmaking events
     socket.on(SOCKET_EVENTS.QUEUE_STATUS, (data) => {
+      clearOperationTimeout(); // Clear timeout if we get a queue status update
       if (data.status === 'queued') {
         setQueuePosition(data.position);
       } else if (data.status === 'already_queued') {
@@ -43,40 +49,41 @@ const HeadToHead = () => {
     });
 
     socket.on(SOCKET_EVENTS.MATCH_FOUND, (data) => {
+      clearOperationTimeout();
       setMode('playing');
       setLoading(false);
       setRoomCode(data.room_id);
-      // Set opponent info
-      const otherPlayer = data.players.find(p => p.session_id !== socket.id);
-      setOpponent(otherPlayer);
     });
 
     socket.on('queue_cancelled', () => {
+      clearOperationTimeout();
       setMode('choose');
       setQueuePosition(0);
     });
 
     // Private room events
     socket.on(SOCKET_EVENTS.PRIVATE_ROOM_CREATED, (data) => {
+      clearOperationTimeout();
       setRoomCode(data.room_code);
       setMode('waiting');
       setLoading(false);
     });
 
     socket.on(SOCKET_EVENTS.PLAYER_JOINED, (data) => {
+      clearOperationTimeout(); // Opponent joined, clear timeout if host was waiting
       if (data.players.length === 2) {
-        const otherPlayer = data.players.find(p => p.session_id !== socket.id);
-        setOpponent(otherPlayer);
+        // Find the other player
       }
     });
 
     socket.on('ready_to_start', () => {
+      clearOperationTimeout(); // Game is ready, clear any waiting timeout
       setMode('playing');
     });
 
     // Game events
     socket.on('head_to_head_started', (data) => {
-      setGameState(GAME_STATES.PLAYING);
+      clearOperationTimeout(); // Game started, clear any pending timeouts
       setMode('playing');
     });
 
@@ -108,23 +115,31 @@ const HeadToHead = () => {
 
     socket.on('head_to_head_ended', (data) => {
       setMode('finished');
-      setGameState(GAME_STATES.FINISHED);
       setResults(data);
     });
 
     socket.on('rematch_started', (data) => {
       resetGame();
       setMode('playing');
-      setGameState(GAME_STATES.PLAYING);
     });
 
     // Error handling
-    socket.on('error', (data) => {
-      setError(data.message);
+    const handleSocketError = (errData) => {
+      console.error('Socket error on HeadToHead page:', errData);
+      clearOperationTimeout();
+      setError(errData.message || 'A connection error occurred.');
       setLoading(false);
-    });
+      // Reset to choose mode if error is critical during setup/connection phases
+      if (['choose', 'queuing', 'private', 'waiting'].includes(mode) || loading) {
+        setMode('choose');
+        setQueuePosition(0);
+      }
+    };
+    socket.on('error', handleSocketError);
+    socket.on('connect_error', handleSocketError);
 
     return () => {
+      clearOperationTimeout();
       // Cleanup
       socket.off(SOCKET_EVENTS.QUEUE_STATUS);
       socket.off(SOCKET_EVENTS.MATCH_FOUND);
@@ -139,9 +154,10 @@ const HeadToHead = () => {
       socket.off('head_to_head_question_results');
       socket.off('head_to_head_ended');
       socket.off('rematch_started');
-      socket.off('error');
+      socket.off('error', handleSocketError);
+      socket.off('connect_error', handleSocketError);
     };
-  }, [setGameState, updateQuestion, updateTimer, setResults, resetGame]);
+  }, [updateQuestion, updateTimer, setResults, resetGame, mode, loading]); // Added mode and loading
 
   const getLayoutTitle = () => {
     switch (mode) {
@@ -187,6 +203,13 @@ const HeadToHead = () => {
     
     setLoading(true);
     setError('');
+    clearOperationTimeout();
+    operationTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to join queue: Server did not respond.');
+      setMode('choose');
+    }, 15000); // 15 seconds timeout for matchmaking queue join
+
     socket.emit('queue_head_to_head', { 
       player_name: playerName.trim() 
     });
@@ -207,6 +230,13 @@ const HeadToHead = () => {
     
     setLoading(true);
     setError('');
+    clearOperationTimeout();
+    operationTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to create private room: Server did not respond.');
+      setMode('choose');
+    }, 10000); // 10 seconds timeout
+
     socket.emit('create_private_head_to_head', { 
       player_name: playerName.trim() 
     });
@@ -225,6 +255,13 @@ const HeadToHead = () => {
     
     setLoading(true);
     setError('');
+    clearOperationTimeout();
+    operationTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to join private room: Server did not respond or room code is invalid.');
+      setMode('choose');
+    }, 10000); // 10 seconds timeout
+
     socket.emit('join_private_head_to_head', {
       room_code: roomCode.trim(),
       player_name: playerName.trim()

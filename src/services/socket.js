@@ -1,5 +1,6 @@
 // src/services/socket.js
 import { io } from 'socket.io-client';
+import { createContext } from 'react'; // Import only createContext
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
@@ -10,6 +11,9 @@ const socket = io(SOCKET_URL, {
   reconnectionDelay: 1000,  // Wait 1 second between reconnection attempts
   transports: ['websocket', 'polling'],  // Use WebSocket first, fallback to polling
 });
+
+// Create and export SocketContext
+export const SocketContext = createContext(socket);
 
 // Error handling
 socket.on('connect_error', (error) => {

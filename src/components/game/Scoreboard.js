@@ -21,7 +21,11 @@ const Scoreboard = ({ scores, currentQuestion, totalQuestions }) => {
                 <span className="answered-indicator">✓</span>
               )}
             </div>
-            <div className="score">{player.score}</div>
+            <div className="score">
+              <span aria-live="polite" aria-atomic="true">
+                {player.score}
+              </span>
+            </div>
           </div>
         ))}
       </div>

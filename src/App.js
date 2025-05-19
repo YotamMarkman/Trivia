@@ -1,6 +1,7 @@
 // src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'; // Import useLocation
+import { AnimatePresence } from 'framer-motion';
 import useSocket from './hooks/useSocket';
 import MainLayout from './components/layouts/MainLayout';
 import Home from './pages/Home';
@@ -10,13 +11,13 @@ import HeadToHead from './pages/HeadToHead';
 import Leaderboard from './pages/Leaderboard';
 import NotFound from './pages/NotFound';
 
-function App() {
-  // Initialize socket connection when app starts
+function AppContent() { // Create a new component to use useLocation
+  const location = useLocation(); // Get location here
   useSocket();
 
   return (
-    <Router>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}> {/* Pass location and key to Routes */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="single-player" element={<SinglePlayer />} />
@@ -26,6 +27,14 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent /> {/* Render the new component */}
     </Router>
   );
 }

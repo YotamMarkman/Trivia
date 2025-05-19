@@ -1,57 +1,42 @@
 // src/hooks/useSocket.js
-import { useEffect, useRef, useCallback } from 'react';
-import socket from '../services/socket';
+import { useEffect, useContext } from 'react';
+import { SocketContext } from '../services/socket';
 
 const useSocket = () => {
-  const isConnected = useRef(false);
-  const reconnectAttempts = useRef(0);
+  const socket = useContext(SocketContext);
 
   useEffect(() => {
-    // Connect only if not already connected
-    if (!isConnected.current) {
-      socket.connect();
-      isConnected.current = true;
+    if (!socket) return;
 
-      // Connection event handlers
-      socket.on('connect', () => {
-        console.log('Connected to server');
-        reconnectAttempts.current = 0;
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('Disconnected from server:', reason);
-        isConnected.current = false;
-      });
-
-      socket.on('error', (error) => {
-        console.error('Socket error:', error);
-      });
-
-      socket.on('reconnect_attempt', (attemptNumber) => {
-        console.log(`Reconnection attempt ${attemptNumber}`);
-        reconnectAttempts.current = attemptNumber;
-      });
-    }
-
-    // Cleanup function
-    return () => {
-      if (isConnected.current) {
-        socket.disconnect();
-        isConnected.current = false;
-      }
+    const handleConnect = () => {
+      console.log('Socket connected:', socket.id);
     };
-  }, []);
 
-  // Utility function to emit events with error handling
-  const emit = useCallback((event, data, callback) => {
-    if (socket.connected) {
-      socket.emit(event, data, callback);
-    } else {
-      console.error('Socket not connected. Cannot emit event:', event);
-    }
-  }, []);
+    const handleDisconnect = (reason) => {
+      console.log('Socket disconnected:', reason);
+    };
 
-  return { socket, emit, isConnected: socket.connected };
+    const handleError = (error) => {
+      console.error('Socket error:', error);
+    };
+
+    // Log initial status
+    console.log('Socket instance in useSocket:', socket);
+    console.log('Socket connected status in useSocket:', socket.connected);
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleError); // More specific error handling
+
+    // Clean up listeners when component unmounts or socket changes
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleError);
+    };
+  }, [socket]); // Re-run effect if socket instance changes
+
+  return socket;
 };
 
 export default useSocket;

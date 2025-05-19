@@ -1,5 +1,5 @@
 // src/pages/MultiPlayer.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Add useRef
 import { useNavigate } from 'react-router-dom';
 import socket from '../services/socket';
 import useGameState from '../hooks/useGameState';
@@ -25,9 +25,9 @@ const MultiPlayer = () => {
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [roomCategory, setRoomCategory] = useState('all');
-  
+  const operationTimeoutRef = useRef(null); // Ref for timeouts
+
   const {
-    gameState,
     setGameState,
     players,
     currentQuestion,
@@ -43,6 +43,14 @@ const MultiPlayer = () => {
   } = useGameState();
 
   useEffect(() => {
+    // Function to clear the operation timeout
+    const clearOperationTimeout = () => {
+      if (operationTimeoutRef.current) {
+        clearTimeout(operationTimeoutRef.current);
+        operationTimeoutRef.current = null;
+      }
+    };
+
     // Get session ID once connected
     socket.on('connect', () => {
       setSessionId(socket.id);
@@ -50,6 +58,7 @@ const MultiPlayer = () => {
 
     // Room creation/joining events
     socket.on(SOCKET_EVENTS.ROOM_CREATED, (data) => {
+      clearOperationTimeout();
       setRoomId(data.room_id);
       setIsHost(data.is_host);
       setRoomCategory(data.category);
@@ -59,6 +68,7 @@ const MultiPlayer = () => {
     });
 
     socket.on(SOCKET_EVENTS.JOINED_ROOM, (data) => {
+      clearOperationTimeout();
       setRoomId(data.room_id);
       setIsHost(data.is_host);
       setRoomCategory(data.category);
@@ -86,6 +96,7 @@ const MultiPlayer = () => {
 
     // Game events
     socket.on(SOCKET_EVENTS.GAME_STARTED, () => {
+      clearOperationTimeout(); // Clear timeout if game starts successfully via host action
       setMode('playing');
       setGameState(GAME_STATES.PLAYING);
     });
@@ -126,12 +137,21 @@ const MultiPlayer = () => {
     });
 
     // Error handling
-    socket.on('error', (data) => {
-      setError(data.message);
+    const handleSocketError = (errData) => {
+      console.error('Socket error on Multiplayer page:', errData);
+      clearOperationTimeout();
+      setError(errData.message || 'A connection error occurred.');
       setLoading(false);
-    });
+      // Potentially reset mode if error occurs during critical operations like create/join
+      if (mode === 'create' || mode === 'join' || loading) {
+        setMode('choose');
+      }
+    };
+    socket.on('error', handleSocketError);
+    socket.on('connect_error', handleSocketError);
 
     return () => {
+      clearOperationTimeout();
       // Cleanup all event listeners
       socket.off('connect');
       socket.off(SOCKET_EVENTS.ROOM_CREATED);
@@ -147,9 +167,10 @@ const MultiPlayer = () => {
       socket.off(SOCKET_EVENTS.SCORES_UPDATE);
       socket.off(SOCKET_EVENTS.GAME_ENDED);
       socket.off('category_updated');
-      socket.off('error');
+      socket.off('error', handleSocketError);
+      socket.off('connect_error', handleSocketError);
     };
-  }, [sessionId, setGameState, updatePlayers, updateQuestion, updateScores, updateTimer, setResults]);
+  }, [sessionId, setGameState, updatePlayers, updateQuestion, updateScores, updateTimer, setResults, mode, loading]); // Added mode and loading
 
   const getLayoutTitle = () => {
     switch (mode) {
@@ -191,6 +212,14 @@ const MultiPlayer = () => {
 
   const createRoom = (playerName, category) => {
     setLoading(true);
+    setError('');
+    clearOperationTimeout(); // Clear previous timeout
+    operationTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to create room: Server did not respond.');
+      setMode('choose');
+    }, 10000); // 10 seconds timeout
+
     socket.emit(SOCKET_EVENTS.CREATE_ROOM, { 
       player_name: playerName, 
       category 
@@ -199,6 +228,14 @@ const MultiPlayer = () => {
 
   const joinRoom = (roomId, playerName) => {
     setLoading(true);
+    setError('');
+    clearOperationTimeout(); // Clear previous timeout
+    operationTimeoutRef.current = setTimeout(() => {
+      setLoading(false);
+      setError('Failed to join room: Server did not respond or room is invalid.');
+      setMode('choose');
+    }, 10000); // 10 seconds timeout
+
     socket.emit(SOCKET_EVENTS.JOIN_ROOM, { 
       room_id: roomId, 
       player_name: playerName 
@@ -214,8 +251,18 @@ const MultiPlayer = () => {
   };
 
   const startGame = () => {
-    if (isHost && players.length >= 2) {
+    if (isHost && players.length >= 1) { // Changed to 1 for testing, ideally 2
+      setLoading(true); // Show loading when host tries to start
+      setError('');
+      clearOperationTimeout();
+      operationTimeoutRef.current = setTimeout(() => {
+        setLoading(false);
+        setError('Failed to start game: Server did not respond.');
+        // Mode remains 'lobby' or as is, host might need to retry
+      }, 10000);
       socket.emit(SOCKET_EVENTS.START_GAME, {});
+    } else if (isHost) {
+      setError('Cannot start game. Need at least 1 other player (or adjust settings for bots).');
     }
   };
 

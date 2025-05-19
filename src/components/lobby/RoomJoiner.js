@@ -1,5 +1,6 @@
 // src/components/lobby/RoomJoiner.js
 import React, { useState } from 'react';
+import { motion } from 'framer-motion'; // Import motion
 import { MAX_PLAYER_NAME_LENGTH, ROOM_CODE_LENGTH } from '../../utils/constants';
 
 const RoomJoiner = ({ onJoinRoom }) => {
@@ -59,9 +60,15 @@ const RoomJoiner = ({ onJoinRoom }) => {
         
         {error && <div className="error-message">{error}</div>}
         
-        <button type="submit" className="primary-button">
+        <motion.button // Change to motion.button
+          type="submit" 
+          className="primary-button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.1 }}
+        >
           Join Room
-        </button>
+        </motion.button>
       </form>
     </div>
   );
