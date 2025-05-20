@@ -204,10 +204,15 @@ const HeadToHead = () => {
     }
     return null;
   };
-
   const queueForMatch = () => {
     if (!playerName.trim()) {
       setError('Please enter your name');
+      return;
+    }
+    
+    if (!socket) {
+      console.error('HeadToHead: Cannot queue for match - socket is null');
+      setError('Connection lost. Please refresh the page.');
       return;
     }
     
@@ -225,16 +230,25 @@ const HeadToHead = () => {
     });
     setMode('queuing');
   };
-
   const cancelQueue = () => {
+    if (!socket) {
+      console.error('HeadToHead: Cannot cancel queue - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit('cancel_queue');
     setMode('choose');
     setQueuePosition(0);
   };
-
   const createPrivateRoom = () => {
     if (!playerName.trim()) {
       setError('Please enter your name');
+      return;
+    }
+    
+    if (!socket) {
+      console.error('HeadToHead: Cannot create private room - socket is null');
+      setError('Connection lost. Please refresh the page.');
       return;
     }
     
@@ -251,7 +265,6 @@ const HeadToHead = () => {
       player_name: playerName.trim() 
     });
   };
-
   const joinPrivateRoom = () => {
     if (!playerName.trim()) {
       setError('Please enter your name');
@@ -260,6 +273,12 @@ const HeadToHead = () => {
     
     if (!roomCode.trim() || roomCode.length !== ROOM_CODE_LENGTH) {
       setError(`Room code must be ${ROOM_CODE_LENGTH} characters`);
+      return;
+    }
+    
+    if (!socket) {
+      console.error('HeadToHead: Cannot join private room - socket is null');
+      setError('Connection lost. Please refresh the page.');
       return;
     }
     
@@ -277,12 +296,20 @@ const HeadToHead = () => {
       player_name: playerName.trim()
     });
   };
-
   const submitAnswer = (answer) => {
+    if (!socket) {
+      console.error('HeadToHead: Cannot submit answer - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit('submit_answer', { answer });
   };
-
   const requestRematch = () => {
+    if (!socket) {
+      console.error('HeadToHead: Cannot request rematch - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit('head_to_head_rematch', {
       room_id: roomCode
     });

@@ -36,13 +36,20 @@ const useGameState = (initialState = 'waiting') => {
 
   // Update current question, round info, and set game state for active question
   const updateQuestion = useCallback((questionData) => {
-    setCurrentQuestion(questionData.question);
-    setCurrentRound(questionData.currentRound);
-    setTotalRounds(questionData.totalRounds);
-    setTimeRemaining(questionData.timeLimit || 0); // Assuming timeLimit comes with questionData
+    console.log('updateQuestion CALLED. Data:', questionData); // Log the received questionData
+    setCurrentQuestion(questionData); // Store the entire questionData object
+    setCurrentRound(questionData.currentRound || questionData.question_number); // Use question_number as fallback
+    setTotalRounds(questionData.totalRounds || questionData.total_questions); // Use total_questions as fallback
+    setTimeRemaining(questionData.timeLimit || questionData.time_limit || 0); // Allow for time_limit from backend
     setAnswerRevealData(null); // Clear previous round's results
     setGameState('question_active');
-    setGameMessage(`Round ${questionData.currentRound}/${questionData.totalRounds}`);
+    const round = questionData.currentRound || questionData.question_number;
+    const total = questionData.totalRounds || questionData.total_questions;
+    if (round && total) {
+      setGameMessage(`Round ${round}/${total}`);
+    } else {
+      setGameMessage(''); // Clear message if round info is missing
+    }
   }, []);
 
   // Update overall scores

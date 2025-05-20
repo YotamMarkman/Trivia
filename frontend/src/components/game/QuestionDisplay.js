@@ -1,6 +1,5 @@
 // src/components/game/QuestionDisplay.js
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 const QuestionDisplay = ({
   questionText,      // string: The actual text of the question.
@@ -12,21 +11,28 @@ const QuestionDisplay = ({
   isRevealState = false, // boolean: True if in answer reveal mode.
   revealData = null    // object: { correctAnswer: string, (optional) playerAnswers, scoresForRound }
 }) => {
+  console.log('QuestionDisplay rendered with props:', { questionText, options, category, currentRound, totalRounds, isRevealState }); // Added this log
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isAnswered, setIsAnswered] = useState(false);
+  const [isAnswered, setIsAnswered] = useState(false); // This now means an answer has been *confirmed*
+  const [isConfirmed, setIsConfirmed] = useState(false); // Tracks if the confirm button has been pressed
 
   useEffect(() => {
     // Reset when new question arrives (identified by questionText changing)
     setSelectedAnswer(null);
     setIsAnswered(false);
+    setIsConfirmed(false);
   }, [questionText]);
 
   const handleAnswerSelect = (answer) => {
-    if (isAnswered || isRevealState) return; // Prevent answering if already answered or in reveal state
-    
+    if (isConfirmed || isRevealState) return; // Prevent changing selection if already confirmed or in reveal state
     setSelectedAnswer(answer);
-    setIsAnswered(true);
-    onAnswer(answer);
+  };
+
+  const handleConfirmAnswer = () => {
+    if (!selectedAnswer || isConfirmed || isRevealState) return;
+    setIsAnswered(true); // Mark as answered (confirmed)
+    setIsConfirmed(true); // Mark as confirmed
+    onAnswer(selectedAnswer);
   };
 
   const getAnswerClassName = (option) => {
@@ -35,15 +41,12 @@ const QuestionDisplay = ({
     if (isRevealState && revealData) {
       if (option === revealData.correctAnswer) {
         className += ' correct';
-      } else if (selectedAnswer === option && option !== revealData.correctAnswer) {
-        // If this option was selected by the user and it's incorrect
+      } else if (option !== revealData.correctAnswer && selectedAnswer === option) { // Ensure it was the selected one
         className += ' incorrect selected'; 
-      } else if (selectedAnswer === option && option === revealData.correctAnswer) {
-        // If this option was selected and it is correct (already handled by first if, but good for clarity)
+      } else if (option === revealData.correctAnswer && selectedAnswer === option) {
         className += ' correct selected';
       } else {
-        // Option was not selected, and not the correct answer (or it is but not selected)
-        className += ' disabled-during-reveal'; // General class for other options during reveal
+        className += ' disabled-during-reveal';
       }
     } else if (selectedAnswer === option) {
       className += ' selected';
@@ -53,17 +56,13 @@ const QuestionDisplay = ({
   };
 
   if (!questionText || !options) {
-    return <div className="question-display-loading">Loading question...</div>; // Or some other placeholder
+    return <div className="question-display-loading">Loading question...</div>;
   }
 
   return (
-    <motion.div
-      key={questionText} // Animate when questionText changes
+    <div
+      key={questionText}
       className="question-display"
-      initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
-      transition={{ duration: 0.3 }}
     >
       <div className="question-header">
         <span className="question-number">
@@ -80,21 +79,30 @@ const QuestionDisplay = ({
       
       <div className="answer-options">
         {options.map((option, index) => (
-          <motion.button
+          <button
             key={index}
             className={getAnswerClassName(option)}
             onClick={() => handleAnswerSelect(option)}
-            disabled={isAnswered || isRevealState} // Disable if answered or in reveal state
+            disabled={isConfirmed || isRevealState} // Disable if confirmed or in reveal state
             aria-pressed={selectedAnswer === option}
-            whileHover={{ scale: (isAnswered || isRevealState) ? 1 : 1.05 }} // No hover effect if disabled
-            whileTap={{ scale: (isAnswered || isRevealState) ? 1 : 0.95 }}   // No tap effect if disabled
-            transition={{ duration: 0.1 }}
           >
             <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-            <span className="option-text">{option}</span>
-          </motion.button>
+            <span className="option-text"> {option}</span> {/* Added a space before {option} */}
+          </button>
         ))}
       </div>
+
+      {!isRevealState && (
+        <div className="confirm-answer-section">
+          <button
+            className="confirm-button primary-button"
+            onClick={handleConfirmAnswer}
+            disabled={!selectedAnswer || isConfirmed}
+          >
+            Confirm Answer
+          </button>
+        </div>
+      )}
       
       {isRevealState && revealData && (
         <div 
@@ -112,7 +120,7 @@ const QuestionDisplay = ({
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

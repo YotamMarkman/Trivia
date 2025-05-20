@@ -150,6 +150,15 @@ body {
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 20px;
+  /* Debug styles */
+  border: 5px solid red !important; 
+  min-height: 100px !important;
+  width: 80% !important; /* Optional: ensure it has some width */
+  margin: 10px auto !important; /* Optional: ensure it's centered if it was off-screen */
 }
 
 .question-text {
@@ -191,6 +200,42 @@ body {
 .answer-option.incorrect {
   border-color: #e74c3c;
   background-color: #f8d7da;
+}
+
+/* Styles for QuestionDisplay Confirm Button */
+.confirm-answer-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.confirm-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.confirm-button:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.confirm-button:not(:disabled):hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.confirm-button:not(:disabled):active {
+  transform: translateY(0px);
+  background-color: #004085;
 }
 
 /* Loading */

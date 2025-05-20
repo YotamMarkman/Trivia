@@ -11,6 +11,7 @@ import MultiPlayer from './pages/Multiplayer';
 import HeadToHead from './pages/HeadToHead';
 import Leaderboard from './pages/Leaderboard';
 import NotFound from './pages/NotFound';
+import SocketTester from './components/common/SocketTester';
 
 function AppContent() {
   const location = useLocation();
@@ -26,6 +27,7 @@ function AppContent() {
             <Route path="multiplayer" element={<MultiPlayer />} />
             <Route path="head-to-head" element={<HeadToHead />} />
             <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="socket-test" element={<SocketTester />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

@@ -26,22 +26,27 @@ const SinglePlayer = () => {
     setGameState,
     currentQuestion,
     timeRemaining,
-    questionResults,
+    answerRevealData, // New: from useGameState
+    leaderboard, // New: from useGameState
     updateQuestion,
     updateTimer,
-    setResults,
+    showAnswerReveal, // New: from useGameState
+    showGameResults, // New: from useGameState
     resetGame,
+    score,
+    feedback,
+    totalQuestions
   } = useGameState(GAME_STATES.SETUP);
+
   useEffect(() => {
-    // Return early if socket is null
     if (!socket) {
       console.warn('SinglePlayer: Socket is null, skipping event listeners');
       setLoading(false);
       setError('Connection issue. Please refresh the page and try again.');
       return;
     }
-    
-    // Function to clear the game start timeout
+    console.log('SinglePlayer: useEffect - Setting up event listeners. Socket ID:', socket.id);
+
     const clearGameStartTimeout = () => {
       if (gameStartTimeoutRef.current) {
         clearTimeout(gameStartTimeoutRef.current);
@@ -49,78 +54,90 @@ const SinglePlayer = () => {
       }
     };
 
-    // Socket event listeners
-    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_STARTED, (data) => {
-      clearGameStartTimeout(); // Clear timeout on receiving response
+    // Define handlers
+    const handleSinglePlayerStarted = (data) => {
+      console.log('SinglePlayer: Received SINGLE_PLAYER_STARTED, data:', data);
+      clearGameStartTimeout();
       if (data.status === 'success') {
-        setGameState(GAME_STATES.PLAYING);
         setLoading(false);
+        setGameState(GAME_STATES.PLAYING);
+        console.log('SinglePlayer: Game state set to PLAYING.');
       } else {
         setError(data.message || 'Failed to start game');
         setLoading(false);
+        console.error('SinglePlayer: Error starting game - SINGLE_PLAYER_STARTED status not success:', data);
       }
-    });
+    };
 
-    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_QUESTION, (data) => {
+    const handleSinglePlayerQuestion = (data) => {
+      console.log('SinglePlayer: Received SINGLE_PLAYER_QUESTION, data:', data);
+      console.log('SinglePlayer: Received SINGLE_PLAYER_QUESTION, data JSON:', JSON.stringify(data)); // Added this log
       updateQuestion(data);
-      updateTimer(data.time_limit);
-    });
+      console.log('SinglePlayer: Called updateQuestion.');
+    };
 
-    socket.on(SOCKET_EVENTS.TIMER_UPDATE, (data) => {
+    const handleTimerUpdate = (data) => {
       updateTimer(data.time_remaining);
-    });
+    };
 
-    socket.on(SOCKET_EVENTS.ANSWER_RESULT, (data) => {
-      setResults(data);
-    });
+    const handleAnswerResult = (data) => {
+      showAnswerReveal(data);
+      console.log('SinglePlayer: Received ANSWER_RESULT, called showAnswerReveal with data:', data);
+    };
 
-    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_ENDED, (data) => {
-      setGameState(GAME_STATES.FINISHED);
-      setResults(data);
-    });
+    const handleSinglePlayerEnded = (data) => {
+      showGameResults(data);
+      console.log('SinglePlayer: Received SINGLE_PLAYER_ENDED, called showGameResults with data:', data);
+    };
 
-    socket.on('game_paused', () => {
+    const handleGamePaused = () => {
       setGameState(GAME_STATES.PAUSED);
-    });
+    };
 
-    socket.on('game_resumed', () => {
+    const handleGameResumed = () => {
       setGameState(GAME_STATES.PLAYING);
-    });
+    };
 
-    // Generic error handler
-    const handleSocketError = (errData) => {
+    const handleSocketErrorEvent = (errData) => { // Renamed to avoid conflict with 'error' state
       console.error('Socket error received on client:', errData);
-      clearGameStartTimeout(); // Clear timeout on error
+      clearGameStartTimeout();
       setError(errData.message || 'A connection error occurred.');
       setLoading(false);
     };
-    socket.on('error', handleSocketError); // Listen for generic 'error' events from server
-    socket.on('connect_error', handleSocketError); // Listen for connection errors
 
-    // Cleanup
+    // Register listeners
+    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_STARTED, handleSinglePlayerStarted);
+    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_QUESTION, handleSinglePlayerQuestion);
+    socket.on(SOCKET_EVENTS.TIMER_UPDATE, handleTimerUpdate);
+    socket.on(SOCKET_EVENTS.ANSWER_RESULT, handleAnswerResult);
+    socket.on(SOCKET_EVENTS.SINGLE_PLAYER_ENDED, handleSinglePlayerEnded);
+    socket.on('game_paused', handleGamePaused);
+    socket.on('game_resumed', handleGameResumed);
+    socket.on('error', handleSocketErrorEvent);
+    socket.on('connect_error', handleSocketErrorEvent);
+
     return () => {
-      clearGameStartTimeout(); // Clear timeout on component unmount
-      if (socket) { // Add null check here too
-        socket.off(SOCKET_EVENTS.SINGLE_PLAYER_STARTED);
-        socket.off(SOCKET_EVENTS.SINGLE_PLAYER_QUESTION);
-        socket.off(SOCKET_EVENTS.TIMER_UPDATE);
-        socket.off(SOCKET_EVENTS.ANSWER_RESULT);
-        socket.off(SOCKET_EVENTS.SINGLE_PLAYER_ENDED);
-        socket.off('game_paused');
-        socket.off('game_resumed');
-        socket.off('error', handleSocketError);
-        socket.off('connect_error', handleSocketError);
-      }
+      console.log('SinglePlayer: useEffect - Cleaning up event listeners. Socket ID:', socket.id);
+      clearGameStartTimeout();
+      // Unregister listeners using the same handler references
+      socket.off(SOCKET_EVENTS.SINGLE_PLAYER_STARTED, handleSinglePlayerStarted);
+      socket.off(SOCKET_EVENTS.SINGLE_PLAYER_QUESTION, handleSinglePlayerQuestion);
+      socket.off(SOCKET_EVENTS.TIMER_UPDATE, handleTimerUpdate);
+      socket.off(SOCKET_EVENTS.ANSWER_RESULT, handleAnswerResult);
+      socket.off(SOCKET_EVENTS.SINGLE_PLAYER_ENDED, handleSinglePlayerEnded);
+      socket.off('game_paused', handleGamePaused);
+      socket.off('game_resumed', handleGameResumed);
+      socket.off('error', handleSocketErrorEvent);
+      socket.off('connect_error', handleSocketErrorEvent);
     };
-  }, [socket, setGameState, updateQuestion, updateTimer, setResults, loading, gameState]);
+  }, [socket, setGameState, updateQuestion, updateTimer, showAnswerReveal, showGameResults, setError, setLoading]); // Restored dependencies to include stable setters and critical functions from useGameState and local state setters.
 
-  // Layout title based on game state
   const getLayoutTitle = () => {
     switch (gameState) {
       case GAME_STATES.SETUP:
         return 'Single Player Setup';
       case GAME_STATES.PLAYING:
-        return `Question ${currentQuestion?.question_number || 1}`;
+        return `Question ${currentQuestion?.question_number || (currentQuestion?.currentRound || 1)}`;
       case GAME_STATES.PAUSED:
         return 'Game Paused';
       case GAME_STATES.FINISHED:
@@ -130,9 +147,8 @@ const SinglePlayer = () => {
     }
   };
 
-  // Right content for header (score, timer, etc.)
   const getRightContent = () => {
-    if (gameState === GAME_STATES.PLAYING) {
+    if (gameState === GAME_STATES.PLAYING && currentQuestion) { // Ensure currentQuestion exists
       return (
         <div className="header-game-info">
           <div className="score">Score: {currentQuestion?.current_score || 0}</div>
@@ -151,40 +167,74 @@ const SinglePlayer = () => {
       setError('Please enter your name');
       return;
     }
-
     setError('');
     setLoading(true);
 
-    // Clear any existing timeout
     if (gameStartTimeoutRef.current) {
       clearTimeout(gameStartTimeoutRef.current);
     }
 
-    // Set a timeout for game start
+    const clearGameStartTimeout = () => {
+      if (gameStartTimeoutRef.current) {
+        clearTimeout(gameStartTimeoutRef.current);
+        gameStartTimeoutRef.current = null;
+      }
+    };
+
     gameStartTimeoutRef.current = setTimeout(() => {
       setLoading(false);
       setError('Failed to start game: Server did not respond in time.');
-    }, 10000); // 10 seconds timeout
+    }, 10000);
 
+    if (!socket) {
+      console.error('SinglePlayer: Cannot start game - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      clearGameStartTimeout();
+      setLoading(false);
+      return;
+    }
+
+    console.log('SinglePlayer: startGame called. PlayerName:', playerName, 'Category:', category);
     socket.emit(SOCKET_EVENTS.START_SINGLE_PLAYER, {
       player_name: playerName.trim(),
       category: category
     });
+    console.log('SinglePlayer: Emitted START_SINGLE_PLAYER');
   };
 
   const submitAnswer = (answer) => {
+    if (!socket) {
+      console.error('SinglePlayer: Cannot submit answer - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit(SOCKET_EVENTS.SINGLE_PLAYER_ANSWER, { answer });
   };
 
   const pauseGame = () => {
+    if (!socket) {
+      console.error('SinglePlayer: Cannot pause game - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit(SOCKET_EVENTS.PAUSE_SINGLE_PLAYER);
   };
 
   const resumeGame = () => {
+    if (!socket) {
+      console.error('SinglePlayer: Cannot resume game - socket is null');
+      setError('Connection lost. Please refresh the page.');
+      return;
+    }
     socket.emit(SOCKET_EVENTS.RESUME_SINGLE_PLAYER);
   };
 
   const quitGame = () => {
+    if (!socket) {
+      console.error('SinglePlayer: Cannot quit game - socket is null');
+      navigate('/');
+      return;
+    }
     socket.emit('quit_single_player');
     navigate('/');
   };
@@ -193,6 +243,18 @@ const SinglePlayer = () => {
     resetGame();
     setGameState(GAME_STATES.SETUP);
   };
+
+  console.log('SinglePlayer: Rendering. GameState:', gameState, 'currentQuestion:', currentQuestion, 'Loading:', loading);
+
+  // Log currentQuestionData from SinglePlayer.js's perspective during render
+  // We only log if gameState is PLAYING to be specific to when QuestionDisplay would be rendered
+  if (gameState === GAME_STATES.PLAYING || gameState === 'question_active') { // MODIFIED
+    console.log(
+      '[SinglePlayer.js] Render check. currentQuestionData:', 
+      currentQuestion ? { qNum: currentQuestion.question_number, text: currentQuestion.question?.substring(0,30)+"..." } : null,
+      'Game State:', gameState
+    );
+  }
 
   if (loading) {
     return (
@@ -204,6 +266,12 @@ const SinglePlayer = () => {
 
   return (
     <GameLayout 
+      score={score} 
+      timeLeft={timeRemaining} 
+      questionNumber={currentQuestion?.question_number} 
+      totalQuestions={totalQuestions} // Ensure totalQuestions is available
+      playerName={playerName || 'Player'} 
+      gameMode="Single Player"
       title={getLayoutTitle()}
       onBack={() => navigate('/')}
       rightContent={getRightContent()}
@@ -237,12 +305,23 @@ const SinglePlayer = () => {
         </div>
       )}
 
-      {gameState === GAME_STATES.PLAYING && currentQuestion && (
+      {(gameState === GAME_STATES.PLAYING || gameState === 'question_active') && currentQuestion && ( // MODIFIED
         <div className="game-area">
           <QuestionDisplay
-            question={currentQuestion}
-            onAnswer={submitAnswer}
-            showResult={questionResults}
+            // Pass individual props from currentQuestion
+            questionText={currentQuestion.question}
+            options={currentQuestion.options}
+            category={currentQuestion.category}
+            currentRound={currentQuestion.question_number}
+            totalRounds={currentQuestion.total_questions}
+            // Other props that QuestionDisplay expects
+            onAnswer={(answer) => {
+              submitAnswer(answer); 
+            }}
+            timerValue={timeRemaining} // This seems like it was for a different version of QuestionDisplay
+            showCorrectAnswer={feedback && feedback.hasOwnProperty('is_correct')} // Likely for reveal state
+            isAnswerSubmitted={feedback !== null} // Likely for reveal state
+            correctAnswerText={feedback?.correct_answer} // Likely for reveal state
           />
         </div>
       )}
@@ -262,9 +341,9 @@ const SinglePlayer = () => {
         </div>
       )}
 
-      {gameState === GAME_STATES.FINISHED && questionResults && (
+      {gameState === GAME_STATES.FINISHED && (leaderboard || answerRevealData) && ( // Check for leaderboard or fallback to answerRevealData if that's what SINGLE_PLAYER_ENDED sends
         <GameResults
-          results={questionResults}
+          results={leaderboard || answerRevealData} // Prefer leaderboard, but use answerRevealData if leaderboard is not yet populated by showGameResults
           onPlayAgain={playAgain}
           onGoHome={() => navigate('/')}
         />

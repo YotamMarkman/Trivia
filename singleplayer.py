@@ -1,9 +1,13 @@
 from flask_socketio import emit
+from flask import request # Import request from Flask
 import random
 import time
 import threading
 from datetime import datetime
 import sqlite3
+
+# Global variable to store the SocketIO instance
+socketio_instance = None
 
 class SinglePlayerGame:
     """Single player quiz game with 30 questions"""
@@ -25,16 +29,29 @@ class SinglePlayerGame:
         self.correct_answers = 0
         self.total_questions_answered = 0
     
-    def start_game(self, load_questions_func):
-        """Start single player game with 30 questions"""
+    def prepare_game(self, load_questions_func): # Renamed from start_game
+        """Prepare single player game: load questions and initialize state."""
         # Load questions based on category
         all_questions = load_questions_func(self.category_choosen or 'all') 
         
         if not all_questions:
+            print(f"Player {self.player_id} ({self.player_name}): Failed to load questions for category '{self.category_choosen or 'all'}'. No questions returned.")
             return False
         
-        # Select 30 random questions
-        self.questions = random.sample(all_questions, min(30, len(all_questions)))
+        if len(all_questions) == 0:
+            print(f"Player {self.player_id} ({self.player_name}): No questions found for category '{self.category_choosen or 'all'}'. Question list is empty.")
+            return False
+
+        # Select up to 30 random questions
+        num_questions_to_sample = min(30, len(all_questions))
+        
+        # This check is important if, for some reason, sampling 0 is possible with random.sample
+        # though len(all_questions) == 0 should catch it.
+        if num_questions_to_sample == 0 : 
+            print(f"Player {self.player_id} ({self.player_name}): Not enough questions to sample for category '{self.category_choosen or 'all'}'. Available: {len(all_questions)}, Sampling: {num_questions_to_sample}")
+            return False
+            
+        self.questions = random.sample(all_questions, num_questions_to_sample)
         
         # Initialize game state
         self.current_question = 0
@@ -44,23 +61,24 @@ class SinglePlayerGame:
         self.correct_answers = 0
         self.total_questions_answered = 0
         
-        # Send first question
-        self.send_question()
+        # DO NOT Send first question here
+        # DO NOT Start timer here
         
-        # Start timer
-        self.start_timer()
-        
+        print(f"Player {self.player_id} ({self.player_name}): Game prepared with {len(self.questions)} questions for category '{self.category_choosen or 'all'}'.")
         return True
     
     def send_question(self):
         """Send current question to player"""
+        print(f"Player {self.player_id}: send_question() called for question index {self.current_question}")
         # Check if game has ended
         if self.current_question >= len(self.questions):
-            self.end_game()
+            print(f"Player {self.player_id}: send_question() - game ended or current_question out of bounds. Current: {self.current_question}, Total: {len(self.questions)}")
+            # self.end_game() # Already handled by next_question, avoid double call if not careful
             return
         
         # Get current question
         question = self.questions[self.current_question]
+        print(f"Player {self.player_id}: Preparing question text: '{question.get('question', 'N/A')[:50]}...' for question number {self.current_question + 1}")
         
         # Shuffle answer options
         shuffled_options = random.sample(question['options'], len(question['options']))
@@ -79,9 +97,9 @@ class SinglePlayerGame:
         # Reset answered status
         self.answered = False
         self.current_answer = None
-        
         # Emit question to player
-        emit('single_player_question', question_data, room=self.player_id)
+        socketio_instance.emit('single_player_question', question_data, room=self.player_id)
+        print(f"Player {self.player_id}: Emitted 'single_player_question' for question_number {self.current_question + 1}")
     
     def submit_answer(self, answer):
         """Process answer submission"""
@@ -99,8 +117,9 @@ class SinglePlayerGame:
         # Calculate time taken
         time_taken = self.question_duration - self.time_remaining
         
-        # Check if answer is correct
-        is_correct = (answer == current_question['correct_answer'])
+        # Check if answer is correct (handle both 'correct_answer' and 'answer' keys)
+        correct_answer = current_question.get('correct_answer', current_question.get('answer', ''))
+        is_correct = (answer == correct_answer)
         
         # Calculate points
         points_earned = 0
@@ -112,55 +131,67 @@ class SinglePlayerGame:
         # Prepare result
         result = {
             'is_correct': is_correct,
-            'correct_answer': current_question['correct_answer'],
+            'correct_answer': correct_answer,
             'points_earned': points_earned,
             'total_score': self.score,
             'time_taken': time_taken
         }
         
         # Emit result to player
-        emit('answer_result', result, room=self.player_id)
+        socketio_instance.emit('answer_result', result, room=self.player_id)
         
         # Stop current timer
         self.time_remaining = 0
         
         # Schedule next question
-        threading.Timer(3.0, self.next_question).start()
+        socketio_instance.start_background_task(self._delayed_next_question) # New way
+
+    def _delayed_next_question(self):
+        """Helper method to delay calling next_question, run in a background task."""
+        print(f"Player {self.player_id}: _delayed_next_question() called. Waiting 3 seconds...")
+        time.sleep(3.0)
+        print(f"Player {self.player_id}: _delayed_next_question() finished waiting. Calling next_question().")
+        self.next_question()
     
     def next_question(self):
         """Move to next question"""
+        print(f"Player {self.player_id}: next_question() called. Current question index before increment: {self.current_question}")
         # Increment question counter
         self.current_question += 1
+        print(f"Player {self.player_id}: Current question index after increment: {self.current_question}. Total questions: {len(self.questions)}")
         
         # Check if more questions remain
         if self.current_question < len(self.questions):
+            print(f"Player {self.player_id}: More questions remain. Sending next question and starting timer.")
             self.send_question()
             self.start_timer()
         else:
+            print(f"Player {self.player_id}: No more questions. Ending game.")
             self.end_game()
     
     def start_timer(self):
         """Start question timer"""
         self.time_remaining = self.question_duration
+        print(f"Player {self.player_id}: Starting timer for question {self.current_question + 1} (index {self.current_question}) with duration {self.question_duration}s.") # Added log
         
         def countdown():
             while self.time_remaining > 0 and self.game_state == "playing":
-                time.sleep(1)
+                socketio_instance.sleep(1) # Use socketio_instance.sleep for background tasks
                 self.time_remaining -= 1
                 
                 # Emit timer update
-                emit('timer_update', {
-                    'time_remaining': self.time_remaining
+                socketio_instance.emit('timer_update', {
+                    'time_remaining': self.time_remaining,
+                    'question_number': self.current_question + 1 # Good to include context
                 }, room=self.player_id)
             
             # Auto-submit if time expires
             if self.time_remaining == 0 and not self.answered and self.game_state == "playing":
-                self.submit_answer(None)
+                print(f"Player {self.player_id}: Timer expired for question {self.current_question + 1} (index {self.current_question}). Auto-submitting None.") # Added log
+                self.submit_answer(None) # Pass None or a specific value for timeout
         
         # Start timer in separate thread
-        self.timer_thread = threading.Thread(target=countdown)
-        self.timer_thread.daemon = True
-        self.timer_thread.start()
+        self.timer_thread = socketio_instance.start_background_task(countdown) # New way
     
     def end_game(self):
         """End single player game and update leaderboard"""
@@ -184,7 +215,7 @@ class SinglePlayerGame:
         leaderboard_manager.add_entry(leaderboard_entry)
         
         # Update player stats
-        stats_manager = SinglePlayerStatsManager() # Use the new manager
+        stats_manager = SinglePlayerStatsManager(db_path=SINGLEPLAYER_DB_PATH) # Use the imported DB_PATH
         stats_manager.update_stats(self.player_name, {
             'score': self.score,
             'questions_answered': self.total_questions_answered,
@@ -199,20 +230,21 @@ class SinglePlayerGame:
         top_10 = leaderboard_manager.get_top_scores(10)
         
         # Emit final results
-        emit('single_player_ended', {
+        socketio_instance.emit('single_player_game_over', {
             'final_score': self.score,
-            'leaderboard_position': position,
-            'leaderboard': top_10,
-            'total_questions': self.total_questions_answered,
+            'questions_answered': self.total_questions_answered,
             'correct_answers': self.correct_answers,
-            'accuracy': accuracy
+            'accuracy': accuracy,
+            'game_duration': game_duration,
+            'leaderboard_position': position,
+            'top_10_leaderboard': top_10
         }, room=self.player_id)
     
     def pause_game(self):
         """Pause the current game"""
         if self.game_state == "playing":
             self.game_state = "paused"
-            emit('game_paused', {
+            socketio_instance.emit('game_paused', {
                 'status': 'paused',
                 'time_remaining': self.time_remaining
             }, room=self.player_id)
@@ -223,7 +255,7 @@ class SinglePlayerGame:
             self.game_state = "playing"
             # Restart timer with remaining time
             self.start_timer()
-            emit('game_resumed', {
+            socketio_instance.emit('game_resumed', {
                 'status': 'playing',
                 'time_remaining': self.time_remaining
             }, room=self.player_id)
@@ -231,19 +263,19 @@ class SinglePlayerGame:
 # Leaderboard management
 class LeaderboardManager:
     """Manage global leaderboard for single player games"""
-    def __init__(self):
+    def __init__(self, db_path='quiz_questions.db'):
         """Initialize leaderboard manager"""
-        self.db_path = 'quiz_questions.db'
-        self.init_database()
+        self.db_path = db_path
+        self._init_db()
     
-    def init_database(self):
+    def _init_db(self):
         """Initialize leaderboard table in database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS leaderboard (
+                CREATE TABLE IF NOT EXISTS single_player_leaderboard (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     player_name TEXT NOT NULL,
                     score INTEGER NOT NULL,
@@ -267,7 +299,7 @@ class LeaderboardManager:
             
             cursor.execute('''
                 SELECT player_name, score, date, questions_answered, correct_answers, accuracy
-                FROM leaderboard
+                FROM single_player_leaderboard
                 ORDER BY score DESC
                 LIMIT 100
             ''')
@@ -292,432 +324,243 @@ class LeaderboardManager:
             print(f"Error loading leaderboard: {e}")
             return []
     
-    def save_leaderboard(self):
-        """Not needed with SQL database - data is saved immediately"""
-        pass
-    
     def add_entry(self, entry):
-        """Add new entry to leaderboard"""
+        """Add a new entry to the leaderboard, ensuring persistence."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT INTO leaderboard (player_name, score, date, questions_answered, correct_answers, accuracy)
+            cursor.execute("""
+                INSERT INTO single_player_leaderboard (player_name, score, date, questions_answered, correct_answers, accuracy)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (entry['player_name'], entry['score'], entry['date'], 
-                  entry.get('questions_answered', 0), entry.get('correct_answers', 0), 
-                  entry.get('accuracy', 0)))
-            
+            """, (entry['player_name'], entry['score'], entry['date'], 
+                  entry['questions_answered'], entry['correct_answers'], entry['accuracy']))
             conn.commit()
-            conn.close()
-            
         except sqlite3.Error as e:
-            print(f"Error adding entry: {e}")
-    
+            print(f"Error adding to leaderboard: {e}")
+        finally:
+            conn.close()
+
     def get_position(self, score):
-        """Get leaderboard position for a score"""
+        """Get player's rank based on score."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                SELECT COUNT(*) FROM leaderboard WHERE score > ?
-            ''', (score,))
-            
+            cursor.execute("SELECT COUNT(*) FROM single_player_leaderboard WHERE score > ?", (score,))
             position = cursor.fetchone()[0] + 1
-            conn.close()
-            
             return position
-            
         except sqlite3.Error as e:
-            print(f"Database error: {e}")
-            return 0
-    
-    def get_top_scores(self, count=10):
-        """Get top N scores from leaderboard"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                SELECT player_name, score, date, accuracy
-                FROM leaderboard
-                ORDER BY score DESC
-                LIMIT ?
-            ''', (count,))
-            
-            results = cursor.fetchall()
+            print(f"Error getting leaderboard position: {e}")
+            return -1 # Indicate error
+        finally:
             conn.close()
-            
-            leaderboard = []
-            for i, row in enumerate(results):
-                leaderboard.append({
-                    'rank': i + 1,
-                    'player_name': row[0],
-                    'score': row[1],
-                    'date': row[2],
-                    'accuracy': row[3] if row[3] else 0
-                })
-            
-            return leaderboard
-            
+
+    def get_top_scores(self, limit=10, category='overall'):
+        """Retrieve top scores, potentially filtered by category."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT player_name, score, date FROM single_player_leaderboard ORDER BY score DESC LIMIT ?", (limit,))
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows]
         except sqlite3.Error as e:
-            print(f"Database error: {e}")
+            print(f"Error retrieving top scores: {e}")
             return []
-    
-    def get_player_best(self, player_name):
-        """Get player's best score"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                SELECT score, date, accuracy
-                FROM leaderboard
-                WHERE player_name = ?
-                ORDER BY score DESC
-                LIMIT 1
-            ''', (player_name,))
-            
-            result = cursor.fetchone()
+        finally:
             conn.close()
-            
-            if result:
-                position = self.get_position(result[0])
-                return {
-                    'score': result[0],
-                    'date': result[1],
-                    'accuracy': result[2] if result[2] else 0,
-                    'position': position
-                }
-            return None
-            
-        except sqlite3.Error as e:
-            print(f"Database error: {e}")
-            return None
 
 # Single Player Statistics Management
 class SinglePlayerStatsManager:
     """Manage personal statistics for single player games"""
-    def __init__(self, db_path='quiz_questions.db'):
+    def __init__(self, db_path='quiz_questions.db'): # Keep default for potential other uses
         """Initialize stats manager"""
         self.db_path = db_path
-        self._ensure_table_exists()
+        self._init_db()
 
-    def _ensure_table_exists(self):
-        """Ensure player_stats table exists in the database"""
+    def _init_db(self):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS player_stats (
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS single_player_stats (
                 player_name TEXT PRIMARY KEY,
-                games_played INTEGER DEFAULT 0,
+                total_games_played INTEGER DEFAULT 0,
                 total_score INTEGER DEFAULT 0,
-                highest_score INTEGER DEFAULT 0,
                 total_questions_answered INTEGER DEFAULT 0,
                 total_correct_answers INTEGER DEFAULT 0,
-                total_game_duration REAL DEFAULT 0,
-                average_score REAL DEFAULT 0,
                 average_accuracy REAL DEFAULT 0,
-                last_played_date TEXT
+                fastest_game_duration REAL,
+                highest_score INTEGER DEFAULT 0,
+                last_played TEXT
             )
-        ''')
+        """)
         conn.commit()
         conn.close()
 
-    def get_stats(self, player_name):
-        """Retrieve statistics for a given player"""
+    def update_stats(self, player_name, game_stats):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM player_stats WHERE player_name = ?", (player_name,))
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            columns = [desc[0] for desc in cursor.description]
-            return dict(zip(columns, row))
-        return None
-
-    def update_stats(self, player_name, game_data):
-        """Update player statistics after a game"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        current_stats = self.get_stats(player_name)
-        
-        if current_stats:
-            new_games_played = current_stats['games_played'] + 1
-            new_total_score = current_stats['total_score'] + game_data['score']
-            new_highest_score = max(current_stats['highest_score'], game_data['score'])
-            new_total_questions = current_stats['total_questions_answered'] + game_data['questions_answered']
-            new_total_correct = current_stats['total_correct_answers'] + game_data['correct_answers']
-            new_total_duration = current_stats['total_game_duration'] + game_data['game_duration']
-            
-            new_avg_score = new_total_score / new_games_played if new_games_played > 0 else 0
-            new_avg_accuracy = (new_total_correct / new_total_questions * 100) if new_total_questions > 0 else 0
-            
-            cursor.execute('''
-                UPDATE player_stats 
-                SET games_played = ?, total_score = ?, highest_score = ?, 
-                    total_questions_answered = ?, total_correct_answers = ?, total_game_duration = ?, 
-                    average_score = ?, average_accuracy = ?, last_played_date = ?
-                WHERE player_name = ?
-            ''', (new_games_played, new_total_score, new_highest_score, 
-                  new_total_questions, new_total_correct, new_total_duration, 
-                  new_avg_score, new_avg_accuracy, datetime.now().isoformat(), player_name))
-        else:
-            # First game for this player
-            avg_score = game_data['score']
-            avg_accuracy = (game_data['correct_answers'] / game_data['questions_answered'] * 100) if game_data['questions_answered'] > 0 else 0
-            cursor.execute('''
-                INSERT INTO player_stats (player_name, games_played, total_score, highest_score, 
-                                        total_questions_answered, total_correct_answers, total_game_duration, 
-                                        average_score, average_accuracy, last_played_date)
-                VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (player_name, game_data['score'], game_data['score'], 
-                  game_data['questions_answered'], game_data['correct_answers'], game_data['game_duration'],
-                  avg_score, avg_accuracy, datetime.now().isoformat()))
-        
-        conn.commit()
-        conn.close()
-
-# Utility functions
-def calculate_points(time_taken, is_correct):
-    """Calculate points for an answer"""
-    if not is_correct:
-        return 0
-    
-    # Calculate: 1000 - (time_taken * 100)
-    points = 1000 - (time_taken * 100)
-    
-    # Ensure minimum of 0 points
-    return max(0, points)
-
-def format_time(seconds):
-    """Format seconds into MM:SS display"""
-    minutes = seconds // 60
-    seconds = seconds % 60
-    return f"{minutes:02d}:{seconds:02d}"
-
-# Statistics tracking
-class SinglePlayerStats:
-    """Track statistics for single player games"""
-    def __init__(self, player_name):
-        """Initialize stats for a player"""
-        self.player_name = player_name
-        self.games_played = 0
-        self.total_score = 0
-        self.questions_answered = 0
-        self.correct_answers = 0
-        self.best_score = 0
-        self.total_time = 0
-        self.db_path = 'quiz_questions.db'
-        self.load_stats()
-    
-    def load_stats(self):
-        """Load player stats from database"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Create stats table if it doesn't exist
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS player_stats (
-                    player_name TEXT PRIMARY KEY,
-                    games_played INTEGER DEFAULT 0,
-                    total_score INTEGER DEFAULT 0,
-                    questions_answered INTEGER DEFAULT 0,
-                    correct_answers INTEGER DEFAULT 0,
-                    best_score INTEGER DEFAULT 0,
-                    total_time INTEGER DEFAULT 0
-                )
-            ''')
-            
-            # Load existing stats
-            cursor.execute('''
-                SELECT * FROM player_stats WHERE player_name = ?
-            ''', (self.player_name,))
-            
-            result = cursor.fetchone()
-            if result:
-                self.games_played = result[1]
-                self.total_score = result[2]
-                self.questions_answered = result[3]
-                self.correct_answers = result[4]
-                self.best_score = result[5]
-                self.total_time = result[6]
-            
-            conn.close()
-            
-        except sqlite3.Error as e:
-            print(f"Error loading stats: {e}")
-    
-    def update_stats(self, game_result):
-        """Update player statistics after a game"""
-        self.games_played += 1
-        self.total_score += game_result['score']
-        self.questions_answered += game_result['questions_answered']
-        self.correct_answers += game_result['correct_answers']
-        self.best_score = max(self.best_score, game_result['score'])
-        self.total_time += game_result.get('game_duration', 0)
-        
-        self.save_stats()
-    
-    def save_stats(self):
-        """Save stats to database"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT OR REPLACE INTO player_stats 
-                (player_name, games_played, total_score, questions_answered, correct_answers, best_score, total_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (self.player_name, self.games_played, self.total_score, 
-                  self.questions_answered, self.correct_answers, self.best_score, self.total_time))
+            cursor.execute("SELECT * FROM single_player_stats WHERE player_name = ?", (player_name,))
+            current_stats = cursor.fetchone()
+
+            if current_stats:
+                new_total_games = current_stats[1] + 1
+                new_total_score = current_stats[2] + game_stats['score']
+                new_total_questions = current_stats[3] + game_stats['questions_answered']
+                new_total_correct = current_stats[4] + game_stats['correct_answers']
+                new_avg_accuracy = (new_total_correct / new_total_questions * 100) if new_total_questions > 0 else 0
+                
+                new_fastest_game = current_stats[6]
+                if game_stats.get('game_duration') is not None:
+                    if new_fastest_game is None or game_stats['game_duration'] < new_fastest_game:
+                        new_fastest_game = game_stats['game_duration']
+                
+                new_highest_score = max(current_stats[7] or 0, game_stats['score'])
+
+                cursor.execute("""
+                    UPDATE single_player_stats
+                    SET total_games_played = ?, total_score = ?, total_questions_answered = ?,
+                        total_correct_answers = ?, average_accuracy = ?, fastest_game_duration = ?,
+                        highest_score = ?, last_played = ?
+                    WHERE player_name = ?
+                """, (new_total_games, new_total_score, new_total_questions, new_total_correct,
+                      new_avg_accuracy, new_fastest_game, new_highest_score, datetime.now().isoformat(), player_name))
+            else:
+                avg_accuracy = (game_stats['correct_answers'] / game_stats['questions_answered'] * 100) if game_stats['questions_answered'] > 0 else 0
+                cursor.execute("""
+                    INSERT INTO single_player_stats 
+                    (player_name, total_games_played, total_score, total_questions_answered, total_correct_answers, average_accuracy, fastest_game_duration, highest_score, last_played)
+                    VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?)
+                """, (player_name, game_stats['score'], game_stats['questions_answered'], game_stats['correct_answers'], 
+                      avg_accuracy, game_stats.get('game_duration'), game_stats['score'], datetime.now().isoformat()))
             
             conn.commit()
-            conn.close()
-            
         except sqlite3.Error as e:
-            print(f"Error saving stats: {e}")
-    
-    def get_accuracy(self):
-        """Calculate player's answer accuracy"""
-        if self.questions_answered == 0:
-            return 0
-        return (self.correct_answers / self.questions_answered) * 100
-    
-    def to_dict(self):
-        """Convert stats to dictionary"""
-        return {
-            'player_name': self.player_name,
-            'games_played': self.games_played,
-            'total_score': self.total_score,
-            'questions_answered': self.questions_answered,
-            'correct_answers': self.correct_answers,
-            'best_score': self.best_score,
-            'accuracy': self.get_accuracy(),
-            'average_score': self.total_score / self.games_played if self.games_played > 0 else 0
-        }
+            print(f"Error updating single player stats: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
 
-# Global instances
-leaderboard_manager = LeaderboardManager()
-single_player_games = {}  # Store active games
+    def get_stats(self, player_name):
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT * FROM single_player_stats WHERE player_name = ?", (player_name,))
+            stats = cursor.fetchone()
+            return dict(stats) if stats else None
+        except sqlite3.Error as e:
+            print(f"Error retrieving single player stats: {e}")
+            return None
+        finally:
+            conn.close()
 
-# Socket.IO event handlers for single player
-def register_single_player_handlers(socketio):
-    """Register all single player socket handlers"""
+# Store active single player games
+active_single_player_games = {}
+
+def register_single_player_handlers(socketio_app_instance):
+    global socketio_instance
+    socketio_instance = socketio_app_instance
     
-    @socketio.on('start_single_player')
-    def handle_start_single_player(data):
-        """Start a single player game"""
-        from flask import request
-        
-        session_id = request.sid
+    from server_backend import load_questions # Import here to avoid circular dependency at module load time
+
+    @socketio_instance.on('start_single_player') # Changed from 'start_single_player_game'
+    def handle_start_single_player_game(data):
+        player_id = request.sid
         player_name = data.get('player_name', 'Anonymous')
         category = data.get('category', 'all')
         
-        # Create game instance
-        game = SinglePlayerGame(session_id, player_name)
+        print(f"Attempting to start single player game for SID: {player_id}, Player: {player_name}, Category: {category}")
+
+        # Clean up any existing game for this session ID before starting a new one.
+        if player_id in active_single_player_games:
+            print(f"Warning: Existing game found for SID {player_id} during new game start. Cleaning up old game instance.")
+            old_game_instance = active_single_player_games.pop(player_id)
+            old_game_instance.game_state = "finished" # This should help stop its timers/background tasks.
+
+        game = SinglePlayerGame(player_id, player_name)
         game.category_choosen = category
         
-        # Store in global dictionary
-        single_player_games[session_id] = game
-        
-        # Import load_questions function from main server file
-        from server_backend import load_questions
-        
-        # Start the game
-        success = game.start_game(load_questions)
-        
-        emit('single_player_started', {
-            'status': 'success' if success else 'error',
-            'message': 'Game started successfully' if success else 'Failed to load questions'
-        })
-    
-    @socketio.on('single_player_answer')
-    def handle_single_player_answer(data):
-        """Handle answer submission in single player"""
-        from flask import request
-        
-        session_id = request.sid
+        if game.prepare_game(load_questions_func=load_questions): # Call renamed method
+            active_single_player_games[player_id] = game
+            print(f"Single player game prepared for SID: {player_id}. Questions loaded: {len(game.questions)}")
+            
+            # Emit 'single_player_started' first
+            socketio_instance.emit('single_player_started', {
+                'status': 'success',
+                'message': 'Single player game started!',
+                'total_questions': len(game.questions)
+            }, room=player_id)
+            print(f"Emitted 'single_player_started' for SID: {player_id}")
+
+            # Then send the first question and start its timer
+            game.send_question()
+            print(f"Sent first question for SID: {player_id}")
+            # Small delay before starting timer to ensure client processes question first?
+            # socketio_instance.sleep(0.1) # Consider if needed, usually not.
+            game.start_timer()
+            print(f"Started timer for first question for SID: {player_id}")
+        else:
+            print(f"Failed to prepare single player game for SID: {player_id}. game.prepare_game returned False.")
+            socketio_instance.emit('single_player_error', {
+                'message': 'Failed to start game: Could not load questions or no questions available for the category.'
+            }, room=player_id)
+
+    @socketio_instance.on('submit_single_player_answer')
+    def handle_submit_single_player_answer(data):
+        player_id = request.sid
         answer = data.get('answer')
         
-        if session_id in single_player_games:
-            game = single_player_games[session_id]
+        if player_id in active_single_player_games:
+            game = active_single_player_games[player_id]
             game.submit_answer(answer)
         else:
-            emit('error', {'message': 'Game not found'})
-    
-    @socketio.on('get_leaderboard')
-    def handle_get_leaderboard(data):
-        """Send leaderboard data to client"""
-        count = data.get('count', 50) if data else 50
-        leaderboard = leaderboard_manager.get_top_scores(count)
-        emit('leaderboard_data', {'leaderboard': leaderboard})
-    
-    @socketio.on('get_player_stats')
-    def handle_get_player_stats(data):
-        """Get statistics for a specific player"""
-        player_name = data.get('player_name')
+            socketio_instance.emit('single_player_error', {
+                'message': 'Game not found.'
+            }, room=player_id)
+
+    @socketio_instance.on('request_leaderboard')
+    def handle_request_leaderboard(data):
+        limit = data.get('limit', 10)
+        category = data.get('category', 'overall') # Example: allow category-specific leaderboards
         
-        if player_name:
-            stats = SinglePlayerStats(player_name)
-            best_score = leaderboard_manager.get_player_best(player_name)
-            
-            emit('player_stats', {
-                'stats': stats.to_dict(),
-                'best_score': best_score
-            })
+        top_scores = leaderboard_manager.get_top_scores(limit=limit, category=category)
+        player_id = request.sid # Correctly uses imported request
+        
+        socketio_instance.emit('leaderboard_update', {
+            'leaderboard': top_scores,
+            'category': category
+        }, room=player_id)
+
+    @socketio_instance.on('get_single_player_stats')
+    def handle_get_single_player_stats(data):
+        player_id = request.sid # Correctly uses imported request
+        player_name = data.get('player_name', f"Guest_{player_id[:6]}") 
+        
+        stats_manager = SinglePlayerStatsManager(db_path=SINGLEPLAYER_DB_PATH) # Use the imported DB_PATH
+        stats = stats_manager.get_stats(player_name)
+        
+        if stats:
+            socketio_instance.emit('single_player_stats_update', stats, room=player_id)
         else:
-            emit('error', {'message': 'Player name required'})
-    
-    @socketio.on('pause_single_player')
-    def handle_pause_game():
-        """Pause current single player game"""
-        from flask import request
-        
-        session_id = request.sid
-        
-        if session_id in single_player_games:
-            game = single_player_games[session_id]
-            game.pause_game()
-        else:
-            emit('error', {'message': 'Game not found'})
-    
-    @socketio.on('resume_single_player')
-    def handle_resume_game():
-        """Resume paused single player game"""
-        from flask import request
-        
-        session_id = request.sid
-        
-        if session_id in single_player_games:
-            game = single_player_games[session_id]
-            game.resume_game()
-        else:
-            emit('error', {'message': 'Game not found'})
-    
-    @socketio.on('quit_single_player')
-    def handle_quit_game():
-        """Quit current single player game"""
-        from flask import request
-        
-        session_id = request.sid
-        
-        if session_id in single_player_games:
-            game = single_player_games[session_id]
-            
-            # End game early
-            game.game_state = "quit"
-            
-            # Save partial results
-            game.end_game()
-            
-            # Clean up
-            del single_player_games[session_id]
-            
-            emit('game_quit', {'status': 'success'})
-        else:
-            emit('error', {'message': 'Game not found'})
+            socketio_instance.emit('single_player_stats_update', {
+                'message': 'No stats found for this player.'
+            }, room=player_id)
+
+    @socketio_instance.on('disconnect')
+    def handle_disconnect_single_player(): # Keep it simple, request.sid is available
+        player_id = request.sid
+        if player_id in active_single_player_games:
+            game = active_single_player_games[player_id]
+            # The timer loop in start_timer checks game.game_state.
+            # Setting it to finished will cause the timer to stop gracefully.
+            game.game_state = "finished" 
+            # No need to check is_alive() or try to kill the thread directly
+            # when using start_background_task, as the task will exit
+            # based on game_state.
+            del active_single_player_games[player_id]
+            print(f"Cleaned up single player game for disconnected player {player_id}. Game state set to finished.")
+
+# Initialize the leaderboard manager
+from server_backend import DB_PATH as SINGLEPLAYER_DB_PATH
+leaderboard_manager = LeaderboardManager(db_path=SINGLEPLAYER_DB_PATH)

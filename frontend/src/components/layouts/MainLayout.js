@@ -7,10 +7,10 @@ const MainLayout = () => {
     <div className="app-container">
       <header className="app-header">
         <h1>
-          <Link to="/">Trivia Master</Link>
-        </h1>
+          <Link to="/">Trivia Master</Link>        </h1>
         <nav>
           <Link to="/leaderboard">Leaderboard</Link>
+          <Link to="/socket-test" style={{ marginLeft: '15px' }}>Debug Connection</Link>
         </nav>
       </header>
       <main className="app-main">

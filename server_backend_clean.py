@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+﻿from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 import random
 import time
@@ -93,16 +93,15 @@ def init_db():
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS player_profiles (            user_id INTEGER PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS player_profiles (
+            user_id INTEGER PRIMARY KEY,
             games_played INTEGER DEFAULT 0,
             wins INTEGER DEFAULT 0,
             total_score INTEGER DEFAULT 0,
             avatar_url TEXT,
             bio TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id)
-        );
-    """)
-    conn.commit()
+        );    """)    conn.commit()
     conn.close()
 
 def load_questions(category_filter='all', limit=30):
@@ -181,9 +180,61 @@ def update_player_stats_in_db(user_id, game_score, is_winner):
         print(f"Stats updated for user_id {user_id}: score_added={game_score}, won={is_winner}")
     except sqlite3.Error as e:
         print(f"DB error updating stats for user_id {user_id}: {e}")
-        conn.rollback()
-    finally:
+        conn.rollback()    finally:
         conn.close()
+
+def load_questions(category_filter='all', limit=30):
+    """Load questions from database as standalone function for SinglePlayerGame"""
+    conn = None
+    try:
+        db_path = DB_PATH
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Updated query to use quiz_questions table with its actual column names
+        query = "SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category FROM quiz_questions"
+        params = []
+
+        if category_filter != 'all':
+            query += " WHERE category = ?"
+            params.append(category_filter)
+        
+        query += " ORDER BY RANDOM() LIMIT ?"
+        params.append(limit)
+
+        cursor.execute(query, tuple(params))
+        rows = cursor.fetchall()
+
+        loaded_questions = []        for row in rows:
+            # Transform data to match expected format
+            options = [row['correct_answer'], row['wrong1'], row['wrong2'], row['wrong3']]
+            random.shuffle(options)  # Shuffle options to randomize correct answer position
+            
+            question_data = {
+                'id': row['id'],
+                'question': row['question'],
+                'options': options,
+                'correct_answer': row['correct_answer'],  # This is what SinglePlayerGame expects
+                'answer': row['correct_answer'],  # This is what GameRoom expects
+                'category': row['category']
+            }
+            loaded_questions.append(question_data)
+        
+        if not loaded_questions:
+            print(f"Warning: No questions found for category '{category_filter}' with limit {limit}.")
+
+        return loaded_questions
+
+    except sqlite3.Error as e:
+        print(f"Database error while loading questions: {e}")
+        return []
+    except Exception as e:
+        print(f"An unexpected error occurred while loading questions: {e}")
+        return []
+    finally:
+        if conn:
+            conn.close()
 
 class Player:
     def __init__(self, session_id, name, user_id=None, is_authenticated=False):
@@ -280,8 +331,8 @@ class GameRoom:
         self.bot_names_pool = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel"]
         random.shuffle(self.bot_names_pool)
         self.bot_difficulties = ["easy", "medium", "hard"]
-        self.questions = []
-        
+        self.questions = [] 
+
     def load_questions(self, category_filter):
         conn = None
         try:
@@ -291,7 +342,7 @@ class GameRoom:
             cursor = conn.cursor()
 
             # Updated query to use quiz_questions table with its actual column names
-            query = "SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category FROM quiz_questions"
+        query = "SELECT id, question, correct_answer, wrong1, wrong2, wrong3, category FROM quiz_questions"
             params = []
 
             if category_filter != 'all':
@@ -306,15 +357,11 @@ class GameRoom:
 
             loaded_questions = []
             for row in rows:
-                # Transform data to match expected format
-                options = [row['correct_answer'], row['wrong1'], row['wrong2'], row['wrong3']]
-                random.shuffle(options)  # Shuffle options to randomize correct answer position
-                
                 question_data = {
                     'id': row['id'],
                     'question': row['question'],
-                    'options': options,
-                    'answer': row['correct_answer'],
+                    'options': [row['option1'], row['option2'], row['option3'], row['option4']],
+                    'answer': row['answer'],
                     'category': row['category']
                 }
                 loaded_questions.append(question_data)
