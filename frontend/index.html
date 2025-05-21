@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SP Trivia - Arcade Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app-container">
+        <header>
+            <h1>SP Trivia</h1>
+        </header>
+
+        <main id="game-area">
+            <!-- Initial Setup Screen -->
+            <div id="initial-setup-screen" class="screen active">
+                <h2>Welcome, Sports Fan!</h2>
+                <input type="text" id="player-name" placeholder="Enter Your Name">
+                <button id="go-to-mode-select">Next</button>
+            </div>
+
+            <!-- Mode Selection Screen -->
+            <div id="mode-select-screen" class="screen">
+                <h2>Choose Your Arena!</h2>
+                <button class="mode-button" data-mode="singleplayer">Solo Challenge</button>
+                <button class="mode-button" data-mode="head_to_head">Head-to-Head</button>
+                <button class="mode-button" data-mode="multiplayer">Team Huddle (Multiplayer)</button>
+                <button id="show-leaderboard-initial">View Hall of Fame</button>
+            </div>
+
+            <!-- Single Player Category Select Screen -->
+            <div id="singleplayer-category-select-screen" class="screen">
+                <h3>Solo Challenge - Select Categories</h3>
+                <div id="category-selection-area">
+                    <label>
+                        <input type="checkbox" id="select-all-categories" value="all"> All Categories
+                    </label>
+                    <!-- Categories will be populated here by script.js -->
+                </div>
+                <button id="start-singleplayer-with-categories">Start Game</button>
+                <button class="back-to-mode-select">Back</button>
+            </div>
+
+            <!-- Head-to-Head Config Screen -->
+            <div id="head-to-head-config-screen" class="screen">
+                <h3>Head-to-Head</h3>
+                <label for="opponent-type">Challenge:</label>
+                <select id="opponent-type">
+                    <option value="player">Challenge a Player (Join Game)</option>
+                    <option value="bot">Challenge a Bot (Create Game)</option>
+                </select>
+                <div id="h2h-join-game-options">
+                    <input type="text" id="h2h-game-id-join" placeholder="Enter Game ID to Join">
+                    <button id="join-h2h-game-btn">Join Game</button>
+                </div>
+                <div id="h2h-create-game-options" style="display:none;">
+                    <button id="create-h2h-game-btn">Create Game vs Bot</button>
+                </div>
+                <button class="back-to-mode-select">Back</button>
+            </div>
+
+            <!-- Multiplayer Config Screen -->
+            <div id="multiplayer-config-screen" class="screen">
+                <h3>Team Huddle</h3>
+                <button id="create-multiplayer-room-btn">Create New Locker Room</button>
+                <hr>
+                <input type="text" id="multiplayer-game-id-join" placeholder="Enter Locker Room ID">
+                <button id="join-multiplayer-room-btn">Join Existing Locker Room</button>
+                <button class="back-to-mode-select">Back</button>
+            </div>
+
+            <!-- Multiplayer Host Options Screen (after creating a room) -->
+            <div id="multiplayer-host-options-screen" class="screen">
+                <h3>Locker Room <span id="host-room-id"></span> - Coach's Controls</h3>
+                <label for="num-bots-multiplayer">Number of AI Players (0-7):</label>
+                <input type="number" id="num-bots-multiplayer" value="0" min="0" max="7">
+                <p>Max players (including AI): 8</p>
+                <p>Share Locker Room ID: <strong id="multiplayer-room-id-display"></strong></p>
+                <button id="finalize-multiplayer-room-setup">Start the Game!</button>
+                <div class="lobby-players-list">
+                    <h4>Players in Lobby:</h4>
+                    <ul id="multiplayer-lobby-players"></ul>
+                </div>
+                 <button class="back-to-mode-select">Cancel Room</button>
+            </div>
+
+
+            <!-- Game Lobby / Waiting Screen -->
+            <div id="game-lobby-screen" class="screen">
+                <h2>Game Lobby: <span id="lobby-game-id"></span></h2>
+                <p>Arena: <span id="lobby-game-mode"></span></p>
+                <p>Waiting for challengers... <span id="lobby-player-count">1</span>/<span id="lobby-max-players"></span></p>
+                <div class="lobby-players-list">
+                    <h4>Challengers:</h4>
+                    <ul id="lobby-players-list-ul"></ul>
+                </div>
+                <button id="start-game-button" style="display: none;">Start Game (Host)</button>
+                <p id="waiting-for-host-message">Waiting for host to start the game...</p>
+                 <button class="leave-lobby-button">Leave Lobby</button>
+            </div>
+
+            <!-- Question Screen -->
+            <div id="question-screen" class="screen">
+                <div id="game-info-bar">
+                    <span id="question-counter">Q: 1/30</span>
+                    <span id="timer">Time: 15s</span>
+                    <span id="current-score">Score: 0</span>
+                </div>
+                <h3 id="question-text">Which team won the Super Bowl in 2023?</h3>
+                <div id="question-category-image-container">
+                    <!-- Category image will be populated here by script.js -->
+                </div>
+                <div class="answers-grid">
+                    <button class="answer-button" data-answer="A">Team A</button>
+                    <button class="answer-button" data-answer="B">Team B</button>
+                    <button class="answer-button" data-answer="C">Team C</button>
+                    <button class="answer-button" data-answer="D">Team D</button>
+                </div>
+                <div id="feedback-message"></div>
+                <button id="exit-game-btn" class="game-action-button">Exit Game</button>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="screen">
+                <h2>Full Time!</h2>
+                <div id="final-score-details">
+                    <!-- Final scores will be populated here -->
+                </div>
+                <button id="play-again">Rematch!</button>
+                <button id="back-to-main-menu">Main Menu</button>
+                <button id="show-leaderboard-gameover">View Hall of Fame</button>
+            </div>
+
+            <!-- Leaderboard Screen -->
+            <div id="leaderboard-screen" class="screen">
+                <h2>Hall of Fame</h2>
+                <table id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Leaderboard entries will be populated here -->
+                    </tbody>
+                </table>
+                <button id="back-from-leaderboard">Back</button>
+            </div>
+
+             <!-- Universal Chat Box (for H2H and Multiplayer) -->
+            <div id="chat-container" style="display: none;">
+                <h3>Chat</h3>
+                <div id="chat-messages">
+                    <!-- Messages will appear here -->
+                </div>
+                <div id="chat-input-area">
+                    <input type="text" id="chat-message-input" placeholder="Type a message...">
+                    <button id="send-chat-message-btn">Send</button>
+                </div>
+            </div>
+
+        </main>
+
+        <footer>
+            <p>&copy; 2025 SP Trivia - Arcade Edition</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

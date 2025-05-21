@@ -1,0 +1,429 @@
+body {
+    font-family: 'Orbitron', sans-serif; /* Sports/Arcade font */
+    background-color: #0D1B2A; /* Dark blue - like a night game */
+    color: #E0E1DD; /* Off-white for text */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    background-image: url('https://www.transparenttextures.com/patterns/γήπεδο-μπάσκετ.png'); /* Subtle basketball court texture */
+}
+
+#app-container {
+    background-color: rgba(23, 37, 50, 0.9); /* Semi-transparent darker blue */
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3); /* Cyan glow */
+    padding: 25px;
+    width: 90%;
+    max-width: 850px;
+    text-align: center;
+    border: 4px solid #778DA9; /* Muted blue-grey border */
+}
+
+header h1 {
+    font-family: 'Press Start 2P', cursive; /* Keep arcade for main title */
+    color: #FFD700; /* Gold */
+    text-shadow: 3px 3px #FF8C00; /* Dark Orange shadow */
+    margin-bottom: 35px;
+    font-size: 3em;
+    letter-spacing: 2px;
+}
+
+.screen {
+    display: none;
+    padding: 25px;
+    border: 3px dashed #415A77; /* Dashed border - like a playbook */
+    border-radius: 10px;
+    background-color: rgba(13, 27, 42, 0.85); /* Darker overlay for screens */
+}
+
+.screen.active {
+    display: block;
+}
+
+h2, h3 {
+    font-family: 'Orbitron', sans-serif; /* Consistent sports font */
+    color: #A7C957; /* Lime green - like a sports field */
+    margin-top: 0;
+    text-transform: uppercase;
+}
+
+input[type="text"], input[type="number"], select {
+    font-family: 'Orbitron', sans-serif;
+    padding: 12px 18px;
+    margin: 12px 0;
+    border: 2px solid #778DA9; /* Muted blue-grey border */
+    border-radius: 8px;
+    background-color: #1B263B; /* Darker input background */
+    color: #E0E1DD;
+    font-size: 1.1em;
+    width: calc(100% - 40px); /* Adjust for padding and border */
+    box-sizing: border-box;
+}
+
+input[type="text"]::placeholder {
+    color: #888;
+}
+
+button, .button { /* Added .button for general styling if needed */
+    font-family: 'Orbitron', sans-serif; /* Sports font for buttons */
+    text-transform: uppercase;
+    background-color: #FCA311; /* Bright Orange - like a basketball */
+    color: #0D1B2A; /* Dark blue text on buttons */
+    border: none;
+    padding: 14px 22px;
+    margin: 12px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 5px #C87600; /* Darker orange for 3D effect */
+}
+
+button:hover, .button:hover {
+    background-color: #FFB74D; /* Lighter orange on hover */
+    box-shadow: 0 5px 15px rgba(252, 163, 17, 0.5);
+}
+
+button:active, .button:active {
+    background-color: #E89005; /* Slightly darker orange when pressed */
+    transform: translateY(3px);
+    box-shadow: 0 2px #C87600;
+}
+
+.mode-button {
+    background-color: #4CAF50; /* Green - like a field */
+    box-shadow: 0 5px #388E3C; /* Darker green */
+    color: white;
+    width: 70%;
+    padding: 18px;
+    font-size: 1.1em;
+}
+.mode-button:hover {
+    background-color: #66BB6A; /* Lighter green */
+}
+.mode-button:active {
+    background-color: #388E3C;
+    box-shadow: 0 2px #2E7D32;
+}
+
+#game-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: #000000; /* Black - like a scoreboard */
+    color: #FFD700; /* Gold text */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9em;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 2px solid #FFD700;
+}
+
+#question-text {
+    font-size: 1.4em; /* Slightly smaller to make space */
+    margin-bottom: 15px; /* Reduced margin */
+    color: #FFFFFF;
+    line-height: 1.6;
+    font-weight: bold;
+}
+
+.answers-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px; /* Reduced gap */
+    margin-top: 15px; /* Reduced margin */
+}
+
+.answer-button {
+    background-color: #1E88E5; /* Bright Blue */
+    box-shadow: 0 5px #1565C0; /* Darker Blue */
+    color: white;
+    font-size: 0.95em; /* Slightly smaller font */
+    padding: 15px; /* Reduced padding */
+    min-height: 60px; /* Reduced min-height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.answer-button:hover {
+    background-color: #42A5F5; /* Lighter Blue */
+}
+.answer-button:active {
+    background-color: #1976D2; /* Darker Blue when pressed */
+    box-shadow: 0 2px #1565C0;
+}
+
+.answer-button.correct {
+    background-color: #4CAF50; /* Green for correct */
+    color: white;
+    box-shadow: 0 5px #388E3C;
+    animation: pulseCorrect 0.5s 2;
+}
+
+.answer-button.wrong {
+    background-color: #D32F2F; /* Red for wrong */
+    color: white;
+    box-shadow: 0 5px #B71C1C;
+    animation: shakeWrong 0.5s;
+}
+
+.answer-button.disabled, button.disabled {
+    background-color: #555;
+    color: #aaa;
+    cursor: not-allowed;
+    box-shadow: 0 4px #333;
+}
+
+#feedback-message {
+    margin-top: 25px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+.feedback-correct { /* Added for styling */
+    color: #4CAF50; /* Green */
+}
+.feedback-wrong { /* Added for styling */
+    color: #D32F2F; /* Red */
+}
+
+#leaderboard-table {
+    width: 100%;
+    margin-top: 25px;
+    border-collapse: collapse;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#leaderboard-table th, #leaderboard-table td {
+    border: 2px solid #415A77; /* Muted blue-grey border */
+    padding: 12px;
+    text-align: left;
+}
+
+#leaderboard-table th {
+    background-color: #1B263B; /* Darker blue */
+    color: #FFD700; /* Gold */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1em;
+    text-transform: uppercase;
+}
+
+#leaderboard-table tr:nth-child(even) {
+    background-color: #1E1E3F; /* Darker row for readability */
+}
+
+/* Chat Box Styling */
+#chat-container {
+    margin-top: 35px;
+    padding: 18px;
+    background-color: rgba(13, 27, 42, 0.9); /* Dark, slightly transparent */
+    border: 2px solid #778DA9;
+    border-radius: 10px;
+}
+
+#chat-container h3 {
+    margin-top: 0;
+    color: #A7C957; /* Lime green */
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+}
+
+#chat-messages {
+    height: 180px;
+    overflow-y: auto;
+    border: 1px solid #415A77;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #0D1B2A; /* Very dark blue for message area */
+    border-radius: 6px;
+    text-align: left;
+}
+
+.chat-message {
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+}
+.chat-message .sender {
+    font-weight: bold;
+    color: #FFD700; /* Gold for sender name */
+}
+.chat-message .text {
+    color: #E0E1DD;
+}
+.chat-message.bot .sender {
+    color: #A7C957; /* Lime green for bot names */
+}
+.chat-message.own-message .sender {
+    color: #FCA311; /* Bright Orange for own messages */
+}
+
+#chat-input-area {
+    display: flex;
+    align-items: center;
+}
+
+#chat-message-input {
+    flex-grow: 1;
+    margin-right: 10px;
+    margin-bottom: 0; /* Remove bottom margin from global input style */
+}
+
+#send-chat-message-btn {
+    padding: 12px 18px;
+    font-size: 0.9em;
+    margin-left: 10px; /* Ensure spacing from input */
+    background-color: #A7C957; /* Lime green send button */
+    box-shadow: 0 4px #799641;
+    color: #0D1B2A;
+}
+#send-chat-message-btn:hover {
+    background-color: #b8d47c;
+}
+#send-chat-message-btn:active {
+    background-color: #8FB04F;
+    box-shadow: 0 2px #799641;
+}
+
+.lobby-players-list {
+    margin-top: 18px;
+    padding: 12px;
+    background-color: rgba(13, 27, 42, 0.7); /* Darker, more transparent */
+    border-radius: 6px;
+}
+.lobby-players-list h4 {
+    margin-top: 0;
+    color: #FFD700; /* Gold */
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+}
+.lobby-players-list ul {
+    list-style-type: none;
+    padding: 0;
+    max-height: 100px;
+    overflow-y: auto;
+}
+.lobby-players-list li {
+    padding: 5px;
+    border-bottom: 1px dashed #333;
+}
+.lobby-players-list li:last-child {
+    border-bottom: none;
+}
+.lobby-players-list .player-entry.is-host strong {
+    color: #A7C957; /* Lime green for host */
+}
+.lobby-players-list .player-entry.is-bot {
+    font-style: italic;
+    color: #aaa;
+}
+
+footer {
+    margin-top: 35px;
+    font-size: 0.9em;
+    color: #778DA9; /* Muted blue-grey */
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 2em;
+    }
+    .answers-grid {
+        grid-template-columns: 1fr; /* Stack answers on smaller screens */
+    }
+    button, .button {
+        font-size: 0.85em;
+        padding: 12px 18px;
+    }
+    .mode-button {
+        width: 80%;
+        font-size: 0.9em;
+    }
+    #game-info-bar {
+        font-size: 0.75em;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #game-info-bar span {
+        margin-bottom: 5px;
+    }
+}
+
+/* Theme Customization Variables (Optional - for easier JS manipulation or future CSS preprocessor use) */
+:root {
+    --primary-bg-color: #0D1B2A;
+    --container-bg-color: #172532; /* rgba(23, 37, 50, 0.9) */
+    --text-color: #E0E1DD;
+    --header-text-color: #FFD700;
+    --header-shadow-color: #FF8C00;
+    --button-bg-color: #FCA311;
+    --button-text-color: #0D1B2A;
+    --accent-color-green: #A7C957;
+    --accent-color-blue: #415A77; /* Muted blue-grey */
+    --accent-color-bright-blue: #1E88E5;
+}
+
+/* Animations for answers */
+@keyframes pulseCorrect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shakeWrong {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+/* Category Selection Styling */
+#category-selection-area label {
+    display: block; /* Simpler display */
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(27, 38, 59, 0.7); /* Slightly lighter than screen background */
+    border-radius: 6px;
+    border: 1px solid #415A77;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#category-selection-area label:hover {
+    background-color: rgba(65, 90, 119, 0.7);
+}
+
+#category-selection-area input[type="checkbox"] {
+    margin-right: 8px;
+    width: auto;
+    height: auto; /* Reset to default or specific small size */
+    vertical-align: middle;
+}
+
+/* Styling for the new category image container on the question screen */
+#question-category-image-container {
+    margin-bottom: 15px; /* Space below the image */
+    text-align: center; /* Center the image */
+}
+
+.question-category-image {
+    max-width: 100%; /* Ensure image is responsive */
+    max-height: 120px; /* Adjust max height as needed, e.g., 100px to 150px */
+    object-fit: contain; /* Scales image to fit within bounds, preserving aspect ratio */
+    border-radius: 8px;
+    border: 2px solid #778DA9;
+    background-color: #0D1B2A; /* Background for transparent images or if image fails to load */
+}
+
+.question-category-text-fallback {
+    font-size: 0.9em;
+    color: #A7C957; /* Lime green, like other sub-headings */
+    margin-top: 5px;
+}
