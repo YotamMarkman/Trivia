@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         question: document.getElementById('question-screen'),
         gameOver: document.getElementById('game-over-screen'),
         leaderboard: document.getElementById('leaderboard-screen'),
+        h2hGameFlexContainer: document.getElementById('h2h-game-flex-container'), // Added for H2H flex screen
     };
 
     // Buttons and Inputs
@@ -28,12 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const startSinglePlayerWithCategoriesBtn = document.getElementById('start-singleplayer-with-categories');
 
     // Head-to-Head
-    const opponentTypeSelect = document.getElementById('opponent-type');
-    const h2hJoinGameOptionsDiv = document.getElementById('h2h-join-game-options');
-    const h2hCreateGameOptionsDiv = document.getElementById('h2h-create-game-options');
-    const h2hGameIdJoinInput = document.getElementById('h2h-game-id-join');
-    const joinH2HGameBtn = document.getElementById('join-h2h-game-btn');
-    const createH2HGameBtn = document.getElementById('create-h2h-game-btn');
+    const h2hPrimaryActionSelect = document.getElementById('h2h-primary-action-select');
+    const h2hJoinOptionsContainer = document.getElementById('h2h-join-options-container');
+    const h2hGameIdInput = document.getElementById('h2h-game-id-input');
+    const h2hCreateOptionsContainer = document.getElementById('h2h-create-options-container');
+    const h2hOpponentSelectContainer = document.getElementById('h2h-opponent-select-container'); // Corrected variable name
+    const h2hOpponentTypeSelect = document.getElementById('h2h-opponent-type-select');
+    const h2hCategorySelect = document.getElementById('h2h-category-select');
+    const h2hBotLevelOptionsContainer = document.getElementById('h2h-bot-level-options-container'); // Corrected variable name
+    const h2hBotLevelSelect = document.getElementById('h2h-bot-level-select');
+    const h2hFinalActionButton = document.getElementById('h2h-final-action-button');
+    const h2hWaitingForPlayerDiv = document.getElementById('h2h-waiting-for-player');
+    const h2hRoomCodeDisplay = document.getElementById('h2h-room-code-display');
 
     // Multiplayer
     const createMultiplayerRoomBtn = document.getElementById('create-multiplayer-room-btn');
@@ -62,15 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerSpan = document.getElementById('timer');
     const currentScoreSpan = document.getElementById('current-score');
     const questionTextElem = document.getElementById('question-text');
-    const questionCategoryImageContainer = document.getElementById('question-category-image-container'); // New container
-    const answerButtons = document.querySelectorAll('.answer-button');
-    const feedbackMessageElem = document.getElementById('feedback-message'); // Ensure this line is present and correct
-    const exitGameBtn = document.getElementById('exit-game-btn'); // Added selector for the new button
+    const questionCategoryImageContainer = document.getElementById('question-category-image-container');
+    const answerButtons = document.querySelectorAll('#question-screen .answer-button'); // Scoped to question-screen
+    const feedbackMessageElem = document.getElementById('feedback-message');
+
+    // H2H Question Screen elements (New)
+    const h2hQuestionCounterSpan = document.getElementById('h2h-question-counter');
+    const h2hTimerSpan = document.getElementById('h2h-timer');
+    const h2hCurrentScoreSpan = document.getElementById('h2h-current-score');
+    const h2hQuestionTextElem = document.getElementById('h2h-question-text');
+    const h2hQuestionCategoryImageContainer = document.getElementById('h2h-question-category-image-container');
+    const h2hAnswerButtons = document.querySelectorAll('.h2h-question-area .answer-button'); // Scoped to .h2h-question-area CLASS
+    const h2hFeedbackMessageElem = document.getElementById('h2h-feedback-message');
 
     // Game Over
-    const finalScoreDetailsDiv = document.getElementById('final-score-details');
-    const playAgainBtn = document.getElementById('play-again');
-    const backToMainMenuBtn = document.getElementById('back-to-main-menu');
+    const finalScoresDiv = document.getElementById('final-scores'); // New container for scores
+    const winnerMessageContainer = document.getElementById('winner-message-container'); // New container for winner message
+    const playAgainBtn = document.getElementById('play-again-btn'); // Corrected ID
+    const backToMainMenuBtn = document.getElementById('back-to-main-menu-from-game-over-btn'); // Corrected ID
 
     // Leaderboard
     const showLeaderboardInitialBtn = document.getElementById('show-leaderboard-initial');
@@ -78,11 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardBody = document.getElementById('leaderboard-body');
     const backFromLeaderboardBtn = document.getElementById('back-from-leaderboard');
 
-    // Chat
-    const chatContainer = document.getElementById('chat-container');
-    const chatMessagesDiv = document.getElementById('chat-messages');
-    const chatMessageInput = document.getElementById('chat-message-input');
-    const sendChatMessageBtn = document.getElementById('send-chat-message-btn');
+    // Chat (specific to H2H screen now)
+    const h2hChatContainer = document.getElementById('h2h-chat-container');
+    const h2hChatMessagesDiv = document.getElementById('h2h-chat-messages');
+    const h2hChatMessageInput = document.getElementById('h2h-chat-message-input');
+    const h2hSendChatMessageBtn = document.getElementById('h2h-send-chat-message-btn');
+
+    // Exit Game Buttons (Class-based)
+    const exitGameBtns = document.querySelectorAll('.exit-game-trigger');
 
 
     let currentPlayerName = '';
@@ -108,6 +127,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.error("Screen not found:", screenName);
         }
+
+        // Show/Hide H2H chat container based on screen
+        if (h2hChatContainer) {
+            if (screenName === 'h2hGameFlexContainer') {
+                h2hChatContainer.style.display = 'block';
+            } else {
+                h2hChatContainer.style.display = 'none';
+            }
+        }
     }
 
     goToModeSelectBtn.addEventListener('click', () => {
@@ -120,18 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             const mode = button.dataset.mode;
             currentGameMode = mode;
-            chatContainer.style.display = 'none'; // Hide chat by default
+            if (h2hChatContainer) h2hChatContainer.style.display = 'none'; // Hide H2H chat by default
 
             if (mode === 'singleplayer') {
                 showScreen('singlePlayerCategorySelect'); // New screen
                 fetchCategories(); // Fetch categories when entering this screen
             } else if (mode === 'head_to_head') {
                 showScreen('headToHeadConfig');
-                // Reset H2H options
-                opponentTypeSelect.value = 'player';
-                h2hJoinGameOptionsDiv.style.display = 'block';
-                h2hCreateGameOptionsDiv.style.display = 'none';
-                h2hGameIdJoinInput.value = '';
+                fetchAndPopulateH2HCategories(); // Populate categories for H2H
+                updateH2HConfigScreenUI(); // New function to handle UI changes
+                if (h2hWaitingForPlayerDiv) h2hWaitingForPlayerDiv.style.display = 'none'; // Hide waiting message
             } else if (mode === 'multiplayer') {
                 showScreen('multiplayerConfig');
                 multiplayerGameIdJoinInput.value = '';
@@ -232,76 +258,155 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Head-to-Head ---
-    opponentTypeSelect.addEventListener('change', () => {
-        if (opponentTypeSelect.value === 'bot') {
-            h2hJoinGameOptionsDiv.style.display = 'none';
-            h2hCreateGameOptionsDiv.style.display = 'block';
-        } else {
-            h2hJoinGameOptionsDiv.style.display = 'block';
-            h2hCreateGameOptionsDiv.style.display = 'none';
+    function updateH2HConfigScreenUI() {
+        if (!h2hPrimaryActionSelect || !h2hJoinOptionsContainer || !h2hCreateOptionsContainer || !h2hFinalActionButton || !h2hBotLevelOptionsContainer || !h2hOpponentTypeSelect) {
+            console.error("H2H config UI elements missing for update.");
+            return;
         }
-    });
 
-    createH2HGameBtn.addEventListener('click', () => {
-        isHost = true;
-        socket.emit('create_game', {
-            name: currentPlayerName,
-            game_mode: 'head_to_head',
-            num_bots: 1, // H2H vs Bot means 1 bot
-            max_players: 2
+        const selectedAction = h2hPrimaryActionSelect.value;
+
+        if (selectedAction === 'join') {
+            h2hJoinOptionsContainer.style.display = 'block';
+            h2hCreateOptionsContainer.style.display = 'none';
+            h2hFinalActionButton.textContent = 'Join Game';
+        } else { // 'create'
+            h2hJoinOptionsContainer.style.display = 'none';
+            h2hCreateOptionsContainer.style.display = 'block';
+            h2hFinalActionButton.textContent = 'Create Game';
+
+            // Show/hide bot level based on opponent type within create options
+            if (h2hOpponentTypeSelect.value === 'bot') {
+                h2hBotLevelOptionsContainer.style.display = 'block';
+            } else {
+                h2hBotLevelOptionsContainer.style.display = 'none';
+            }
+        }
+        h2hFinalActionButton.disabled = false; // Ensure button is enabled when switching options
+        if (h2hWaitingForPlayerDiv) h2hWaitingForPlayerDiv.style.display = 'none'; // Hide waiting message
+    }
+
+    if (h2hPrimaryActionSelect) {
+        h2hPrimaryActionSelect.addEventListener('change', updateH2HConfigScreenUI);
+    }
+
+    if (h2hOpponentTypeSelect) {
+        h2hOpponentTypeSelect.addEventListener('change', () => {
+            if (h2hPrimaryActionSelect.value === 'create') { // Only relevant if creating a game
+                updateH2HConfigScreenUI(); // Re-run to show/hide bot level based on new opponent type
+            }
         });
-        chatContainer.style.display = 'block';
-    });
+    }
 
-    joinH2HGameBtn.addEventListener('click', () => {
-        const gameIdToJoin = h2hGameIdJoinInput.value.trim();
-        if (gameIdToJoin) {
-            isHost = false;
-            socket.emit('join_game', {
-                name: currentPlayerName,
-                game_id: gameIdToJoin
+    async function fetchAndPopulateH2HCategories() {
+        try {
+            const response = await fetch('http://localhost:5000/api/categories');
+            if (!response.ok) throw new Error('Failed to fetch categories');
+            const categories = await response.json();
+            if (!h2hCategorySelect) {
+                console.error("H2H Category select dropdown not found!");
+                return;
+            }
+            h2hCategorySelect.innerHTML = ''; // Clear existing options
+
+            // Add "All Categories" option
+            const allOpt = document.createElement('option');
+            allOpt.value = 'all';
+            allOpt.textContent = 'All Categories';
+            h2hCategorySelect.appendChild(allOpt);
+
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                h2hCategorySelect.appendChild(opt);
             });
-            chatContainer.style.display = 'block';
-        } else {
-            alert('Please enter a Game ID to join.');
+        } catch (e) {
+            console.error("Error fetching H2H categories:", e);
+            h2hCategorySelect.innerHTML = '<option value="all">All Categories</option>'; // Fallback
         }
-    });
+    }
+
+    if (h2hFinalActionButton) {
+        h2hFinalActionButton.addEventListener('click', () => {
+            const action = h2hPrimaryActionSelect.value;
+
+            if (action === 'create') {
+                isHost = true;
+                const selectedCategory = h2hCategorySelect.value;
+                const opponentType = h2hOpponentTypeSelect.value;
+
+                let gameConfig = {
+                    name: currentPlayerName,
+                    game_mode: 'head_to_head',
+                    max_players: 2,
+                    categories: [selectedCategory],
+                };
+
+                if (opponentType === 'bot') {
+                    gameConfig.num_bots = 1;
+                    gameConfig.bot_level = h2hBotLevelSelect.value || 'easy';
+                } else { // Opponent is 'player'
+                    gameConfig.num_bots = 0;
+                }
+
+                socket.emit('create_game', gameConfig);
+                if (h2hChatContainer) h2hChatContainer.style.display = 'block';
+
+                if (opponentType === 'player') {
+                    if (h2hWaitingForPlayerDiv) h2hWaitingForPlayerDiv.style.display = 'block';
+                    if (h2hFinalActionButton) h2hFinalActionButton.disabled = true;
+                }
+            } else if (action === 'join') {
+                const gameIdToJoin = h2hGameIdInput.value.trim();
+                if (gameIdToJoin) {
+                    isHost = false;
+                    socket.emit('join_game', {
+                        name: currentPlayerName,
+                        game_id: gameIdToJoin
+                    });
+                    if (h2hChatContainer) h2hChatContainer.style.display = 'block';
+                } else {
+                    alert('Please enter a Game ID to join.');
+                }
+            }
+        });
+    }
 
     // --- Multiplayer ---
     createMultiplayerRoomBtn.addEventListener('click', () => {
         isHost = true;
-        // We don't send num_bots yet, host will configure this on next screen
         socket.emit('create_game', {
             name: currentPlayerName,
             game_mode: 'multiplayer',
             max_players: 8 // Default for multiplayer
         });
-        chatContainer.style.display = 'block';
     });
 
     socket.on('game_created', (data) => {
         currentGameId = data.game_id;
         console.log('Game created:', data);
 
-        if (data.game_mode === 'multiplayer' && isHost) {
+        if (data.game_mode === 'head_to_head' && isHost && data.num_bots === 0) {
+            if (h2hRoomCodeDisplay) h2hRoomCodeDisplay.textContent = data.game_id;
+        } else if (data.game_mode === 'multiplayer' && isHost) {
             multiplayerRoomIdDisplay.textContent = currentGameId;
             hostRoomIdSpan.textContent = currentGameId;
             numBotsMultiplayerInput.value = "0"; // Reset
-            updateMultiplayerLobbyPlayers(data.players || [{name: currentPlayerName, score:0, sid: socket.id, is_bot: false}]); // Show host in lobby
+            updateMultiplayerLobbyPlayers(data.players || [{name: currentPlayerName, score:0, sid: socket.id, is_bot: false, is_host: true}]);
             showScreen('multiplayerHostOptions');
         } else {
-            // For single player, H2H created by this client
-            setupLobbyScreen(data.game_id, data.game_mode, data.players || [], isHost);
+            setupLobbyScreen(data.game_id, data.game_mode, data.players || [], isHost, data.max_players);
             showScreen('gameLobby');
             if (isHost && (data.game_mode === 'singleplayer' || (data.game_mode === 'head_to_head' && data.num_bots > 0))) {
-                 // Auto-start for single player or H2H vs Bot if host
                 startGameButton.style.display = 'none'; // Hide start button
                 waitingForHostMessage.textContent = 'Starting game...';
                 socket.emit('start_game', { game_id: currentGameId });
+            } else if (!isHost && data.game_mode === 'head_to_head') {
+                waitingForHostMessage.textContent = 'Waiting for host to start the game...';
             }
         }
     });
-
 
     finalizeMultiplayerRoomSetupBtn.addEventListener('click', () => {
         if (!isHost || !currentGameId) return;
@@ -309,7 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Host starting multiplayer game ${currentGameId} from host options screen.`);
         socket.emit('start_game', { game_id: currentGameId });
     });
-
 
     joinMultiplayerRoomBtn.addEventListener('click', () => {
         const gameIdToJoin = multiplayerGameIdJoinInput.value.trim();
@@ -319,14 +423,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: currentPlayerName,
                 game_id: gameIdToJoin
             });
-            chatContainer.style.display = 'block';
         } else {
             alert('Please enter a Game ID to join.');
         }
     });
 
-
-    function setupLobbyScreen(gameId, mode, players, isClientHost) {
+    function setupLobbyScreen(gameId, mode, players, isClientHost, maxPlayers) {
         currentGameId = gameId;
         lobbyGameIdSpan.textContent = gameId;
         lobbyGameModeSpan.textContent = mode.replace('_', ' ');
@@ -335,14 +437,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLobbyPlayersList(players);
 
         if (isHost) {
-            startGameButton.style.display = 'block';
-            waitingForHostMessage.style.display = 'none';
+            if (mode === 'head_to_head' && players.length < 2) {
+                startGameButton.style.display = 'none';
+                waitingForHostMessage.textContent = 'Waiting for opponent to join...';
+                waitingForHostMessage.style.display = 'block';
+            } else {
+                startGameButton.style.display = 'block';
+                waitingForHostMessage.style.display = 'none';
+            }
         } else {
             startGameButton.style.display = 'none';
+            waitingForHostMessage.textContent = 'Waiting for host to start the game...';
             waitingForHostMessage.style.display = 'block';
         }
-        const gameData = players.length > 0 ? players[0].gameData : null; // Simplified
-        lobbyMaxPlayersSpan.textContent = gameData ? gameData.max_players : (mode === 'singleplayer' ? 1 : (mode === 'head_to_head' ? 2 : 8));
+        lobbyMaxPlayersSpan.textContent = maxPlayers || (mode === 'singleplayer' ? 1 : (mode === 'head_to_head' ? 2 : 8));
     }
 
     function updateLobbyPlayersList(players) {
@@ -392,10 +500,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     socket.on('game_joined', (data) => {
         console.log('Game joined:', data);
-        setupLobbyScreen(data.game_id, currentGameMode, data.players, false); 
+        setupLobbyScreen(data.game_id, currentGameMode, data.players, false, data.max_players); 
         showScreen('gameLobby');
         if (data.chat_history) {
             data.chat_history.forEach(msg => displayChatMessage(msg));
@@ -406,7 +513,21 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Player joined:', data);
         if (screens.gameLobby.classList.contains('active') || screens.multiplayerHostOptions.classList.contains('active')) {
             updateLobbyPlayersList(data.players);
-            lobbyMaxPlayersSpan.textContent = data.players.length > 0 && data.players[0].gameData ? data.players[0].gameData.max_players : lobbyMaxPlayersSpan.textContent;
+            lobbyMaxPlayersSpan.textContent = data.max_players || lobbyMaxPlayersSpan.textContent;
+
+            if (isHost && currentGameMode === 'head_to_head' && data.players.length === 2) {
+                if (screens.gameLobby.classList.contains('active')) { // Host is on lobby screen
+                    if(startGameButton) startGameButton.style.display = 'block';
+                    if(waitingForHostMessage) waitingForHostMessage.style.display = 'none';
+                } else if (screens.headToHeadConfig.classList.contains('active')) {
+                    setupLobbyScreen(currentGameId, currentGameMode, data.players, true, data.max_players);
+                    showScreen('gameLobby');
+                    if(startGameButton) startGameButton.style.display = 'block';
+                    if(waitingForHostMessage) waitingForHostMessage.style.display = 'none';
+                    if(h2hWaitingForPlayerDiv) h2hWaitingForPlayerDiv.style.display = 'none';
+                    if(h2hFinalActionButton) h2hFinalActionButton.disabled = false; // Re-enable config action button
+                }
+            }
         }
     });
 
@@ -424,7 +545,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     startGameButton.addEventListener('click', () => {
         if (isHost && currentGameId) {
             socket.emit('start_game', { game_id: currentGameId });
@@ -436,11 +556,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Game started:', data);
         playerScore = 0; 
         updateScoreDisplay();
-        showScreen('question');
-        if (currentGameMode === 'head_to_head' || currentGameMode === 'multiplayer') {
-            chatContainer.style.display = 'block';
+        if (currentGameMode === 'head_to_head') {
+            showScreen('h2hGameFlexContainer');
+            if (h2hChatContainer) h2hChatContainer.style.display = 'block'; // Ensure H2H chat is visible
+        } else if (currentGameMode === 'multiplayer') {
+            showScreen('question');
         } else {
-            chatContainer.style.display = 'none';
+            showScreen('question');
         }
     });
 
@@ -452,26 +574,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function displayQuestion(q) {
-        questionTextElem.textContent = q.question;
-        questionCounterSpan.textContent = `Q: ${q.question_number}/${q.total_questions}`;
-        feedbackMessageElem.textContent = '';
-        feedbackMessageElem.className = ''; 
+        let targetQuestionTextElem, targetQuestionCounterSpan, targetFeedbackElem, targetAnswersGridBtns, targetImageContainer;
 
-        // --- Add Category Image ---
-        console.log("[displayQuestion] Received category from backend:", q.category); 
-        if (!questionCategoryImageContainer) {
-            console.error("[displayQuestion] Error: questionCategoryImageContainer element not found!");
-            return; // Stop if container is missing
+        if (currentGameMode === 'head_to_head') {
+            targetQuestionTextElem = h2hQuestionTextElem;
+            targetQuestionCounterSpan = h2hQuestionCounterSpan;
+            targetFeedbackElem = h2hFeedbackMessageElem;
+            targetAnswersGridBtns = h2hAnswerButtons;
+            targetImageContainer = h2hQuestionCategoryImageContainer;
+        } else {
+            targetQuestionTextElem = questionTextElem;
+            targetQuestionCounterSpan = questionCounterSpan;
+            targetFeedbackElem = feedbackMessageElem;
+            targetAnswersGridBtns = answerButtons;
+            targetImageContainer = questionCategoryImageContainer;
         }
-        questionCategoryImageContainer.innerHTML = ''; // Clear previous image or text
 
-        const categoryImageMapping = { // Ensure these keys EXACTLY match q.category from backend
+        if (!targetQuestionTextElem || !targetQuestionCounterSpan || !targetFeedbackElem || !targetAnswersGridBtns || !targetImageContainer) {
+            console.error("[displayQuestion] Critical UI elements not found for mode:", currentGameMode);
+            return;
+        }
+
+        targetQuestionTextElem.textContent = q.question;
+        targetQuestionCounterSpan.textContent = `Q: ${q.question_number}/${q.total_questions}`;
+        targetFeedbackElem.textContent = '';
+        targetFeedbackElem.className = ''; 
+
+        console.log("[displayQuestion] Received category from backend:", q.category); 
+        targetImageContainer.innerHTML = ''; // Clear previous image or text
+
+        const categoryImageMapping = { 
             "NBA": "NBA",
-            "Premier League": "Premier_League", // Make sure this matches backend category name
-            "International Football": "International" // Make sure this matches backend category name
+            "Premier League": "Premier_League", 
+            "International Football": "International" 
         };
 
-        // Lists of available images for each category folder
         const categoryImageLists = {
             "NBA": ["doncic_sga.jpg", "ja.jpg", "jordan.jpg", "kobe.jpg", "kyrie_7.jpg", "lakers_old.jpg", "lbj_curry.jpg", "logo.png"],
             "Premier_League": ["adebayor.jpg", "aguero.jpg", "arsenal.jpg", "chris_manu.jpg", "drogba.jpg", "League_cup.jpg", "sheahrer.jpg"],
@@ -483,8 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (imageFolderName && categoryImageLists[imageFolderName] && categoryImageLists[imageFolderName].length > 0) {
             const imageList = categoryImageLists[imageFolderName];
-            const imageName = imageList[Math.floor(Math.random() * imageList.length)]; // Select a random image
-            
+            const imageName = imageList[Math.floor(Math.random() * imageList.length)];
             const imagePath = `photos/${imageFolderName}/${imageName}`;
             console.log("[displayQuestion] Attempting to load random image from path:", imagePath); 
 
@@ -498,25 +634,22 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             img.onerror = () => {
                 console.error("[displayQuestion] Error loading image at path:", imagePath);
-                // Display fallback text if image fails to load
-                questionCategoryImageContainer.innerHTML = ''; // Clear again in case of error
+                targetImageContainer.innerHTML = '';
                 const categoryText = document.createElement('p');
                 categoryText.textContent = `Category: ${q.category} (Image not found at ${imagePath})`;
                 categoryText.classList.add('question-category-text-fallback');
-                questionCategoryImageContainer.appendChild(categoryText);
+                targetImageContainer.appendChild(categoryText);
             };
-
-            questionCategoryImageContainer.appendChild(img);
+            targetImageContainer.appendChild(img);
         } else {
             console.log("[displayQuestion] No image folder mapping found for category:", q.category);
             const categoryText = document.createElement('p');
-            categoryText.textContent = `Category: ${q.category}`; // Display category name if no mapping
+            categoryText.textContent = `Category: ${q.category}`;
             categoryText.classList.add('question-category-text-fallback');
-            questionCategoryImageContainer.appendChild(categoryText);
+            targetImageContainer.appendChild(categoryText);
         }
-        // --- End Add Category Image ---
 
-        answerButtons.forEach((button, index) => {
+        targetAnswersGridBtns.forEach((button, index) => {
             button.textContent = q.answers[index];
             button.disabled = false;
             button.className = 'answer-button'; 
@@ -526,7 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleAnswerSubmit(answer) {
         clearInterval(questionTimerInterval);
-        answerButtons.forEach(button => button.disabled = true);
+        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
+        currentAnswerButtons.forEach(button => button.disabled = true);
         socket.emit('submit_answer', {
             game_id: currentGameId,
             answer: answer
@@ -538,7 +672,10 @@ document.addEventListener('DOMContentLoaded', () => {
         playerScore = data.your_total_score; 
         updateScoreDisplay();
 
-        answerButtons.forEach(button => {
+        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
+        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
+
+        currentAnswerButtons.forEach(button => {
             if (button.textContent === data.correct_answer) {
                 button.classList.add('correct');
             } else if (button.textContent !== data.correct_answer && button.disabled) { 
@@ -546,23 +683,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (data.correct) {
-            feedbackMessageElem.textContent = `Correct! +${data.score_earned} points.`;
-            feedbackMessageElem.className = 'feedback-correct';
+            currentFeedbackElem.textContent = `Correct! +${data.score_earned} points.`;
+            currentFeedbackElem.className = 'feedback-correct';
         } else {
-            feedbackMessageElem.textContent = `Wrong! The correct answer was: ${data.correct_answer}`;
-            feedbackMessageElem.className = 'feedback-wrong';
-        }
-
-        if (currentGameMode !== 'singleplayer' && currentGameMode !== 'head_to_head') { 
-            setTimeout(() => {
-            }, 3000); 
+            currentFeedbackElem.textContent = `Wrong! The correct answer was: ${data.correct_answer}`;
+            currentFeedbackElem.className = 'feedback-wrong';
         }
     });
 
     socket.on('update_scores', (data) => {
         console.log('Scores updated:', data);
-        if (screens.question.classList.contains('active')) {
-            console.log("All scores:", data.scores);
+        if (screens.gameLobby.classList.contains('active') || screens.multiplayerHostOptions.classList.contains('active')) {
             if (data.player_list) { 
                 updateLobbyPlayersListWithScores(data.player_list); 
             }
@@ -584,17 +715,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startTimer(duration) {
         let timeLeft = duration;
-        timerSpan.textContent = `Time: ${timeLeft}s`;
+        const currentTimerSpan = currentGameMode === 'head_to_head' ? h2hTimerSpan : timerSpan;
+        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
+        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
+
+        currentTimerSpan.textContent = `Time: ${timeLeft}s`;
         clearInterval(questionTimerInterval); 
 
         questionTimerInterval = setInterval(() => {
             timeLeft--;
-            timerSpan.textContent = `Time: ${timeLeft}s`;
+            currentTimerSpan.textContent = `Time: ${timeLeft}s`;
             if (timeLeft <= 0) {
                 clearInterval(questionTimerInterval);
-                timerSpan.textContent = "Time's up!";
-                answerButtons.forEach(button => button.disabled = true);
-                feedbackMessageElem.textContent = "Time's up! No answer submitted.";
+                currentTimerSpan.textContent = "Time's up!";
+                currentAnswerButtons.forEach(button => button.disabled = true);
+                currentFeedbackElem.textContent = "Time's up! No answer submitted.";
                 socket.emit('submit_answer', { game_id: currentGameId, answer: "__TIMEOUT__" });
 
             }
@@ -602,43 +737,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateScoreDisplay() {
-        currentScoreSpan.textContent = `Score: ${playerScore}`;
+        if (currentGameMode === 'head_to_head') {
+            if(h2hCurrentScoreSpan) h2hCurrentScoreSpan.textContent = `Score: ${playerScore}`;
+        } else {
+            if(currentScoreSpan) currentScoreSpan.textContent = `Score: ${playerScore}`;
+        }
     }
 
-    if (exitGameBtn) {
-        exitGameBtn.addEventListener('click', () => {
+    exitGameBtns.forEach(button => {
+        button.addEventListener('click', () => {
             console.log('Exit Game button clicked');
             if (socket && socket.connected) {
-                socket.emit('leave_game');
-                console.log('Emitted leave_game event');
+                socket.emit('leave_game', { game_id: currentGameId }); // Send game_id when leaving
+                console.log('Emitted leave_game event for game:', currentGameId);
             }
             if (questionTimerInterval) {
                 clearInterval(questionTimerInterval);
                 questionTimerInterval = null;
                 console.log('Question timer cleared');
             }
-            // Reset relevant game state variables
-            currentQuestionData = null;
-            playerScore = 0;
-            // Navigate to mode selection screen
+            resetGameStatePartial(); // Reset some game state
             showScreen('modeSelect');
             console.log('Navigated to modeSelect screen');
         });
-    }
+    });
 
     // --- Game Over ---
     socket.on('game_over', (data) => {
         console.log('Game Over:', data);
         clearInterval(questionTimerInterval); 
-        displayGameOver(data.scores);
+        displayGameOver(data.scores, data.winner_info); // Pass scores and winnerInfo to displayGameOver
         showScreen('gameOver');
         if (currentGameMode === 'singleplayer') {
             socket.emit('request_leaderboard'); 
         }
     });
 
-    function displayGameOver(scores) {
-        finalScoreDetailsDiv.innerHTML = '<h3>Final Scores:</h3>';
+    function displayGameOver(scores, winnerInfo) { // Added winnerInfo
+        if (!finalScoresDiv || !winnerMessageContainer) {
+            console.error("Game over screen elements (finalScoresDiv or winnerMessageContainer) not found!");
+            return;
+        }
+        finalScoresDiv.innerHTML = '<h3>Final Scores:</h3>';
         const scoreList = document.createElement('ul');
         scores.forEach(([name, score]) => {
             const li = document.createElement('li');
@@ -648,7 +788,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             scoreList.appendChild(li);
         });
-        finalScoreDetailsDiv.appendChild(scoreList);
+        finalScoresDiv.appendChild(scoreList);
+
+        winnerMessageContainer.innerHTML = ''; // Clear previous winner message
+        if (winnerInfo) {
+            if (winnerInfo.isDraw) {
+                const p = document.createElement('p');
+                p.textContent = "It's a draw!";
+                winnerMessageContainer.appendChild(p);
+            } else if (winnerInfo.winnerName) {
+                const p = document.createElement('p');
+                p.textContent = `${winnerInfo.winnerName} wins the game!`;
+                if (winnerInfo.winnerName === currentPlayerName) {
+                    p.innerHTML = `<strong>Congratulations, ${winnerInfo.winnerName}, you win!</strong>`;
+                }
+                winnerMessageContainer.appendChild(p);
+            }
+        } else {
+            const p = document.createElement('p');
+            p.textContent = "Game finished!";
+            winnerMessageContainer.appendChild(p);
+        }
     }
 
     playAgainBtn.addEventListener('click', () => {
@@ -706,52 +866,93 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Chat ---
-    sendChatMessageBtn.addEventListener('click', sendChatMessage);
-    chatMessageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
-    });
+    console.log('[Chat Setup] Initializing chat event listeners.');
+    console.log('[Chat Setup] h2hSendChatMessageBtn (before if):', h2hSendChatMessageBtn);
+    console.log('[Chat Setup] h2hChatMessageInput (before if):', h2hChatMessageInput);
 
-    function sendChatMessage() {
-        const messageText = chatMessageInput.value.trim();
-        if (messageText && currentGameId) {
-            socket.emit('send_chat_message', {
-                game_id: currentGameId,
-                message: messageText
+    if (h2hSendChatMessageBtn && h2hChatMessageInput) {
+        console.log('[Chat Setup] Inside if: h2hSendChatMessageBtn and h2hChatMessageInput are truthy.');
+        console.log('[Chat Setup] h2hSendChatMessageBtn (inside if):', h2hSendChatMessageBtn);
+        console.log('[Chat Setup] h2hChatMessageInput (inside if):', h2hChatMessageInput);
+        try {
+            h2hSendChatMessageBtn.addEventListener('click', sendH2HChatMessage);
+            h2hChatMessageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendH2HChatMessage();
+                }
             });
-            chatMessageInput.value = '';
+
+            const emojiButtons = document.querySelectorAll('.emoji-button');
+            console.log('[Chat Setup] emojiButtons NodeList:', emojiButtons);
+            emojiButtons.forEach((button, index) => {
+                console.log(`[Chat Setup] Processing emojiButton ${index}:`, button);
+                if (button) {
+                    button.addEventListener('click', () => {
+                        if (h2hChatMessageInput) {
+                            h2hChatMessageInput.value += button.dataset.emoji;
+                            h2hChatMessageInput.focus();
+                        } else {
+                            console.error('[Chat Setup] h2hChatMessageInput is null inside emoji button click listener.');
+                        }
+                    });
+                } else {
+                    console.error(`[Chat Setup] emojiButton at index ${index} is null or undefined.`);
+                }
+            });
+            console.log('[Chat Setup] Successfully added all chat event listeners.');
+        } catch (e) {
+            console.error('[Chat Setup] Error during addEventListener setup:', e);
+            console.error('[Chat Setup] h2hSendChatMessageBtn at time of error:', h2hSendChatMessageBtn);
+            console.error('[Chat Setup] h2hChatMessageInput at time of error:', h2hChatMessageInput);
         }
+    } else {
+        console.warn('[Chat Setup] Skipped adding chat event listeners because h2hSendChatMessageBtn or h2hChatMessageInput is null/falsy.');
+        console.log('[Chat Setup] h2hSendChatMessageBtn (in else):', h2hSendChatMessageBtn);
+        console.log('[Chat Setup] h2hChatMessageInput (in else):', h2hChatMessageInput);
     }
 
     socket.on('new_chat_message', (message) => {
         displayChatMessage(message);
     });
 
-    function displayChatMessage(msg) {
-        const messageElem = document.createElement('div');
-        messageElem.classList.add('chat-message');
-
-        const senderSpan = document.createElement('span');
-        senderSpan.classList.add('sender');
-        senderSpan.textContent = `${msg.sender_name}: `;
-
-        if (msg.is_bot) {
-            messageElem.classList.add('bot');
-        } else if (msg.sender_sid === socket.id) {
-            messageElem.classList.add('own-message');
+    function sendH2HChatMessage() {
+        const messageText = h2hChatMessageInput.value.trim();
+        if (messageText && currentGameId) {
+            socket.emit('send_chat_message', {
+                game_id: currentGameId,
+                message: messageText
+            });
+            h2hChatMessageInput.value = '';
         }
-
-        const textSpan = document.createElement('span');
-        textSpan.classList.add('text');
-        textSpan.textContent = msg.text;
-
-        messageElem.appendChild(senderSpan);
-        messageElem.appendChild(textSpan);
-        chatMessagesDiv.appendChild(messageElem);
-        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; 
     }
 
+    function displayChatMessage(msg) {
+        if (!h2hChatMessagesDiv) {
+            console.error("H2H Chat messages container not found!");
+            return;
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+
+        const senderSpan = document.createElement('span');
+        senderSpan.classList.add('chat-sender');
+        let senderName = msg.sender_name; // Changed from msg.sender
+        if (msg.sender_sid === socket.id) {
+            senderName = "You";
+        }
+        senderSpan.textContent = senderName + ": ";
+
+        const contentSpan = document.createElement('span');
+        contentSpan.classList.add('chat-content');
+        contentSpan.textContent = msg.text; // Changed from msg.message
+
+        messageElement.appendChild(senderSpan);
+        messageElement.appendChild(contentSpan);
+
+        h2hChatMessagesDiv.appendChild(messageElement);
+        h2hChatMessagesDiv.scrollTop = h2hChatMessagesDiv.scrollHeight;
+    }
 
     // --- Utility and State Management ---
     function resetGameStatePartial() { 
@@ -760,8 +961,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuestionData = null;
         playerScore = 0;
         clearInterval(questionTimerInterval);
-        feedbackMessageElem.textContent = '';
-        chatMessagesDiv.innerHTML = ''; 
+        
+        if(feedbackMessageElem) feedbackMessageElem.textContent = '';
+        if(h2hFeedbackMessageElem) h2hFeedbackMessageElem.textContent = '';
+        
+        if(h2hChatMessagesDiv) h2hChatMessagesDiv.innerHTML = ''; 
     }
 
     function resetGameStateFull() { 

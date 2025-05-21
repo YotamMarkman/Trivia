@@ -46,19 +46,57 @@
             <!-- Head-to-Head Config Screen -->
             <div id="head-to-head-config-screen" class="screen">
                 <h3>Head-to-Head</h3>
-                <label for="opponent-type">Challenge:</label>
-                <select id="opponent-type">
-                    <option value="player">Challenge a Player (Join Game)</option>
-                    <option value="bot">Challenge a Bot (Create Game)</option>
-                </select>
-                <div id="h2h-join-game-options">
-                    <input type="text" id="h2h-game-id-join" placeholder="Enter Game ID to Join">
-                    <button id="join-h2h-game-btn">Join Game</button>
-                </div>
-                <div id="h2h-create-game-options" style="display:none;">
-                    <button id="create-h2h-game-btn">Create Game vs Bot</button>
-                </div>
+                <div class="h2h-config-options-wrapper">
+                    <div class="config-option"> <!-- Wrapper for label + select -->
+                        <label for="h2h-primary-action-select">Action:</label>
+                        <select id="h2h-primary-action-select"> <!-- Was opponent-type -->
+                            <option value="create">Create Game</option> <!-- Default to Create -->
+                            <option value="join">Join Game</option>
+                        </select>
+                    </div>
+
+                    <!-- Options for Joining (shown if 'join' is selected) -->
+                    <div id="h2h-join-options-container" style="display:none;"> <!-- Was h2h-join-game-options -->
+                        <div class="config-option">
+                            <label for="h2h-game-id-input">Game ID:</label> <!-- Was h2h-game-id-join -->
+                            <input type="text" id="h2h-game-id-input" placeholder="Enter Game ID to Join">
+                            <!-- Button removed from here -->
+                        </div>
+                    </div>
+
+                    <!-- Options for Creating (shown if 'create' is selected) -->
+                    <div id="h2h-create-options-container"> <!-- Was h2h-create-game-options -->
+                        <div id="h2h-opponent-select-container" class="config-option"> <!-- Was h2h-opponent-type-container, moved inside -->
+                            <label for="h2h-opponent-type-select">Opponent:</label>
+                            <select id="h2h-opponent-type-select"> <!-- Existing ID from my previous change, ensure it's this one -->
+                                <option value="bot">Bot</option>
+                                <option value="player">Player</option>
+                            </select>
+                        </div>
+                        <div class="config-option">
+                            <label for="h2h-category-select">Category:</label>
+                            <select id="h2h-category-select"></select> <!-- Existing ID -->
+                        </div>
+                        <div id="h2h-bot-level-options-container" class="config-option"> <!-- Was h2h-bot-level-container -->
+                            <label for="h2h-bot-level-select">Bot Level:</label> <!-- Was h2h-bot-level -->
+                            <select id="h2h-bot-level-select"> <!-- Was h2h-bot-level -->
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <!-- Button removed from here -->
+                    </div>
+                </div> <!-- End h2h-config-options-wrapper -->
+
+                <!-- Unified Action Button -->
+                <button id="h2h-final-action-button" class="menu-button">Create Game</button> <!-- Text changes dynamically -->
+
                 <button class="back-to-mode-select">Back</button>
+                <div id="h2h-waiting-for-player" style="display: none;">
+                    <p>Waiting for another player to join...</p>
+                    <p>Room Code: <strong id="h2h-room-code-display"></strong></p>
+                </div>
             </div>
 
             <!-- Multiplayer Config Screen -->
@@ -96,9 +134,11 @@
                     <h4>Challengers:</h4>
                     <ul id="lobby-players-list-ul"></ul>
                 </div>
-                <button id="start-game-button" style="display: none;">Start Game (Host)</button>
+                <div class="lobby-actions"> <!-- Added wrapper for buttons -->
+                    <button id="start-game-button" style="display: none;">Start Game (Host)</button>
+                    <button class="leave-lobby-button">Leave Lobby</button>
+                </div>
                 <p id="waiting-for-host-message">Waiting for host to start the game...</p>
-                 <button class="leave-lobby-button">Leave Lobby</button>
             </div>
 
             <!-- Question Screen -->
@@ -119,17 +159,64 @@
                     <button class="answer-button" data-answer="D">Team D</button>
                 </div>
                 <div id="feedback-message"></div>
-                <button id="exit-game-btn" class="game-action-button">Exit Game</button>
+                <button class="game-action-button exit-game-trigger">Exit Game</button>
+            </div>
+
+            <!-- Head-to-Head Game Screen (Question + Chat Side by Side) -->
+            <div id="h2h-game-flex-container" class="screen">
+                <div class="h2h-flex-row">
+                    <div class="h2h-question-area">
+                        <div id="h2h-game-info-bar">
+                            <span id="h2h-question-counter">Q: 1/30</span>
+                            <span id="h2h-timer">Time: 15s</span>
+                            <span id="h2h-current-score">Score: 0</span>
+                        </div>
+                        <h3 id="h2h-question-text">Which team won the Super Bowl in 2023?</h3>
+                        <div id="h2h-question-category-image-container">
+                            <!-- Category image will be populated here by script.js -->
+                        </div>
+                        <div class="answers-grid">
+                            <button class="answer-button" data-answer="A">Team A</button>
+                            <button class="answer-button" data-answer="B">Team B</button>
+                            <button class="answer-button" data-answer="C">Team C</button>
+                            <button class="answer-button" data-answer="D">Team D</button>
+                        </div>
+                        <div id="h2h-feedback-message"></div>
+                        <button class="game-action-button exit-game-trigger">Exit Game</button>
+                    </div>
+                    <div class="h2h-chat-area">
+                        <div id="h2h-chat-container">
+                            <h3>Chat</h3>
+                            <div id="h2h-chat-messages"></div>
+                            <div id="h2h-chat-input-area" class="chat-input-area">
+                                <input type="text" id="h2h-chat-message-input" placeholder="Type a message...">
+                                <button id="h2h-send-chat-message-btn">Send</button>
+                            </div>
+                            <div class="emoji-button-container">
+                                <button class="emoji-button" data-emoji="👍">👍</button>
+                                <button class="emoji-button" data-emoji="😂">😂</button>
+                                <button class="emoji-button" data-emoji="🤔">🤔</button>
+                                <button class="emoji-button" data-emoji="🔥">🔥</button>
+                                <button class="emoji-button" data-emoji="🎉">🎉</button>
+                                <button class="emoji-button" data-emoji="💔">💔</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Game Over Screen -->
             <div id="game-over-screen" class="screen">
                 <h2>Full Time!</h2>
-                <div id="final-score-details">
+                <div id="final-scores"> <!-- Changed from final-score-details -->
                     <!-- Final scores will be populated here -->
                 </div>
-                <button id="play-again">Rematch!</button>
-                <button id="back-to-main-menu">Main Menu</button>
+                <div id="winner-message-container" class="winner-message">
+                    <!-- Winner message will be displayed here by JavaScript -->
+                </div>
+                <p id="game-over-feedback"></p> <!-- Added for general feedback if needed -->
+                <button id="play-again-btn">Rematch!</button> <!-- Changed from play-again -->
+                <button id="back-to-main-menu-from-game-over-btn">Main Menu</button> <!-- Changed from back-to-main-menu -->
                 <button id="show-leaderboard-gameover">View Hall of Fame</button>
             </div>
 
@@ -150,18 +237,6 @@
                     </tbody>
                 </table>
                 <button id="back-from-leaderboard">Back</button>
-            </div>
-
-             <!-- Universal Chat Box (for H2H and Multiplayer) -->
-            <div id="chat-container" style="display: none;">
-                <h3>Chat</h3>
-                <div id="chat-messages">
-                    <!-- Messages will appear here -->
-                </div>
-                <div id="chat-input-area">
-                    <input type="text" id="chat-message-input" placeholder="Type a message...">
-                    <button id="send-chat-message-btn">Send</button>
-                </div>
             </div>
 
         </main>

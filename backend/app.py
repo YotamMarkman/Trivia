@@ -262,7 +262,8 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
 
     game = games.get(game_id)
     if not game:
-        emit('error', {'message': 'Game not found.'}, room=player_sid if not bot_id else None) # Don't emit to bot
+        # This emit is okay as it's conditional or uses None for room if bot
+        emit('error', {'message': 'Game not found.'}, room=player_sid if not bot_id else None)
         return
 
     player_info = game['players'].get(player_sid) if not bot_id else game['bots'].get(bot_id)
@@ -277,7 +278,6 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
 
     score_earned = 0
     if is_correct:
-        # Score based on speed: max 100 points, min 10. 10 seconds to answer.
         score_earned = max(10, 100 - int(time_taken * 10))
         game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned
         if not bot_id:
@@ -285,11 +285,10 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
         else:
             game['bots'][bot_id]['score'] = game['scores'][player_name]
 
-
     print(f"Player/Bot {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score: {score_earned}")
 
-    # Emit result to the specific player/bot (or just update server state for bot)
     if not bot_id:
+        # This emit is fine as it's within a direct socket event handler with request context
         emit('answer_result', {
             'correct': is_correct,
             'correct_answer': game.get('current_correct_answer'),
@@ -297,45 +296,15 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
             'your_total_score': game['scores'][player_name]
         }, room=player_sid)
 
-    # Notify all players about the answer (optional, could be revealed at end of question)
-    # For now, let's update scores for everyone at end of question or game
-    # Check if all (human) players have answered or timer up, then send next question
-    # This part needs more sophisticated logic for multiplayer (e.g., timers per question)
-    # For now, let's assume single player or head-to-head where one answer moves it.
-    # In a real scenario, you'd wait for all players or a timer.
-
-    # For simplicity, if it's a human player or the last bot, move to next question or update scores
-    # This logic needs refinement for multiplayer to wait for all answers or a timer.
-    # For now, let's assume one answer (from human or last bot) triggers next step for simplicity.
-    # A better approach would be to collect all answers within a time limit.
-
-    # If it's a single player game, or if it's a bot answering, we can proceed.
-    # In multiplayer, we'd need to wait for all players or a timer.
-    # This is a simplified flow.
-    is_last_bot_or_human = not bot_id or (bot_id and bot_id == list(game['bots'].keys())[-1] if game['bots'] else False)
-
     if game['game_mode'] == 'singleplayer' and not bot_id:
         send_next_question(game_id)
     elif game['game_mode'] == 'head_to_head':
-        # In H2H, after one player answers, reveal and then move.
-        # Or wait for both. For now, let's just update scores and wait for host to click next (or auto-next)
-        # This part is simplified.
-        emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
-        # Potentially send next question if both answered or timer up
-        # For now, let's assume the game progresses after each answer in H2H for simplicity in this stage
-        # A better H2H would wait for both answers or a timer.
-        # Let's just send next question for now to keep it flowing.
-        # This needs to be improved for proper H2H turn-based or simultaneous answer logic.
-        send_next_question(game_id) # Simplified: next question after any answer in H2H
+        # Use socketio.emit here as this can be called from bot's background task
+        socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
+        send_next_question(game_id)
     elif game['game_mode'] == 'multiplayer':
-        # In multiplayer, we should ideally wait for all players or a timer.
-        # For now, just update scores. The host might control progression or a timer.
-        emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
-        # Let's assume for now that after a certain number of answers or a timer, the question ends.
-        # This is a placeholder for more complex multiplayer logic.
-        # If it's the last bot answering, and no humans, or if some condition is met.
-        # For now, let's not automatically go to next question in multiplayer after one answer.
-        # Host might trigger it, or a timer (not implemented yet).
+        # Use socketio.emit here as this can be called from bot's background task
+        socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
         pass
 
 
@@ -347,22 +316,38 @@ def end_game(game_id):
     final_scores = game['scores']
     sorted_scores = sorted(final_scores.items(), key=lambda item: item[1], reverse=True)
 
-    print(f"Game {game_id} ended. Final scores: {sorted_scores}")
-    emit('game_over', {'scores': sorted_scores, 'game_id': game_id}, room=game_id)
+    winner_info = {}
+    if not sorted_scores:
+        winner_info = {'isDraw': True, 'message': "No scores recorded."}
+    elif len(sorted_scores) == 1:
+        winner_info = {'winnerName': sorted_scores[0][0]}
+    else:
+        if sorted_scores[0][1] == sorted_scores[1][1]:
+            is_complete_draw = all(score == sorted_scores[0][1] for _, score in sorted_scores)
+            if is_complete_draw and len(sorted_scores) > 1:
+                 winner_info = {'isDraw': True, 'message': "It's a draw among all players!"}
+            elif len(sorted_scores) > 1 and sorted_scores[0][1] > 0 :
+                 winner_info = {'isDraw': True, 'message': f"It's a draw between top players like {sorted_scores[0][0]}!"}
+            elif sorted_scores[0][1] == 0:
+                 winner_info = {'isDraw': True, 'message': "It's a draw! No points scored."}
+            else:
+                 winner_info = {'isDraw': True, 'message': "It's a draw!"}
+        else:
+            winner_info = {'winnerName': sorted_scores[0][0]}
 
-    # Update global leaderboard for single-player games
+    print(f"Game {game_id} ended. Final scores: {sorted_scores}. Winner info: {winner_info}")
+    # Use socketio.emit as end_game can be called from a background task context
+    socketio.emit('game_over', {'scores': sorted_scores, 'game_id': game_id, 'winner_info': winner_info}, room=game_id)
+
     if game['game_mode'] == 'singleplayer':
-        player_sid = list(game['players'].keys())[0] # Assuming one player in single player
+        player_sid = list(game['players'].keys())[0]
         player_name = game['players'][player_sid]['name']
         player_score = game['scores'][player_name]
         leaderboard.append({'name': player_name, 'score': player_score, 'timestamp': time.time()})
-        # Sort leaderboard and keep top N (e.g., top 10)
         leaderboard.sort(key=lambda x: x['score'], reverse=True)
-        # leaderboard = leaderboard[:10] # Keep top 10
-        emit_leaderboard_update()
+        emit_leaderboard_update() # This calls socketio.emit if room is None
 
-    # Clean up game
-    # del games[game_id] # Keep game for a bit if players want to see scores, or move to a post-game room.
+    # del games[game_id]
 
 
 @socketio.on('send_chat_message')

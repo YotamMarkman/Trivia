@@ -290,6 +290,72 @@ button:active, .button:active {
     box-shadow: 0 2px #799641;
 }
 
+/* Center H2H config options */
+.h2h-config-options-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Changed from 'center' to 'flex-start' */
+    gap: 15px; /* Increased gap slightly for better spacing if needed */
+    margin-bottom: 20px;
+    width: 80%; /* Or a specific max-width */
+    max-width: 400px; /* Ensures it doesn't get too wide on large screens */
+    margin-left: auto; /* Keep the wrapper centered */
+    margin-right: auto; /* Keep the wrapper centered */
+}
+
+/* Ensure labels and selects within the wrapper take appropriate width */
+.h2h-config-options-wrapper > div {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Make each option row take full width of the wrapper */
+    gap: 10px;
+}
+
+.h2h-config-options-wrapper > div > label {
+    min-width: 80px; /* Give labels a minimum width to align selects */
+    text-align: right; /* Align label text to the right, next to select */
+}
+
+.h2h-config-options-wrapper > div > select {
+    flex-grow: 1; /* Allow select to take remaining space */
+}
+
+.h2h-config-options-wrapper label {
+    margin-right: 10px;
+    color: #FFF;
+    font-size: 1.2em;
+    width: 120px; /* Default width for labels in this section */
+    text-align: right; /* Aligns text to the right, so colons line up */
+    white-space: nowrap; /* Prevent labels from wrapping */
+}
+
+/* Specific adjustments for Category and Bot Level labels to move them left */
+#h2h-category-select-container label,
+#h2h-bot-level-container label {
+    width: 100px; /* Shorter width */
+    margin-right: 5px; /* Smaller margin, bringing the select box closer and to the left */
+}
+
+.h2h-config-options-wrapper select,
+.h2h-config-options-wrapper input[type="text"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 1em;
+    background-color: #333; /* Darker background for select/input */
+    color: #fff; /* Light text for select/input */
+    flex-grow: 1;
+    min-width: 150px; /* Ensure select boxes have a minimum decent width */
+}
+
+.h2h-config-options-wrapper #h2h-join-game-options,
+.h2h-config-options-wrapper #h2h-create-game-options {
+    width: 100%; /* Make inner divs take full width of wrapper */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center their children too */
+}
+
 .lobby-players-list {
     margin-top: 18px;
     padding: 12px;
@@ -321,6 +387,15 @@ button:active, .button:active {
 .lobby-players-list .player-entry.is-bot {
     font-style: italic;
     color: #aaa;
+}
+
+/* Center lobby action buttons */
+.lobby-actions {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: 15px; /* Space between buttons */
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 footer {
@@ -426,4 +501,177 @@ footer {
     font-size: 0.9em;
     color: #A7C957; /* Lime green, like other sub-headings */
     margin-top: 5px;
+}
+
+/* --- H2H Flex Layout --- */
+#h2h-game-flex-container {
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+}
+.h2h-flex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+.h2h-question-area {
+    flex: 2 1 0;
+    min-width: 0;
+    background: rgba(13, 27, 42, 0.85);
+    border-radius: 10px;
+    padding: 24px 18px;
+    box-shadow: 0 0 10px #2228;
+    margin-bottom: 0;
+}
+.h2h-chat-area {
+    flex: 1 1 0;
+    min-width: 220px;
+    max-width: 320px;
+    background: rgba(13, 27, 42, 0.9);
+    border-radius: 10px;
+    padding: 16px 10px 10px 10px;
+    box-shadow: 0 0 8px #2226;
+    margin-bottom: 0;
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+}
+#h2h-game-flex-container #chat-container {
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+#h2h-chat-container {
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+    flex-grow: 1; /* Added */
+    height: 100%; /* Ensure it tries to fill parent */
+}
+#h2h-chat-messages {
+    flex-grow: 1; /* Allow this to take up available vertical space */
+    overflow-y: auto; /* Enable scrolling for messages */
+    background-color: #1e1e1e; /* Dark background for message area */
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    min-height: 350px; /* Increased length */
+    border: 1px solid #444;
+    color: #e0e0e0; /* Default text color for messages */
+}
+
+/* Styling for individual messages */
+#h2h-chat-messages .chat-message {
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background-color: #33373d; /* Slightly different background for each message bubble */
+    border-radius: 4px;
+    word-wrap: break-word; /* Prevent long words from breaking layout */
+    line-height: 1.4;
+}
+
+#h2h-chat-messages .chat-sender {
+    font-weight: bold;
+    color: #7f9cf5; /* A distinct color for the sender's name */
+    margin-right: 7px;
+}
+
+#h2h-chat-messages .chat-content {
+    /* Text color inherited from .chat-message or #h2h-chat-messages */
+}
+
+#h2h-chat-input-area {
+    margin-top: 8px;
+    display: flex; /* Keep this for input and button alignment */
+    align-items: center; /* Keep this */
+    margin-bottom: 10px; /* Space below input before emoji buttons */
+}
+
+#h2h-chat-message-input {
+    flex-grow: 1;
+    margin-right: 8px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+#h2h-send-chat-message-btn {
+    background-color: #4CAF50;
+}
+
+.emoji-button-container {
+    display: flex;
+    justify-content: flex-start; /* Align emojis to the left */
+    margin-bottom: 10px; /* Space below emoji buttons */
+}
+
+.emoji-button {
+    background: none;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 5px 8px;
+    margin-right: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2em; /* Make emojis a bit bigger */
+}
+
+.emoji-button:hover {
+    background-color: #444;
+}
+
+.game-action-button.exit-game-trigger {
+    background-color: #D32F2F; /* Red color for exit/danger */
+    color: white;
+    box-shadow: 0 4px #B71C1C; /* Darker red shadow */
+    margin-top: 15px; /* Add some space above it */
+}
+.game-action-button.exit-game-trigger:hover {
+    background-color: #E57373; /* Lighter red on hover */
+}
+.game-action-button.exit-game-trigger:active {
+    background-color: #C62828; /* Darker red when pressed */
+    box-shadow: 0 2px #B71C1C;
+}
+@media (max-width: 900px) {
+    .h2h-flex-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .h2h-question-area, .h2h-chat-area {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+/* --- End H2H Flex Layout --- */
+
+/* Game Over Screen Styling */
+#game-over-screen {
+    padding: 20px;
+    border: 2px dashed #444;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    text-align: center;
+}
+
+#final-scores p {
+    margin: 8px 0;
+    font-size: 1.2em;
+}
+
+.winner-message {
+    color: #FFD700; /* Gold color for winner */
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    text-align: center;
 }
