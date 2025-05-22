@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (imageFolderName && categoryImageLists[imageFolderName] && categoryImageLists[imageFolderName].length > 0) {
             const imageList = categoryImageLists[imageFolderName];
             const imageName = imageList[Math.floor(Math.random() * imageList.length)];
-            const imagePath = `photos/${imageFolderName}/${imageName}`;
+            const imagePath = `static/photos/${imageFolderName}/${imageName}`; // Added 'static/'
             console.log("[displayQuestion] Attempting to load random image from path:", imagePath); 
 
             const img = document.createElement('img');

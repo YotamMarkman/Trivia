@@ -22,6 +22,7 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     color: #e0e0e0;
     box-sizing: border-box; /* Ensure padding is included in the width */
+    position: relative; /* Added for positioning context for the mute button */
 }
 
 header h1 {
@@ -31,6 +32,17 @@ header h1 {
     margin-bottom: 35px;
     font-size: 3em;
     letter-spacing: 2px;
+}
+
+#mute-button {
+    position: absolute;
+    top: 20px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    font-size: 2em; /* Increased font size for a larger icon */
+    cursor: pointer;
+    padding: 5px;
+    user-select: none; /* Prevent text selection on click */
+    z-index: 1000; /* Ensure it's above other header elements if necessary */
 }
 
 .screen {
