@@ -126,6 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Exit Game Buttons (Class-based)
     const exitGameBtns = document.querySelectorAll('.exit-game-trigger');
 
+    const backgroundMusic = document.getElementById('background-music'); // Added for background music
+    const muteButton = document.getElementById('mute-button'); // Added for mute button
+
+    const correctSound = document.getElementById('correct-sound'); // Added for correct sound
+    const incorrectSound = document.getElementById('incorrect-sound'); // Added for incorrect sound
+
     let currentPlayerName = '';
     let currentGameId = null;
     let currentGameMode = '';
@@ -137,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let interQuestionInterval; // Timer for the 5-second wait period
     let lifelinesUsed = { fiftyFifty: false, ninetiethMinute: false, feelinGood: false }; // Track lifeline usage per game
     let feelinGoodActive = false; // Track if Feelin' Good is currently active for the player
+    let isMuted = false; // Track mute state
 
     // --- Navigation ---
     function showScreen(screenName) {
@@ -151,6 +158,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             console.error("Screen not found:", screenName);
+        }
+
+        // Control background music based on screen
+        if (backgroundMusic) {
+            if (screenName === 'initialSetup' || screenName === 'modeSelect' || 
+                screenName === 'singlePlayerCategorySelect' || screenName === 'headToHeadConfig' || 
+                screenName === 'multiplayerConfig' || screenName === 'multiplayerHostOptions' || 
+                screenName === 'gameLobby') {
+                if (!isMuted) {
+                    backgroundMusic.play().catch(e => console.log("Audio play failed: " + e));
+                }
+            } else {
+                backgroundMusic.pause();
+            }
         }
 
         // Show/Hide H2H chat container based on screen
@@ -760,6 +781,8 @@ document.addEventListener('DOMContentLoaded', () => {
         feelinGoodActive = false; // Reset Feelin' Good status
         updateLifelineButtons(); // Update button states
 
+        if (backgroundMusic && !isMuted) backgroundMusic.pause(); // Pause music when game starts
+
         if (currentGameMode === 'head_to_head') {
             showScreen('h2hGameFlexContainer');
             if (h2hChatContainer) h2hChatContainer.style.display = 'block';
@@ -849,9 +872,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.correct) {
             currentFeedbackElem.textContent = `Correct! +${data.score_earned} points.`;
             currentFeedbackElem.className = 'feedback-correct';
+            if (correctSound && !isMuted) correctSound.play().catch(e => console.log("Correct sound play failed: " + e));
         } else {
             currentFeedbackElem.textContent = `Wrong! The correct answer was: ${data.correct_answer}`;
             currentFeedbackElem.className = 'feedback-wrong';
+            if (incorrectSound && !isMuted) incorrectSound.play().catch(e => console.log("Incorrect sound play failed: " + e));
         }
     });
 
@@ -1028,6 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (currentFeedbackElem) {
                         currentFeedbackElem.textContent = "Time's up! No answer submitted.";
                         currentFeedbackElem.className = 'feedback-wrong';
+                        if (incorrectSound && !isMuted) incorrectSound.play().catch(e => console.log("Incorrect sound (timeout) play failed: " + e)); // Play incorrect sound on timeout
                     }
                     socket.emit('submit_answer', { game_id: currentGameId, answer: "__TIMEOUT__", timestamp: new Date().toISOString() });
                 } 
@@ -1116,6 +1142,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateLifelineButtons();
                 socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'feelin_good' });
                 console.log("MP Feelin' Good lifeline used. Waiting for server confirmation.");
+            }
+        });
+    }
+
+    if (muteButton && backgroundMusic) {
+        muteButton.addEventListener('click', () => {
+            isMuted = !isMuted;
+            backgroundMusic.muted = isMuted;
+            muteButton.textContent = isMuted ? '🔇' : '🔊';
+            // If music should be playing on the current screen, and we just unmuted, play it.
+            if (!isMuted && (screens.initialSetup.classList.contains('active') || 
+                           screens.modeSelect.classList.contains('active') ||
+                           screens.singlePlayerCategorySelect.classList.contains('active') ||
+                           screens.headToHeadConfig.classList.contains('active') ||
+                           screens.multiplayerConfig.classList.contains('active') ||
+                           screens.multiplayerHostOptions.classList.contains('active') ||
+                           screens.gameLobby.classList.contains('active'))) {
+                backgroundMusic.play().catch(e => console.log("Audio play failed on unmute: " + e));
             }
         });
     }
@@ -1262,6 +1306,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else scoreSpan = currentScoreSpan;
         if (scoreSpan && scoreSpan.parentNode && scoreSpan.parentNode.querySelector('.feelin-good-active-message')) {
             scoreSpan.parentNode.querySelector('.feelin-good-active-message').remove();
+        }
+
+        if (backgroundMusic && !isMuted) { // Play music on game over screen if not muted
+            backgroundMusic.play().catch(e => console.log("Audio play failed on game over: " + e));
         }
 
         displayGameOver(data.scores, data.winner_info); // Pass scores and winnerInfo to displayGameOver
@@ -1546,5 +1594,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial setup
     showScreen('initialSetup');
+    // Attempt to play background music on initial load if on a relevant screen
+    if (backgroundMusic && (screens.initialSetup.classList.contains('active') || screens.modeSelect.classList.contains('active'))) {
+        backgroundMusic.play().catch(e => console.log("Initial audio play failed: " + e));
+    }
 });
 
