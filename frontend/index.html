@@ -112,18 +112,42 @@
             <!-- Multiplayer Host Options Screen (after creating a room) -->
             <div id="multiplayer-host-options-screen" class="screen">
                 <h3>Locker Room <span id="host-room-id"></span> - Coach's Controls</h3>
-                <label for="num-bots-multiplayer">Number of AI Players (0-7):</label>
-                <input type="number" id="num-bots-multiplayer" value="0" min="0" max="7">
-                <p>Max players (including AI): 8</p>
+
+                <div class="config-option">
+                    <label for="multiplayer-max-players">Max Players (1-8):</label>
+                    <input type="number" id="multiplayer-max-players" value="8" min="1" max="8">
+                </div>
+
+                <div class="config-option">
+                    <label for="num-bots-multiplayer">Number of AI Players (0-7):</label>
+                    <input type="number" id="num-bots-multiplayer" value="0" min="0" max="7">
+                    <!-- JS should validate num_bots < max_players -->
+                </div>
+                
+                <div class="config-option">
+                    <label for="multiplayer-category-select">Category:</label>
+                    <select id="multiplayer-category-select">
+                        <option value="all">All Categories</option>
+                        <!-- Options populated by script.js -->
+                    </select>
+                </div>
+                <div class="config-option">
+                    <label for="multiplayer-time-per-question">Time per Question (seconds):</label>
+                    <input type="number" id="multiplayer-time-per-question" value="15" min="5" max="60">
+                </div>
+                <div class="config-option">
+                    <label for="multiplayer-total-questions">Total Number of Questions:</label>
+                    <input type="number" id="multiplayer-total-questions" value="10" min="5" max="50">
+                </div>
+
                 <p>Share Locker Room ID: <strong id="multiplayer-room-id-display"></strong></p>
-                <button id="finalize-multiplayer-room-setup">Start the Game!</button>
+                <button id="finalize-multiplayer-room-setup">Apply Config & Start Game</button>
                 <div class="lobby-players-list">
                     <h4>Players in Lobby:</h4>
                     <ul id="multiplayer-lobby-players"></ul>
                 </div>
                  <button class="back-to-mode-select">Cancel Room</button>
             </div>
-
 
             <!-- Game Lobby / Waiting Screen -->
             <div id="game-lobby-screen" class="screen">
@@ -198,7 +222,6 @@
                                 <button class="emoji-button" data-emoji="🤔">🤔</button>
                                 <button class="emoji-button" data-emoji="🔥">🔥</button>
                                 <button class="emoji-button" data-emoji="🎉">🎉</button>
-                                <button class="emoji-button" data-emoji="💔">💔</button>
                             </div>
                         </div>
                     </div>

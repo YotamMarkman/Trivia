@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let playerScore = 0;
     let questionTimerInterval;
     let lastScreen = null; // For leaderboard back button
+    let interQuestionInterval; // Timer for the 5-second wait period
 
     // --- Navigation ---
     function showScreen(screenName) {
@@ -552,26 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Game Logic ---
-    socket.on('game_started', (data) => {
-        console.log('Game started:', data);
-        playerScore = 0; 
-        updateScoreDisplay();
-        if (currentGameMode === 'head_to_head') {
-            showScreen('h2hGameFlexContainer');
-            if (h2hChatContainer) h2hChatContainer.style.display = 'block'; // Ensure H2H chat is visible
-        } else if (currentGameMode === 'multiplayer') {
-            showScreen('question');
-        } else {
-            showScreen('question');
-        }
-    });
-
-    socket.on('new_question', (question) => {
-        console.log('New question:', question);
-        currentQuestionData = question;
-        displayQuestion(question);
-        startTimer(15); 
-    });
 
     function displayQuestion(q) {
         let targetQuestionTextElem, targetQuestionCounterSpan, targetFeedbackElem, targetAnswersGridBtns, targetImageContainer;
@@ -652,20 +633,51 @@ document.addEventListener('DOMContentLoaded', () => {
         targetAnswersGridBtns.forEach((button, index) => {
             button.textContent = q.answers[index];
             button.disabled = false;
-            button.className = 'answer-button'; 
-            button.onclick = () => handleAnswerSubmit(q.answers[index]);
+            button.className = 'answer-button'; // Reset classes
+            button.onclick = () => handleAnswerSubmit(q.answers[index], button); // Pass the button itself
         });
     }
 
-    function handleAnswerSubmit(answer) {
+    function handleAnswerSubmit(answer, clickedButton) { // Added clickedButton parameter
         clearInterval(questionTimerInterval);
         const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
-        currentAnswerButtons.forEach(button => button.disabled = true);
+        
+        // Disable all buttons and highlight the selected one
+        currentAnswerButtons.forEach(button => {
+            button.disabled = true;
+            if (button === clickedButton) {
+                button.classList.add('selected-answer'); // New class for highlighting
+            }
+        });
+
         socket.emit('submit_answer', {
             game_id: currentGameId,
-            answer: answer
+            answer: answer,
+            timestamp: new Date().toISOString() // Add timestamp
         });
     }
+
+    socket.on('game_started', (data) => {
+        console.log('Game started:', data);
+        playerScore = 0; 
+        updateScoreDisplay();
+        if (currentGameMode === 'head_to_head') {
+            showScreen('h2hGameFlexContainer');
+            if (h2hChatContainer) h2hChatContainer.style.display = 'block'; // Ensure H2H chat is visible
+        } else if (currentGameMode === 'multiplayer') {
+            showScreen('question');
+        } else {
+            showScreen('question');
+        }
+    });
+
+    socket.on('new_question', (question) => {
+        console.log('New question:', question);
+        currentQuestionData = question;
+        clearTimeout(interQuestionInterval); // Clear any existing inter-question timer
+        displayQuestion(question);
+        startTimer(question.time_per_question || 15); // Use time_per_question from question data or default
+    });
 
     socket.on('answer_result', (data) => {
         console.log('Answer result:', data);
@@ -675,10 +687,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
         const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
 
+        // Highlight the correct answer regardless of selection
         currentAnswerButtons.forEach(button => {
             if (button.textContent === data.correct_answer) {
                 button.classList.add('correct');
-            } else if (button.textContent !== data.correct_answer && button.disabled) { 
             }
         });
 
@@ -689,6 +701,45 @@ document.addEventListener('DOMContentLoaded', () => {
             currentFeedbackElem.textContent = `Wrong! The correct answer was: ${data.correct_answer}`;
             currentFeedbackElem.className = 'feedback-wrong';
         }
+    });
+
+    socket.on('show_answer_period_start', (data) => {
+        console.log("Show answer period started:", data);
+        clearInterval(questionTimerInterval); // Stop the question timer
+
+        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
+        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
+        const currentTimerSpan = currentGameMode === 'head_to_head' ? h2hTimerSpan : timerSpan;
+
+        // Ensure all buttons are disabled
+        currentAnswerButtons.forEach(button => {
+            button.disabled = true;
+            if (button.textContent === data.correct_answer) {
+                button.classList.add('correct');
+            } else {
+                button.classList.remove('correct');
+            }
+        });
+
+        if (currentFeedbackElem) {
+            if (!currentFeedbackElem.textContent.includes("Correct answer was")) {
+                 currentFeedbackElem.textContent = `The correct answer was: ${data.correct_answer}.`;
+            }
+            currentFeedbackElem.textContent += ` Next question in ${data.duration}s...`;
+        }
+        
+        if(currentTimerSpan) currentTimerSpan.textContent = `Next in: ${data.duration}s`;
+
+        let countdown = data.duration;
+        clearTimeout(interQuestionInterval);
+        interQuestionInterval = setInterval(() => {
+            countdown--;
+            if(currentTimerSpan) currentTimerSpan.textContent = `Next in: ${countdown}s`;
+            if (countdown <= 0) {
+                clearInterval(interQuestionInterval);
+                if(currentTimerSpan) currentTimerSpan.textContent = "Loading...";
+            }
+        }, 1000);
     });
 
     socket.on('update_scores', (data) => {
@@ -719,19 +770,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
         const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
 
-        currentTimerSpan.textContent = `Time: ${timeLeft}s`;
-        clearInterval(questionTimerInterval); 
+        if (currentTimerSpan) currentTimerSpan.textContent = `Time: ${timeLeft}s`;
+
+        clearInterval(questionTimerInterval);
+        clearTimeout(interQuestionInterval);
 
         questionTimerInterval = setInterval(() => {
             timeLeft--;
-            currentTimerSpan.textContent = `Time: ${timeLeft}s`;
+            if (currentTimerSpan) currentTimerSpan.textContent = `Time: ${timeLeft}s`;
             if (timeLeft <= 0) {
                 clearInterval(questionTimerInterval);
-                currentTimerSpan.textContent = "Time's up!";
-                currentAnswerButtons.forEach(button => button.disabled = true);
-                currentFeedbackElem.textContent = "Time's up! No answer submitted.";
-                socket.emit('submit_answer', { game_id: currentGameId, answer: "__TIMEOUT__" });
-
+                if (currentTimerSpan) currentTimerSpan.textContent = "Time's up!";
+                let answerSubmitted = false;
+                currentAnswerButtons.forEach(button => {
+                    if (button.classList.contains('selected-answer')) {
+                        answerSubmitted = true;
+                    }
+                    button.disabled = true;
+                });
+                if (!answerSubmitted) {
+                    if (currentFeedbackElem) {
+                        currentFeedbackElem.textContent = "Time's up! No answer submitted.";
+                        currentFeedbackElem.className = 'feedback-wrong';
+                    }
+                    socket.emit('submit_answer', { game_id: currentGameId, answer: "__TIMEOUT__", timestamp: new Date().toISOString() });
+                } 
             }
         }, 1000);
     }
@@ -961,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuestionData = null;
         playerScore = 0;
         clearInterval(questionTimerInterval);
+        clearTimeout(interQuestionInterval); // Clear inter-question timer
         
         if(feedbackMessageElem) feedbackMessageElem.textContent = '';
         if(h2hFeedbackMessageElem) h2hFeedbackMessageElem.textContent = '';

@@ -54,6 +54,50 @@ leaderboard = [] # In-memory leaderboard for simplicity
 def handle_connect():
     print('Client connected:', request.sid)
 
+@socketio.on('configure_game')
+def handle_configure_game(data):
+    game_id = data.get('game_id')
+    game = games.get(game_id)
+
+    if not game or game['host_sid'] != request.sid:
+        emit('error', {'message': 'Only the host can configure the game.'}, room=request.sid)
+        return
+
+    # Update game settings based on host's input
+    game['max_players'] = int(data.get('max_players', game['max_players']))
+    game['num_bots'] = int(data.get('num_bots', game['num_bots']))
+    game['selected_categories'] = data.get('categories', game['selected_categories'])
+    game['time_per_question'] = int(data.get('time_per_question', game.get('time_per_question', 15))) # Default 15s
+    game['total_questions'] = int(data.get('total_questions', game.get('total_questions', 10))) # Default 10 questions
+
+    # Adjust bots based on new num_bots
+    current_bot_count = len(game['bots'])
+    if game['num_bots'] > current_bot_count:
+        for i in range(current_bot_count, game['num_bots']):
+            bot_id = f"bot_{i+1}"
+            bot_name = f"Bot {i+1}"
+            game['bots'][bot_id] = {'name': bot_name, 'score': 0}
+            game['scores'][bot_name] = 0
+            print(f"Added {bot_name} to game {game_id} due to configuration change.")
+    elif game['num_bots'] < current_bot_count:
+        bots_to_remove = list(game['bots'].keys())[game['num_bots']:]
+        for bot_id in bots_to_remove:
+            bot_name = game['bots'][bot_id]['name']
+            del game['bots'][bot_id]
+            if bot_name in game['scores']:
+                del game['scores'][bot_name]
+            print(f"Removed {bot_name} from game {game_id} due to configuration change.")
+
+    print(f"Game {game_id} configured by host. Settings: {game}")
+    emit('game_configured', {'game_id': game_id, 'settings': {
+        'max_players': game['max_players'],
+        'num_bots': game['num_bots'],
+        'categories': game['selected_categories'],
+        'time_per_question': game['time_per_question'],
+        'total_questions': game['total_questions'],
+        'players': get_player_list(game_id) # Send updated player list including bots
+    }}, room=game_id) # Broadcast to all in room so UI can update
+
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected:', request.sid)
@@ -91,7 +135,8 @@ def handle_create_game(data):
         'max_players': max_players,
         'num_bots': num_bots,
         'bots': {},
-        'selected_categories': categories # New: Store selected categories
+        'selected_categories': categories, # New: Store selected categories
+        'player_answers': {} # New: To store answers for the current question
     }
     join_room(game_id)
     games[game_id]['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid}
@@ -210,7 +255,8 @@ def send_next_question(game_id):
         return
 
     game['current_question_index'] += 1
-    if game['current_question_index'] >= len(game['questions']):
+    # Check if game still exists and if current_question_index is valid
+    if game['current_question_index'] >= len(game.get('questions', [])):
         end_game(game_id)
         return
 
@@ -225,10 +271,12 @@ def send_next_question(game_id):
         'answers': answers,
         'category': question_data['category'],
         'question_number': game['current_question_index'] + 1,
-        'total_questions': len(game['questions'])
+        'total_questions': len(game['questions']),
+        'time_per_question': game.get('time_per_question', 15)
     }
 
     game['question_start_time'] = time.time()
+    game['player_answers'][game['current_question_index']] = {} # Reset answers for new question
     # Store the correct answer on the server side for verification
     game['current_correct_answer'] = question_data['correct_answer']
 
@@ -237,7 +285,23 @@ def send_next_question(game_id):
 
     # Bot answers (if any)
     if game['bots']:
-        socketio.start_background_task(target=bots_answer, game_id=game_id, question_data=question_data)
+        # Ensure bots only answer if the game hasn't ended (e.g. by a quick disconnect)
+        if game_id in games and game['current_question_index'] < len(game.get('questions', [])):
+            socketio.start_background_task(target=bots_answer, game_id=game_id, question_data=question_data)
+
+def delayed_send_next_question(game_id, delay=5):
+    game = games.get(game_id)
+    if not game:
+        print(f"Game {game_id} not found for delayed_send_next_question.")
+        return
+    print(f"Starting {delay}s delay before next question for game {game_id}")
+    socketio.sleep(delay)
+    # Check if game still exists after delay, e.g. not cleaned up by disconnect
+    if game_id in games:
+        print(f"Delay finished for game {game_id}. Sending next question.")
+        send_next_question(game_id)
+    else:
+        print(f"Game {game_id} no longer exists after delay. Not sending next question.")
 
 
 def bots_answer(game_id, question_data):
@@ -258,37 +322,53 @@ def bots_answer(game_id, question_data):
 def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submissions
     game_id = data.get('game_id')
     answer = data.get('answer')
+    timestamp = data.get('timestamp') # Get timestamp from client
     player_sid = request.sid if not bot_id else bot_id # Use bot_id if provided
 
     game = games.get(game_id)
     if not game:
-        # This emit is okay as it's conditional or uses None for room if bot
         emit('error', {'message': 'Game not found.'}, room=player_sid if not bot_id else None)
         return
+
+    current_q_index = game['current_question_index']
+    # Prevent duplicate/late submissions for human players
+    if not bot_id and player_sid in game['player_answers'].get(current_q_index, {}):
+        print(f"Player {player_sid} already answered question {current_q_index} in game {game_id}.")
+        return
+
+    time_since_question_start = time.time() - game.get('question_start_time', 0)
+    allowed_time = game.get('time_per_question', 15) + 2 # Add a small buffer for network
+    if answer != "__TIMEOUT__" and time_since_question_start > allowed_time:
+        print(f"Player {player_sid} submitted answer too late for question {current_q_index} in game {game_id}.")
+        answer = "__TIMEOUT__" # Force to timeout if server deems it too late
 
     player_info = game['players'].get(player_sid) if not bot_id else game['bots'].get(bot_id)
     if not player_info:
         print(f"Player/Bot {player_sid} not found in game {game_id}")
-        return # Player not in this game or bot not found
+        return
 
     player_name = player_info['name']
-
-    time_taken = time.time() - game.get('question_start_time', time.time())
-    is_correct = (answer == game.get('current_correct_answer'))
-
-    score_earned = 0
-    if is_correct:
-        score_earned = max(10, 100 - int(time_taken * 10))
-        game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned
-        if not bot_id:
-            game['players'][player_sid]['score'] = game['scores'][player_name]
-        else:
-            game['bots'][bot_id]['score'] = game['scores'][player_name]
-
-    print(f"Player/Bot {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score: {score_earned}")
+    
+    # Store the answer
+    if current_q_index not in game['player_answers']:
+        game['player_answers'][current_q_index] = {}
+    game['player_answers'][current_q_index][player_sid] = {'answer': answer, 'timestamp': timestamp, 'name': player_name}
 
     if not bot_id:
-        # This emit is fine as it's within a direct socket event handler with request context
+        time_taken = time.time() - game.get('question_start_time', time.time())
+        is_correct = (answer == game.get('current_correct_answer')) and (answer != "__TIMEOUT__")
+
+        score_earned = 0
+        if is_correct:
+            time_limit = game.get('time_per_question', 15)
+            effective_time_taken = min(time_taken, time_limit)
+            score_earned = max(10, int(100 - (effective_time_taken / time_limit) * 90))
+            
+            game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned
+            game['players'][player_sid]['score'] = game['scores'][player_name]
+
+        print(f"Player {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score earned: {score_earned}. Timestamp: {timestamp}")
+        
         emit('answer_result', {
             'correct': is_correct,
             'correct_answer': game.get('current_correct_answer'),
@@ -296,16 +376,81 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
             'your_total_score': game['scores'][player_name]
         }, room=player_sid)
 
-    if game['game_mode'] == 'singleplayer' and not bot_id:
-        send_next_question(game_id)
-    elif game['game_mode'] == 'head_to_head':
-        # Use socketio.emit here as this can be called from bot's background task
-        socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
-        send_next_question(game_id)
-    elif game['game_mode'] == 'multiplayer':
-        # Use socketio.emit here as this can be called from bot's background task
-        socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
-        pass
+    elif bot_id and answer != "__TIMEOUT__":
+        is_correct = (answer == game.get('current_correct_answer'))
+        score_earned_bot = 0 # Initialize score for bot for this answer
+        if is_correct:
+            score_earned_bot = random.randint(50, 90) # Bots get a random score if correct
+            game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned_bot
+            game['bots'][bot_id]['score'] = game['scores'][player_name]
+        print(f"Bot {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score earned: {score_earned_bot}")
+
+    # Check if it's time to proceed to the next question's answer display period
+    proceed_to_show_answer_phase = False
+    game_mode = game['game_mode']
+    
+    if game_mode == 'multiplayer':
+        human_player_sids = [sid for sid in game['players'].keys()]
+        answered_sids_for_current_q = game['player_answers'].get(current_q_index, {}).keys()
+        all_human_players_answered = True
+        if not human_player_sids: # No human players left (e.g. all disconnected)
+            all_human_players_answered = False # Or handle this scenario differently, maybe end game?
+            # For now, if no human players, bots might be playing alone, let them proceed if they are the only ones.
+            if not game['players'] and game['bots']:
+                # Check if all bots have answered
+                bot_sids = [sid for sid in game['bots'].keys()]
+                all_bots_answered = True
+                for b_sid in bot_sids:
+                    if b_sid not in answered_sids_for_current_q:
+                        all_bots_answered = False
+                        break
+                if all_bots_answered:
+                    proceed_to_show_answer_phase = True
+                    print(f"All bots have answered (no humans) for question {current_q_index} in game {game_id}. Proceeding.")
+
+        else:
+            for sid in human_player_sids:
+                if sid not in answered_sids_for_current_q:
+                    all_human_players_answered = False
+                    break
+            if all_human_players_answered:
+                proceed_to_show_answer_phase = True
+                print(f"All human players have answered question {current_q_index} in game {game_id}. Proceeding to show answer phase.")
+            else:
+                print(f"Waiting for other players to answer question {current_q_index} in game {game_id}.")
+
+    elif game_mode == 'singleplayer':
+        if not bot_id: # Only human player's submission triggers next phase
+            proceed_to_show_answer_phase = True
+            print(f"Single player answered question {current_q_index}. Proceeding to show answer phase.")
+
+    elif game_mode == 'head_to_head':
+        total_participants = len(game['players']) + len(game['bots'])
+        if len(game['player_answers'].get(current_q_index, {})) == total_participants:
+            proceed_to_show_answer_phase = True
+            print(f"All H2H participants answered question {current_q_index}. Proceeding to show answer phase.")
+        else:
+            print(f"H2H: Waiting for all participants for question {current_q_index} in game {game_id}.")
+
+    if proceed_to_show_answer_phase:
+        if game_mode != 'singleplayer': # Scores are relevant for multiplayer & H2H
+             socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
+        
+        inter_question_delay = 5 # Default for multiplayer and H2H vs Player
+        if game_mode == 'singleplayer':
+            inter_question_delay = 2
+        elif game_mode == 'head_to_head' and game.get('num_bots', 0) == 1:
+            # This implies a H2H game against a single bot
+            inter_question_delay = 2
+        
+        # Signal start of the answer display period
+        socketio.emit('show_answer_period_start', {
+            'duration': inter_question_delay,
+            'correct_answer': game.get('current_correct_answer')
+        }, room=game_id)
+        
+        # Start background task for delayed next question
+        socketio.start_background_task(target=delayed_send_next_question, game_id=game_id, delay=inter_question_delay)
 
 
 def end_game(game_id):
@@ -336,7 +481,6 @@ def end_game(game_id):
             winner_info = {'winnerName': sorted_scores[0][0]}
 
     print(f"Game {game_id} ended. Final scores: {sorted_scores}. Winner info: {winner_info}")
-    # Use socketio.emit as end_game can be called from a background task context
     socketio.emit('game_over', {'scores': sorted_scores, 'game_id': game_id, 'winner_info': winner_info}, room=game_id)
 
     if game['game_mode'] == 'singleplayer':
@@ -345,10 +489,7 @@ def end_game(game_id):
         player_score = game['scores'][player_name]
         leaderboard.append({'name': player_name, 'score': player_score, 'timestamp': time.time()})
         leaderboard.sort(key=lambda x: x['score'], reverse=True)
-        emit_leaderboard_update() # This calls socketio.emit if room is None
-
-    # del games[game_id]
-
+        emit_leaderboard_update()
 
 @socketio.on('send_chat_message')
 def handle_send_chat_message(data):
@@ -367,14 +508,11 @@ def handle_send_chat_message(data):
     emit('new_chat_message', chat_message, room=game_id)
     print(f"Chat in {game_id} from {player_name}: {message_text}")
 
-    # Bot replies in chat for head-to-head (if vs bot) or multiplayer
     if game['game_mode'] == 'head_to_head' and game['num_bots'] > 0:
-        # Assuming one bot in H2H if num_bots > 0
         bot_id = list(game['bots'].keys())[0]
         socketio.start_background_task(target=bot_chat_reply, game_id=game_id, bot_id=bot_id, original_message=message_text)
     elif game['game_mode'] == 'multiplayer' and game['bots']:
-        # Random bot replies
-        if random.random() < 0.5: # 50% chance a bot replies
+        if random.random() < 0.5:
             bot_id_to_reply = random.choice(list(game['bots'].keys()))
             socketio.start_background_task(target=bot_chat_reply, game_id=game_id, bot_id=bot_id_to_reply, original_message=message_text)
 
@@ -385,9 +523,8 @@ def bot_chat_reply(game_id, bot_id, original_message):
         return
 
     bot_name = game['bots'][bot_id]['name']
-    socketio.sleep(random.uniform(0.5, 2.0)) # Simulate thinking
+    socketio.sleep(random.uniform(0.5, 2.0))
 
-    # Basic AI chat responses
     replies = [
         f"Interesting point, {original_message.split()[0] if ' ' in original_message else ''}!",
         "Haha, good one!",
@@ -412,26 +549,22 @@ def bot_chat_reply(game_id, bot_id, original_message):
 
 @socketio.on('request_leaderboard')
 def handle_request_leaderboard():
-    emit_leaderboard_update(room=request.sid) # Send to requester
+    emit_leaderboard_update(room=request.sid)
 
 def emit_leaderboard_update(room=None):
-    sorted_leaderboard = sorted(leaderboard, key=lambda x: x['score'], reverse=True)[:20] # Top 20
+    sorted_leaderboard = sorted(leaderboard, key=lambda x: x['score'], reverse=True)[:20]
     if room:
         emit('leaderboard_update', sorted_leaderboard, room=room)
     else:
-        socketio.emit('leaderboard_update', sorted_leaderboard) # Broadcast to all
+        socketio.emit('leaderboard_update', sorted_leaderboard)
 
 
 if __name__ == '__main__':
-    # Ensure the database exists before starting, otherwise create and populate it
     if not os.path.exists(DATABASE_PATH):
         print(f"Database not found at {DATABASE_PATH}. Please ensure it exists and is in the correct location relative to app.py.")
-        # Example: You might want to call a setup_database() function here if it's intended to be created by the app.
-        # For this exercise, we assume quiz_questions.db is provided.
     else:
         print(f"Database found at {DATABASE_PATH}")
 
-    # Test DB connection
     try:
         conn = get_db_connection()
         conn.execute('SELECT 1 FROM quiz_questions LIMIT 1')
