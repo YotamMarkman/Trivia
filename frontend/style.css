@@ -141,6 +141,10 @@ button:active, .button:active {
     margin-top: 15px; /* Reduced margin */
 }
 
+.answers-grid + div {
+    margin-bottom: 15px; /* Add some space above feedback/buttons */
+}
+
 .answer-button {
     background-color: #1E88E5; /* Bright Blue */
     box-shadow: 0 5px #1565C0; /* Darker Blue */
@@ -179,6 +183,50 @@ button:active, .button:active {
     color: #aaa;
     cursor: not-allowed;
     box-shadow: 0 4px #333;
+}
+
+.answer-button.lifeline-disabled-answer {
+    background-color: #555; /* Darker grey to indicate disabled by lifeline */
+    color: #aaa;
+    border-color: #444;
+    opacity: 0.7;
+    pointer-events: none; /* Ensure it's not clickable */
+}
+
+.lifeline-button-container {
+    display: flex; /* Use flexbox for horizontal layout */
+    justify-content: center; /* Center buttons */
+    gap: 10px; /* Space between buttons */
+    margin-top: 15px; /* Space above the container */
+    margin-bottom: 15px; /* Space below the container */
+}
+
+.lifeline-button {
+    padding: 10px 15px;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #f0ad4e; /* Lifeline orange */
+    color: white;
+    border: 2px solid #eea236;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.lifeline-button:hover:not(:disabled) {
+    background-color: #ec971f;
+    transform: translateY(-1px);
+}
+
+.lifeline-button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.lifeline-button:disabled {
+    background-color: #777;
+    border-color: #666;
+    color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 #feedback-message {

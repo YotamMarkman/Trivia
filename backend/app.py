@@ -90,7 +90,7 @@ def handle_configure_game(data):
         for i in range(current_bot_count, game['num_bots']):
             bot_id = f"bot_{i+1}"
             bot_name = f"Bot {i+1}"
-            game['bots'][bot_id] = {'name': bot_name, 'score': 0}
+            game['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
             game['scores'][bot_name] = 0
             print(f"Added {bot_name} to game {game_id} due to configuration change.")
     elif game['num_bots'] < current_bot_count:
@@ -150,23 +150,23 @@ def handle_create_game(data):
         'num_bots': num_bots,
         'bots': {},
         'selected_categories': categories, # New: Store selected categories
-        'player_answers': {} # New: To store answers for the current question
+        'player_answers': {}, # New: To store answers for the current question
+        'lifelines_used_by_player': {} # To track lifeline usage per player SID
     }
     join_room(game_id)
-    games[game_id]['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid}
+    games[game_id]['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
     games[game_id]['scores'][player_name] = 0
+    games[game_id]['lifelines_used_by_player'][request.sid] = {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}
 
     print(f"Game {game_id} created by {player_name} (SID: {request.sid}). Mode: {game_mode}, Max Players: {max_players}, Bots: {num_bots}, Categories: {categories}")
 
-
     # Add bots if any
     for i in range(num_bots):
-        bot_id = f"bot_{i+1}"
+        bot_id = f"bot_{i+1}_{game_id}" # Ensure bot_id is unique across games if bots dict becomes global
         bot_name = f"Bot {i+1}"
-        games[game_id]['bots'][bot_id] = {'name': bot_name, 'score': 0}
+        games[game_id]['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
         games[game_id]['scores'][bot_name] = 0
         print(f"Added {bot_name} to game {game_id}")
-
 
     emit('game_created', {'game_id': game_id, 'host_name': player_name, 'game_mode': game_mode, 'players': get_player_list(game_id)}, room=request.sid)
     emit('player_joined', {'name': player_name, 'sid': request.sid, 'is_host': True, 'players': get_player_list(game_id)}, room=game_id)
@@ -187,8 +187,9 @@ def handle_join_game(data):
         return
 
     join_room(game_id)
-    game['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid}
+    game['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
     game['scores'][player_name] = 0
+    game['lifelines_used_by_player'][request.sid] = {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}
     print(f"{player_name} (SID: {request.sid}) joined game {game_id}")
     emit('player_joined', {'name': player_name, 'sid': request.sid, 'is_host': False, 'players': get_player_list(game_id)}, room=game_id)
     emit('game_joined', {'game_id': game_id, 'players': get_player_list(game_id), 'chat_history': game.get('chat', [])}, room=request.sid)
@@ -322,14 +323,53 @@ def bots_answer(game_id, question_data):
     game = games.get(game_id)
     if not game: return
 
-    for bot_id, bot_info in game['bots'].items():
-        # Simple AI: 70% chance of correct answer, random delay
-        socketio.sleep(random.uniform(1, 5)) # Simulate thinking time
-        is_correct = random.random() < 0.7
-        answer = question_data['correct_answer'] if is_correct else random.choice([question_data['wrong1'], question_data['wrong2'], question_data['wrong3']])
+    for bot_id, bot_info in list(game['bots'].items()): # Use list() for safe iteration if modifying
+        # Ensure bot still exists in game (could be removed by config change)
+        if bot_id not in game['bots']:
+            continue
 
+        socketio.sleep(random.uniform(1, game.get('time_per_question', 15) * 0.6)) # Simulate thinking time, up to 60% of question time
+
+        # Check if game still exists and question is current before bot acts
+        if game_id not in games or game['current_question_index'] >= len(game.get('questions', [])):
+            print(f"Bot {bot_info['name']} skipped answering as game ended or question changed.")
+            continue
+        
+        current_q_data_for_bot = game['questions'][game['current_question_index']]
+        
+        # Lifeline decision for bot (50:50)
+        used_fifty_fifty_this_turn = False
+        if not bot_info['lifelines_used'].get('fifty_fifty', False) and game['game_mode'] in ['head_to_head', 'multiplayer']:
+            if random.random() < 0.25: # 25% chance to use 50:50 if available
+                bot_info['lifelines_used']['fifty_fifty'] = True
+                used_fifty_fifty_this_turn = True
+                print(f"Bot {bot_info['name']} in game {game_id} is using 50:50 lifeline for question {game['current_question_index'] + 1}.")
+
+        # Determine bot's answer
+        bot_answer_options = [current_q_data_for_bot['correct_answer'], current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']]
+        
+        if used_fifty_fifty_this_turn:
+            correct_answer = current_q_data_for_bot['correct_answer']
+            all_incorrect = [current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']]
+            kept_incorrect = random.choice(all_incorrect)
+            
+            # Bot now has a 50/50 actual choice, but let's give it a higher chance to pick the right one
+            if random.random() < 0.85: # 85% chance of picking the correct one from the two
+                answer = correct_answer
+            else:
+                answer = kept_incorrect
+        else:
+            # Original bot logic: 70% chance of correct answer
+            is_bot_correct_this_time = random.random() < 0.7 
+            answer = current_q_data_for_bot['correct_answer'] if is_bot_correct_this_time else random.choice([current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']])
+        
         # Simulate bot submitting answer
-        handle_submit_answer({'game_id': game_id, 'answer': answer}, bot_id=bot_id)
+        # Check if game still exists and question is current before bot submits
+        if game_id in games and game['current_question_index'] < len(game.get('questions', [])) and \
+           game['questions'][game['current_question_index']]['id'] == current_q_data_for_bot['id']:
+            handle_submit_answer({'game_id': game_id, 'answer': answer, 'timestamp': time.time()}, bot_id=bot_id)
+        else:
+            print(f"Bot {bot_info['name']} did not submit answer as game/question state changed.")
 
 
 @socketio.on('submit_answer')
@@ -472,6 +512,71 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
         
         # Start background task for delayed next question
         socketio.start_background_task(target=delayed_send_next_question, game_id=game_id, delay=inter_question_delay)
+
+
+@socketio.on('use_lifeline')
+def handle_use_lifeline(data):
+    game_id = data.get('game_id')
+    lifeline_type = data.get('lifeline_type')
+    player_sid = request.sid
+
+    game = games.get(game_id)
+    if not game:
+        emit('error', {'message': 'Game not found for lifeline.'}, room=player_sid)
+        return
+
+    player_info = game['players'].get(player_sid)
+    if not player_info:
+        emit('error', {'message': 'Player not found for lifeline.'}, room=player_sid)
+        return
+
+    if lifeline_type == 'fifty_fifty':
+        if player_info['lifelines_used'].get('fifty_fifty', False):
+            emit('error', {'message': '50:50 lifeline already used.'}, room=player_sid)
+            return
+
+        if game['current_question_index'] < 0 or game['current_question_index'] >= len(game['questions']):
+            emit('error', {'message': 'No active question for lifeline.'}, room=player_sid)
+            return
+        
+        player_info['lifelines_used']['fifty_fifty'] = True
+        # Also update the game-level tracking if you still use it, though per-player is primary
+        if player_sid in game['lifelines_used_by_player']:
+             game['lifelines_used_by_player'][player_sid]['fifty_fifty'] = True
+
+
+        current_question_details = game['questions'][game['current_question_index']]
+        correct_answer = current_question_details['correct_answer']
+        incorrect_answers = [current_question_details['wrong1'], current_question_details['wrong2'], current_question_details['wrong3']]
+        
+        # Ensure incorrect_answers doesn't somehow contain the correct_answer if data is bad
+        incorrect_answers = [ans for ans in incorrect_answers if ans != correct_answer]
+        
+        if len(incorrect_answers) < 2: # Should not happen with valid question data
+            emit('error', {'message': 'Not enough incorrect answers to use 50:50.'}, room=player_sid)
+            # Potentially revert lifeline usage if this is a critical error
+            # player_info['lifelines_used']['fifty_fifty'] = False 
+            return
+
+        # Randomly choose one incorrect answer to keep
+        kept_incorrect = random.choice(incorrect_answers)
+        
+        # The other incorrect answers are to be disabled
+        disabled_answers = [ans for ans in incorrect_answers if ans != kept_incorrect]
+        
+        # If there were initially 3 unique incorrect answers, disabled_answers will now have 2.
+        # If there were only 2 unique incorrect answers (e.g. a True/False question was badly formatted as 4 options),
+        # this logic would still pick one to keep and one to disable.
+        # For safety, ensure we only send up to two to disable.
+        
+        emit('fifty_fifty_result', {'disabled_answers': disabled_answers[:2]}, room=player_sid)
+        print(f"Player {player_info['name']} (SID: {player_sid}) used 50:50. Disabling: {disabled_answers[:2]}. Keeping: {kept_incorrect} alongside {correct_answer}.")
+
+    # Add other lifeline types here later (e.g., 'ninetieth_minute', 'feelin_good')
+    # elif lifeline_type == 'ninetieth_minute':
+    #     pass # Handle 90th minute
+    # elif lifeline_type == 'feelin_good':
+    #     pass # Handle feelin' good
 
 
 def end_game(game_id):

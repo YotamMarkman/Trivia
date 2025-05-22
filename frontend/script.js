@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const h2hFinalActionButton = document.getElementById('h2h-final-action-button');
     const h2hWaitingForPlayerDiv = document.getElementById('h2h-waiting-for-player');
     const h2hRoomCodeDisplay = document.getElementById('h2h-room-code-display');
+    const h2hFeedbackMessageElem = document.getElementById('h2h-feedback-message');
+    const h2hLifelineContainer = document.getElementById('h2h-lifeline-container'); // Added H2H lifelines
+    const h2hFiftyFiftyBtn = document.getElementById('h2h-fifty-fifty-btn');
+    const h2hNinetiethMinuteBtn = document.getElementById('h2h-ninetieth-minute-btn');
+    const h2hFeelinGoodBtn = document.getElementById('h2h-feelin-good-btn');
 
     // Multiplayer
     const createMultiplayerRoomBtn = document.getElementById('create-multiplayer-room-btn');
@@ -62,6 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const mpQuestionCategoryImageContainer = document.getElementById('mp-question-category-image-container');
     const mpAnswerButtons = document.querySelectorAll('#mp-answers-grid .answer-button');
     const mpFeedbackMessageElem = document.getElementById('mp-feedback-message');
+    const mpLifelineContainer = document.getElementById('mp-lifeline-container'); // Added MP lifelines
+    const mpFiftyFiftyBtn = document.getElementById('mp-fifty-fifty-btn');
+    const mpNinetiethMinuteBtn = document.getElementById('mp-ninetieth-minute-btn');
+    const mpFeelinGoodBtn = document.getElementById('mp-feelin-good-btn');
     const mpChatContainer = document.getElementById('mp-chat-container');
     const mpChatMessagesDiv = document.getElementById('mp-chat-messages');
     const mpChatMessageInput = document.getElementById('mp-chat-message-input');
@@ -95,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const h2hQuestionTextElem = document.getElementById('h2h-question-text');
     const h2hQuestionCategoryImageContainer = document.getElementById('h2h-question-category-image-container');
     const h2hAnswerButtons = document.querySelectorAll('.h2h-question-area .answer-button'); // Scoped to .h2h-question-area CLASS
-    const h2hFeedbackMessageElem = document.getElementById('h2h-feedback-message');
 
     // Game Over
     const finalScoresDiv = document.getElementById('final-scores'); // New container for scores
@@ -127,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let questionTimerInterval;
     let lastScreen = null; // For leaderboard back button
     let interQuestionInterval; // Timer for the 5-second wait period
+    let lifelinesUsed = { fiftyFifty: false, ninetiethMinute: false, feelinGood: false }; // Track lifeline usage per game
 
     // --- Navigation ---
     function showScreen(screenName) {
@@ -608,6 +617,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayQuestion(q) {
         let targetQuestionTextElem, targetQuestionCounterSpan, targetFeedbackElem, targetAnswersGridBtns, targetImageContainer;
 
+        // Reset lifeline-disabled styles from previous question
+        [h2hAnswerButtons, mpAnswerButtons, answerButtons].forEach(buttonSet => {
+            if (buttonSet) {
+                buttonSet.forEach(btn => {
+                    btn.classList.remove('lifeline-disabled-answer');
+                });
+            }
+        });
+
         if (currentGameMode === 'head_to_head') {
             targetQuestionTextElem = h2hQuestionTextElem;
             targetQuestionCounterSpan = h2hQuestionCounterSpan;
@@ -725,17 +743,25 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Game started:', data);
         playerScore = 0; 
         updateScoreDisplay();
+        lifelinesUsed = { fiftyFifty: false, ninetiethMinute: false, feelinGood: false }; // Reset lifelines at game start
+        updateLifelineButtons(); // Update button states
+
         if (currentGameMode === 'head_to_head') {
             showScreen('h2hGameFlexContainer');
-            if (h2hChatContainer) h2hChatContainer.style.display = 'block'; // Ensure H2H chat is visible
+            if (h2hChatContainer) h2hChatContainer.style.display = 'block';
+            if (h2hLifelineContainer) h2hLifelineContainer.style.display = 'flex'; // Show H2H lifelines
         } else if (currentGameMode === 'multiplayer') {
-            showScreen('multiplayerGameScreen'); // Show multiplayer game screen
-            if (mpChatContainer) mpChatContainer.style.display = 'block'; // Ensure MP chat is visible
-            if (data.players) { // Initialize scoreboard with all players
+            showScreen('multiplayerGameScreen');
+            if (mpChatContainer) mpChatContainer.style.display = 'block';
+            if (mpLifelineContainer) mpLifelineContainer.style.display = 'flex'; // Show MP lifelines
+            if (data.players) { 
                 updateMultiplayerScoreboard(data.players);
             }
         } else {
             showScreen('question');
+            // Hide lifelines for single player if they were somehow visible
+            if (h2hLifelineContainer) h2hLifelineContainer.style.display = 'none';
+            if (mpLifelineContainer) mpLifelineContainer.style.display = 'none';
         }
     });
 
@@ -743,8 +769,27 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('New question:', question);
         currentQuestionData = question;
         clearTimeout(interQuestionInterval); // Clear any existing inter-question timer
+        
+        // Reset answer button states for the new question, including any lifeline effects
+        let currentButtonsToReset;
+        if (currentGameMode === 'head_to_head') {
+            currentButtonsToReset = h2hAnswerButtons;
+        } else if (currentGameMode === 'multiplayer') {
+            currentButtonsToReset = mpAnswerButtons;
+        } else {
+            currentButtonsToReset = answerButtons;
+        }
+
+        if (currentButtonsToReset) {
+            currentButtonsToReset.forEach(btn => {
+                btn.disabled = false;
+                btn.className = 'answer-button'; // Reset all classes
+            });
+        }
+
         displayQuestion(question);
         startTimer(question.time_per_question || 15); // Use time_per_question from question data or default
+        updateLifelineButtons(); // Ensure lifeline buttons are correctly enabled/disabled for the new question
     });
 
     socket.on('answer_result', (data) => {
@@ -969,6 +1014,103 @@ document.addEventListener('DOMContentLoaded', () => {
             if(currentScoreSpan) currentScoreSpan.textContent = `Score: ${playerScore}`;
         }
     }
+
+    function updateLifelineButtons() {
+        const fiftyFiftyBtn = currentGameMode === 'head_to_head' ? h2hFiftyFiftyBtn : mpFiftyFiftyBtn;
+        const ninetiethMinuteBtn = currentGameMode === 'head_to_head' ? h2hNinetiethMinuteBtn : mpNinetiethMinuteBtn;
+        const feelinGoodBtn = currentGameMode === 'head_to_head' ? h2hFeelinGoodBtn : mpFeelinGoodBtn;
+
+        if (fiftyFiftyBtn) fiftyFiftyBtn.disabled = lifelinesUsed.fiftyFifty;
+        if (ninetiethMinuteBtn) ninetiethMinuteBtn.disabled = lifelinesUsed.ninetiethMinute;
+        if (feelinGoodBtn) feelinGoodBtn.disabled = lifelinesUsed.feelinGood;
+    }
+
+    // Placeholder listeners for lifeline buttons
+    if (h2hFiftyFiftyBtn) {
+        h2hFiftyFiftyBtn.addEventListener('click', () => {
+            if (currentQuestionData && !lifelinesUsed.fiftyFifty) {
+                lifelinesUsed.fiftyFifty = true;
+                updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'fifty_fifty' });
+                console.log("H2H 50:50 lifeline used.");
+            }
+        });
+    }
+    if (mpFiftyFiftyBtn) {
+        mpFiftyFiftyBtn.addEventListener('click', () => {
+            if (currentQuestionData && !lifelinesUsed.fiftyFifty) {
+                lifelinesUsed.fiftyFifty = true;
+                updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'fifty_fifty' });
+                console.log("MP 50:50 lifeline used.");
+            }
+        });
+    }
+
+    if (h2hNinetiethMinuteBtn) {
+        h2hNinetiethMinuteBtn.addEventListener('click', () => {
+            if (!lifelinesUsed.ninetiethMinute) {
+                console.log("H2H 90th Minute lifeline used");
+                lifelinesUsed.ninetiethMinute = true;
+                // TODO: Implement 90th Minute logic
+                updateLifelineButtons();
+            }
+        });
+    }
+    if (mpNinetiethMinuteBtn) {
+        mpNinetiethMinuteBtn.addEventListener('click', () => {
+            if (!lifelinesUsed.ninetiethMinute) {
+                console.log("MP 90th Minute lifeline used");
+                lifelinesUsed.ninetiethMinute = true;
+                // TODO: Implement 90th Minute logic
+                updateLifelineButtons();
+            }
+        });
+    }
+
+    if (h2hFeelinGoodBtn) {
+        h2hFeelinGoodBtn.addEventListener('click', () => {
+            if (!lifelinesUsed.feelinGood) {
+                console.log("H2H Feelin' Good lifeline used");
+                lifelinesUsed.feelinGood = true;
+                // TODO: Implement Feelin' Good logic
+                updateLifelineButtons();
+            }
+        });
+    }
+    if (mpFeelinGoodBtn) {
+        mpFeelinGoodBtn.addEventListener('click', () => {
+            if (!lifelinesUsed.feelinGood) {
+                console.log("MP Feelin' Good lifeline used");
+                lifelinesUsed.feelinGood = true;
+                // TODO: Implement Feelin' Good logic
+                updateLifelineButtons();
+            }
+        });
+    }
+
+    socket.on('fifty_fifty_result', (data) => {
+        if (!currentQuestionData) return; // Should not happen if lifeline was used correctly
+
+        console.log("Fifty fifty result received:", data);
+        const { disabled_answers } = data;
+        let currentAnswerButtons;
+
+        if (currentGameMode === 'head_to_head') {
+            currentAnswerButtons = h2hAnswerButtons;
+        } else if (currentGameMode === 'multiplayer') {
+            currentAnswerButtons = mpAnswerButtons;
+        } else {
+            return; // Lifelines not for single player
+        }
+
+        currentAnswerButtons.forEach(button => {
+            if (disabled_answers.includes(button.textContent)) {
+                button.disabled = true;
+                button.classList.add('lifeline-disabled-answer');
+            }
+        });
+    });
 
     exitGameBtns.forEach(button => {
         button.addEventListener('click', () => {
