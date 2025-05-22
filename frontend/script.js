@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastScreen = null; // For leaderboard back button
     let interQuestionInterval; // Timer for the 5-second wait period
     let lifelinesUsed = { fiftyFifty: false, ninetiethMinute: false, feelinGood: false }; // Track lifeline usage per game
+    let feelinGoodActive = false; // Track if Feelin' Good is currently active for the player
 
     // --- Navigation ---
     function showScreen(screenName) {
@@ -615,13 +616,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Game Logic ---
 
     function displayQuestion(q) {
-        let targetQuestionTextElem, targetQuestionCounterSpan, targetFeedbackElem, targetAnswersGridBtns, targetImageContainer;
+        let targetQuestionTextElem, targetQuestionCounterSpan, targetFeedbackElem, targetAnswersGridBtns, targetImageContainer, targetScoreSpan;
 
-        // Reset lifeline-disabled styles from previous question
+        // Reset lifeline-disabled styles and highlight from previous question
         [h2hAnswerButtons, mpAnswerButtons, answerButtons].forEach(buttonSet => {
             if (buttonSet) {
                 buttonSet.forEach(btn => {
                     btn.classList.remove('lifeline-disabled-answer');
+                    btn.classList.remove('lifeline-highlight-correct');
                 });
             }
         });
@@ -632,18 +634,21 @@ document.addEventListener('DOMContentLoaded', () => {
             targetFeedbackElem = h2hFeedbackMessageElem;
             targetAnswersGridBtns = h2hAnswerButtons;
             targetImageContainer = h2hQuestionCategoryImageContainer;
+            targetScoreSpan = h2hCurrentScoreSpan;
         } else if (currentGameMode === 'multiplayer') {
             targetQuestionTextElem = mpQuestionTextElem;
             targetQuestionCounterSpan = mpQuestionCounterSpan;
             targetFeedbackElem = mpFeedbackMessageElem;
             targetAnswersGridBtns = mpAnswerButtons;
             targetImageContainer = mpQuestionCategoryImageContainer;
+            targetScoreSpan = mpCurrentScoreSpan;
         } else {
             targetQuestionTextElem = questionTextElem;
             targetQuestionCounterSpan = questionCounterSpan;
             targetFeedbackElem = feedbackMessageElem;
             targetAnswersGridBtns = answerButtons;
             targetImageContainer = questionCategoryImageContainer;
+            targetScoreSpan = currentScoreSpan;
         }
 
         if (!targetQuestionTextElem || !targetQuestionCounterSpan || !targetFeedbackElem || !targetAnswersGridBtns || !targetImageContainer) {
@@ -655,6 +660,14 @@ document.addEventListener('DOMContentLoaded', () => {
         targetQuestionCounterSpan.textContent = `Q: ${q.question_number}/${q.total_questions}`;
         targetFeedbackElem.textContent = '';
         targetFeedbackElem.className = ''; 
+        
+        // Clear Feelin' Good active message if it was shown near score
+        if (targetScoreSpan && targetScoreSpan.parentNode.querySelector('.feelin-good-active-message')) {
+            targetScoreSpan.parentNode.querySelector('.feelin-good-active-message').remove();
+        }
+        if (feelinGoodActive) { // If it was active, re-apply message if still relevant (e.g. not consumed)
+            // This will be handled by `feelin_good_active` event if server confirms
+        }
 
         console.log("[displayQuestion] Received category from backend:", q.category); 
         targetImageContainer.innerHTML = ''; // Clear previous image or text
@@ -744,6 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playerScore = 0; 
         updateScoreDisplay();
         lifelinesUsed = { fiftyFifty: false, ninetiethMinute: false, feelinGood: false }; // Reset lifelines at game start
+        feelinGoodActive = false; // Reset Feelin' Good status
         updateLifelineButtons(); // Update button states
 
         if (currentGameMode === 'head_to_head') {
@@ -770,6 +784,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuestionData = question;
         clearTimeout(interQuestionInterval); // Clear any existing inter-question timer
         
+        // Reset Feelin' Good visual cue if it wasn't consumed by an answer
+        // The server will manage the actual 'feelinGoodActive' state for point calculation
+        let scoreSpanParent;
+        if (currentGameMode === 'head_to_head') scoreSpanParent = h2hCurrentScoreSpan?.parentNode;
+        else if (currentGameMode === 'multiplayer') scoreSpanParent = mpCurrentScoreSpan?.parentNode;
+        else scoreSpanParent = currentScoreSpan?.parentNode;
+
+        if (scoreSpanParent && scoreSpanParent.querySelector('.feelin-good-active-message')) {
+             // Server will send 'feelin_good_active' if it's still on for the next q,
+             // otherwise it's implicitly off or consumed.
+        }
+
+
         // Reset answer button states for the new question, including any lifeline effects
         let currentButtonsToReset;
         if (currentGameMode === 'head_to_head') {
@@ -796,6 +823,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Answer result:', data);
         playerScore = data.your_total_score; 
         updateScoreDisplay();
+        // If Feelin' Good was active and this answer consumed it, clear the visual cue.
+        // The server now handles the active state, so client just reacts to bonus.
+        // The `feelin_good_bonus` event will handle specific visual feedback for the bonus.
 
         let currentAnswerButtons, currentFeedbackElem;
         if (currentGameMode === 'head_to_head') {
@@ -1025,7 +1055,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (feelinGoodBtn) feelinGoodBtn.disabled = lifelinesUsed.feelinGood;
     }
 
-    // Placeholder listeners for lifeline buttons
     if (h2hFiftyFiftyBtn) {
         h2hFiftyFiftyBtn.addEventListener('click', () => {
             if (currentQuestionData && !lifelinesUsed.fiftyFifty) {
@@ -1049,48 +1078,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (h2hNinetiethMinuteBtn) {
         h2hNinetiethMinuteBtn.addEventListener('click', () => {
-            if (!lifelinesUsed.ninetiethMinute) {
-                console.log("H2H 90th Minute lifeline used");
+            if (currentQuestionData && !lifelinesUsed.ninetiethMinute) {
                 lifelinesUsed.ninetiethMinute = true;
-                // TODO: Implement 90th Minute logic
                 updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'ninetieth_minute' });
+                console.log("H2H 90th Minute lifeline used.");
             }
         });
     }
     if (mpNinetiethMinuteBtn) {
         mpNinetiethMinuteBtn.addEventListener('click', () => {
-            if (!lifelinesUsed.ninetiethMinute) {
-                console.log("MP 90th Minute lifeline used");
+            if (currentQuestionData && !lifelinesUsed.ninetiethMinute) {
                 lifelinesUsed.ninetiethMinute = true;
-                // TODO: Implement 90th Minute logic
                 updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'ninetieth_minute' });
+                console.log("MP 90th Minute lifeline used.");
             }
         });
     }
 
     if (h2hFeelinGoodBtn) {
         h2hFeelinGoodBtn.addEventListener('click', () => {
-            if (!lifelinesUsed.feelinGood) {
-                console.log("H2H Feelin' Good lifeline used");
+            if (currentQuestionData && !lifelinesUsed.feelinGood) {
+                // Optimistically update UI, server will confirm
                 lifelinesUsed.feelinGood = true;
-                // TODO: Implement Feelin' Good logic
                 updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'feelin_good' });
+                console.log("H2H Feelin' Good lifeline used. Waiting for server confirmation.");
             }
         });
     }
     if (mpFeelinGoodBtn) {
         mpFeelinGoodBtn.addEventListener('click', () => {
-            if (!lifelinesUsed.feelinGood) {
-                console.log("MP Feelin' Good lifeline used");
+            if (currentQuestionData && !lifelinesUsed.feelinGood) {
+                // Optimistically update UI
                 lifelinesUsed.feelinGood = true;
-                // TODO: Implement Feelin' Good logic
                 updateLifelineButtons();
+                socket.emit('use_lifeline', { game_id: currentGameId, lifeline_type: 'feelin_good' });
+                console.log("MP Feelin' Good lifeline used. Waiting for server confirmation.");
             }
         });
     }
 
     socket.on('fifty_fifty_result', (data) => {
-        if (!currentQuestionData) return; // Should not happen if lifeline was used correctly
+        if (!currentQuestionData) return; 
 
         console.log("Fifty fifty result received:", data);
         const { disabled_answers } = data;
@@ -1104,12 +1135,101 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // Lifelines not for single player
         }
 
-        currentAnswerButtons.forEach(button => {
-            if (disabled_answers.includes(button.textContent)) {
-                button.disabled = true;
-                button.classList.add('lifeline-disabled-answer');
+        if (currentAnswerButtons) {
+            currentAnswerButtons.forEach(button => {
+                // Clear previous highlight if any, before disabling
+                button.classList.remove('lifeline-highlight-correct'); 
+                if (disabled_answers.includes(button.textContent)) {
+                    button.disabled = true;
+                    button.classList.add('lifeline-disabled-answer');
+                }
+            });
+        }
+    });
+
+    socket.on('ninetieth_minute_result', (data) => {
+        if (!currentQuestionData) return;
+        console.log("90th Minute result received:", data);
+        const { correct_answer_text } = data;
+        let currentAnswerButtons;
+
+        if (currentGameMode === 'head_to_head') {
+            currentAnswerButtons = h2hAnswerButtons;
+        } else if (currentGameMode === 'multiplayer') {
+            currentAnswerButtons = mpAnswerButtons;
+        } else {
+            return; // Lifelines not for single player
+        }
+
+        if (currentAnswerButtons) {
+            currentAnswerButtons.forEach(button => {
+                if (button.textContent === correct_answer_text) {
+                    button.classList.add('lifeline-highlight-correct');
+                }
+            });
+        }
+    });
+
+    socket.on('feelin_good_active', () => {
+        console.log("Feelin' Good lifeline confirmed active by server.");
+        feelinGoodActive = true; // Player's Feelin' Good is now officially active
+        // Add visual cue
+        let scoreSpan;
+        if (currentGameMode === 'head_to_head') scoreSpan = h2hCurrentScoreSpan;
+        else if (currentGameMode === 'multiplayer') scoreSpan = mpCurrentScoreSpan;
+        // Not typically used in single player, but good to be safe
+        else scoreSpan = currentScoreSpan; 
+
+        if (scoreSpan && scoreSpan.parentNode) {
+            let messageElem = scoreSpan.parentNode.querySelector('.feelin-good-active-message');
+            if (!messageElem) {
+                messageElem = document.createElement('span');
+                messageElem.classList.add('feelin-good-active-message');
+                messageElem.textContent = " (Feelin' Good! Next correct answer = 2x points!)";
+                scoreSpan.parentNode.insertBefore(messageElem, scoreSpan.nextSibling);
             }
-        });
+        }
+    });
+
+    socket.on('feelin_good_bonus', (data) => {
+        console.log("Feelin' Good bonus awarded:", data);
+        feelinGoodActive = false; // Bonus applied, lifeline effect ends for player
+        
+        let feedbackElem, scoreSpan;
+        if (currentGameMode === 'head_to_head') {
+            feedbackElem = h2hFeedbackMessageElem;
+            scoreSpan = h2hCurrentScoreSpan;
+        } else if (currentGameMode === 'multiplayer') {
+            feedbackElem = mpFeedbackMessageElem;
+            scoreSpan = mpCurrentScoreSpan;
+        } else { 
+            feedbackElem = feedbackMessageElem;
+            scoreSpan = currentScoreSpan;
+        }
+
+        if (feedbackElem) {
+            const bonusMessage = document.createElement('p');
+            bonusMessage.textContent = `Feelin' Good Bonus! +${data.bonus_points} extra points!`;
+            bonusMessage.style.color = 'gold'; // Or some other highlight
+            feedbackElem.appendChild(bonusMessage);
+        }
+        // Remove the "Feelin' Good active" message
+        if (scoreSpan && scoreSpan.parentNode.querySelector('.feelin-good-active-message')) {
+            scoreSpan.parentNode.querySelector('.feelin-good-active-message').remove();
+        }
+    });
+    
+    socket.on('feelin_good_expired', () => { // Server informs if FG expired due to incorrect answer
+        console.log("Feelin' Good lifeline expired without bonus.");
+        feelinGoodActive = false;
+        let scoreSpan;
+        if (currentGameMode === 'head_to_head') scoreSpan = h2hCurrentScoreSpan;
+        else if (currentGameMode === 'multiplayer') scoreSpan = mpCurrentScoreSpan;
+        else scoreSpan = currentScoreSpan;
+
+        if (scoreSpan && scoreSpan.parentNode.querySelector('.feelin-good-active-message')) {
+            scoreSpan.parentNode.querySelector('.feelin-good-active-message').remove();
+        }
     });
 
     exitGameBtns.forEach(button => {
@@ -1134,6 +1254,16 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('game_over', (data) => {
         console.log('Game Over:', data);
         clearInterval(questionTimerInterval); 
+        feelinGoodActive = false; // Ensure Feelin' Good status is cleared
+        // Clear any active message
+        let scoreSpan;
+        if (currentGameMode === 'head_to_head') scoreSpan = h2hCurrentScoreSpan;
+        else if (currentGameMode === 'multiplayer') scoreSpan = mpCurrentScoreSpan;
+        else scoreSpan = currentScoreSpan;
+        if (scoreSpan && scoreSpan.parentNode && scoreSpan.parentNode.querySelector('.feelin-good-active-message')) {
+            scoreSpan.parentNode.querySelector('.feelin-good-active-message').remove();
+        }
+
         displayGameOver(data.scores, data.winner_info); // Pass scores and winnerInfo to displayGameOver
         showScreen('gameOver');
         if (currentGameMode === 'singleplayer') {

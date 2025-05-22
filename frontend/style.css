@@ -193,6 +193,13 @@ button:active, .button:active {
     pointer-events: none; /* Ensure it's not clickable */
 }
 
+.answer-button.lifeline-highlight-correct {
+    border: 3px solid #00ff00; /* Bright green border */
+    box-shadow: 0 0 10px #00ff00, 0 0 5px #00dd00 inset; /* Glowing effect */
+    background-color: #224422; /* Slightly darker green background to make text pop if needed */
+    color: #ffffff; /* Ensure text is readable */
+}
+
 .lifeline-button-container {
     display: flex; /* Use flexbox for horizontal layout */
     justify-content: center; /* Center buttons */
@@ -227,6 +234,39 @@ button:active, .button:active {
     color: #ccc;
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+.lifeline-button-container button:disabled {
+    background-color: #555;
+    color: #888;
+    cursor: not-allowed;
+    border-color: #444;
+}
+
+.lifeline-disabled-answer {
+    background-color: #777777 !important; /* Darker grey */
+    color: #aaaaaa !important;
+    text-decoration: line-through;
+    pointer-events: none; /* Make it non-interactive */
+    opacity: 0.6;
+}
+
+.lifeline-highlight-correct {
+    border: 3px solid #00ff00 !important; /* Bright green border */
+    box-shadow: 0 0 15px #00ff00, 0 0 5px #00ff00 inset !important; /* Glowing effect */
+}
+
+.feelin-good-active-message {
+    color: gold;
+    font-size: 0.9em;
+    margin-left: 10px;
+    animation: pulse-gold 1.5s infinite;
+}
+
+@keyframes pulse-gold {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 
 #feedback-message {
@@ -820,39 +860,6 @@ footer {
     flex-direction: column;
     padding: 15px;
     border: 1px solid #444; /* Add a border to define the "box" */
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.05); /* Slight background to enhance box appearance */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Optional: add some shadow */
-    overflow-y: auto; /* Add scroll if content overflows */
-}
-
-#mp-chat-container {
-    margin-top: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    height: 100%;
-}
-
-#mp-chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    min-height: 350px; /* Or adjust as needed */
-    border: 1px solid #444;
-    color: #e0e0e0;
-}
-
-#mp-chat-messages .chat-message {
-    padding: 6px 10px;
-    margin-bottom: 8px;
-    background-color: #33373d;
     border-radius: 4px;
     word-wrap: break-word;
     line-height: 1.4;

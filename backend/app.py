@@ -90,7 +90,7 @@ def handle_configure_game(data):
         for i in range(current_bot_count, game['num_bots']):
             bot_id = f"bot_{i+1}"
             bot_name = f"Bot {i+1}"
-            game['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
+            game['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}, 'feelin_good_active': False}
             game['scores'][bot_name] = 0
             print(f"Added {bot_name} to game {game_id} due to configuration change.")
     elif game['num_bots'] < current_bot_count:
@@ -151,12 +151,14 @@ def handle_create_game(data):
         'bots': {},
         'selected_categories': categories, # New: Store selected categories
         'player_answers': {}, # New: To store answers for the current question
-        'lifelines_used_by_player': {} # To track lifeline usage per player SID
+        'lifelines_used_by_player': {}, # To track lifeline usage per player SID
+        'feelin_good_active_for_player': {} # SID: True if Feelin' Good is active for next correct answer
     }
     join_room(game_id)
     games[game_id]['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
     games[game_id]['scores'][player_name] = 0
     games[game_id]['lifelines_used_by_player'][request.sid] = {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}
+    games[game_id]['feelin_good_active_for_player'][request.sid] = False
 
     print(f"Game {game_id} created by {player_name} (SID: {request.sid}). Mode: {game_mode}, Max Players: {max_players}, Bots: {num_bots}, Categories: {categories}")
 
@@ -164,7 +166,7 @@ def handle_create_game(data):
     for i in range(num_bots):
         bot_id = f"bot_{i+1}_{game_id}" # Ensure bot_id is unique across games if bots dict becomes global
         bot_name = f"Bot {i+1}"
-        games[game_id]['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
+        games[game_id]['bots'][bot_id] = {'name': bot_name, 'score': 0, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}, 'feelin_good_active': False}
         games[game_id]['scores'][bot_name] = 0
         print(f"Added {bot_name} to game {game_id}")
 
@@ -190,6 +192,7 @@ def handle_join_game(data):
     game['players'][request.sid] = {'name': player_name, 'score': 0, 'sid': request.sid, 'lifelines_used': {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}}
     game['scores'][player_name] = 0
     game['lifelines_used_by_player'][request.sid] = {'fifty_fifty': False, 'ninetieth_minute': False, 'feelin_good': False}
+    game['feelin_good_active_for_player'][request.sid] = False
     print(f"{player_name} (SID: {request.sid}) joined game {game_id}")
     emit('player_joined', {'name': player_name, 'sid': request.sid, 'is_host': False, 'players': get_player_list(game_id)}, room=game_id)
     emit('game_joined', {'game_id': game_id, 'players': get_player_list(game_id), 'chat_history': game.get('chat', [])}, room=request.sid)
@@ -328,48 +331,73 @@ def bots_answer(game_id, question_data):
         if bot_id not in game['bots']:
             continue
 
-        socketio.sleep(random.uniform(1, game.get('time_per_question', 15) * 0.6)) # Simulate thinking time, up to 60% of question time
+        # Bot decision-making delay
+        socketio.sleep(random.uniform(1, game.get('time_per_question', 15) * 0.6))
 
         # Check if game still exists and question is current before bot acts
         if game_id not in games or game['current_question_index'] >= len(game.get('questions', [])):
-            print(f"Bot {bot_info['name']} skipped answering as game ended or question changed.")
+            print(f"Bot {bot_info['name']} skipped acting as game ended or question changed.")
             continue
         
         current_q_data_for_bot = game['questions'][game['current_question_index']]
-        
-        # Lifeline decision for bot (50:50)
-        used_fifty_fifty_this_turn = False
-        if not bot_info['lifelines_used'].get('fifty_fifty', False) and game['game_mode'] in ['head_to_head', 'multiplayer']:
-            if random.random() < 0.25: # 25% chance to use 50:50 if available
-                bot_info['lifelines_used']['fifty_fifty'] = True
-                used_fifty_fifty_this_turn = True
-                print(f"Bot {bot_info['name']} in game {game_id} is using 50:50 lifeline for question {game['current_question_index'] + 1}.")
+        correct_answer_for_bot = current_q_data_for_bot['correct_answer']
+        all_incorrect_for_bot = [current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']]
 
-        # Determine bot's answer
-        bot_answer_options = [current_q_data_for_bot['correct_answer'], current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']]
-        
-        if used_fifty_fifty_this_turn:
-            correct_answer = current_q_data_for_bot['correct_answer']
-            all_incorrect = [current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']]
-            kept_incorrect = random.choice(all_incorrect)
+        # Lifeline decisions for bot
+        used_fifty_fifty_this_turn = False
+        used_ninetieth_minute_this_turn = False
+        activated_feelin_good_this_turn = False # New flag for bot's Feelin' Good usage
+
+        if game['game_mode'] in ['head_to_head', 'multiplayer']:
+            # 50:50 Lifeline for Bot
+            if not bot_info['lifelines_used'].get('fifty_fifty', False) and not bot_info.get('feelin_good_active', False):
+                if random.random() < 0.20: # 20% chance to use 50:50 if available
+                    bot_info['lifelines_used']['fifty_fifty'] = True
+                    used_fifty_fifty_this_turn = True
+                    print(f"Bot {bot_info['name']} in game {game_id} is using 50:50 lifeline.")
+
+            # 90th Minute Lifeline for Bot
+            if not bot_info['lifelines_used'].get('ninetieth_minute', False) and not bot_info.get('feelin_good_active', False):
+                chance_to_use_90th = 0.15 # Base 15% chance
+                questions_remaining = len(game['questions']) - game['current_question_index']
+                if questions_remaining <= max(2, len(game['questions']) * 0.25):
+                    chance_to_use_90th = 0.30
+                
+                if random.random() < chance_to_use_90th:
+                    bot_info['lifelines_used']['ninetieth_minute'] = True
+                    used_ninetieth_minute_this_turn = True
+                    print(f"Bot {bot_info['name']} in game {game_id} is using 90th Minute lifeline.")
             
-            # Bot now has a 50/50 actual choice, but let's give it a higher chance to pick the right one
-            if random.random() < 0.85: # 85% chance of picking the correct one from the two
-                answer = correct_answer
+            # Feelin' Good Lifeline for Bot (can only be activated if not already active)
+            if not bot_info['lifelines_used'].get('feelin_good', False) and not bot_info.get('feelin_good_active', False):
+                if random.random() < 0.10: # 10% chance to use Feelin' Good if available
+                    bot_info['lifelines_used']['feelin_good'] = True
+                    bot_info['feelin_good_active'] = True # Activate it for the bot
+                    activated_feelin_good_this_turn = True
+                    print(f"Bot {bot_info['name']} in game {game_id} is activating Feelin' Good lifeline.")
+
+        # Determine bot's answer based on lifelines
+        answer = None
+        # Bot prioritizes 90th minute if used
+        if used_ninetieth_minute_this_turn:
+            answer = correct_answer_for_bot
+        elif used_fifty_fifty_this_turn:
+            kept_incorrect = random.choice(all_incorrect_for_bot)
+            if random.random() < 0.85: 
+                answer = correct_answer_for_bot
             else:
                 answer = kept_incorrect
         else:
             # Original bot logic: 70% chance of correct answer
-            is_bot_correct_this_time = random.random() < 0.7 
-            answer = current_q_data_for_bot['correct_answer'] if is_bot_correct_this_time else random.choice([current_q_data_for_bot['wrong1'], current_q_data_for_bot['wrong2'], current_q_data_for_bot['wrong3']])
+            is_bot_correct_this_time = random.random() < 0.70
+            answer = correct_answer_for_bot if is_bot_correct_this_time else random.choice(all_incorrect_for_bot)
         
         # Simulate bot submitting answer
-        # Check if game still exists and question is current before bot submits
         if game_id in games and game['current_question_index'] < len(game.get('questions', [])) and \
            game['questions'][game['current_question_index']]['id'] == current_q_data_for_bot['id']:
             handle_submit_answer({'game_id': game_id, 'answer': answer, 'timestamp': time.time()}, bot_id=bot_id)
         else:
-            print(f"Bot {bot_info['name']} did not submit answer as game/question state changed.")
+            print(f"Bot {bot_info['name']} did not submit answer as game/question state changed after lifeline decision.")
 
 
 @socketio.on('submit_answer')
@@ -408,6 +436,16 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
         game['player_answers'][current_q_index] = {}
     game['player_answers'][current_q_index][player_sid] = {'answer': answer, 'timestamp': timestamp, 'name': player_name}
 
+    # If Feelin' Good was active for this player/bot, it's consumed now, regardless of answer.
+    # The bonus is applied below if the answer is correct.
+    feelin_good_was_active_for_this_submission = False
+    if not bot_id and game['feelin_good_active_for_player'].get(player_sid, False):
+        feelin_good_was_active_for_this_submission = True
+        game['feelin_good_active_for_player'][player_sid] = False # Consume it
+    elif bot_id and player_info.get('feelin_good_active', False):
+        feelin_good_was_active_for_this_submission = True
+        player_info['feelin_good_active'] = False # Consume it for bot
+
     if not bot_id:
         time_taken = time.time() - game.get('question_start_time', time.time())
         is_correct = (answer == game.get('current_correct_answer')) and (answer != "__TIMEOUT__")
@@ -418,8 +456,17 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
             effective_time_taken = min(time_taken, time_limit)
             score_earned = max(10, int(100 - (effective_time_taken / time_limit) * 90))
             
+            bonus_points = 0
+            if feelin_good_was_active_for_this_submission:
+                bonus_points = score_earned # Double the points
+                score_earned += bonus_points
+                print(f"Player {player_name} got Feelin' Good bonus of {bonus_points} points!")
+                emit('feelin_good_bonus', {'bonus_points': bonus_points}, room=player_sid)
+            
             game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned
             game['players'][player_sid]['score'] = game['scores'][player_name]
+        elif feelin_good_was_active_for_this_submission: # Incorrect answer but FG was active
+            emit('feelin_good_expired', room=player_sid) # Inform client FG expired without bonus
 
         print(f"Player {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score earned: {score_earned}. Timestamp: {timestamp}")
         
@@ -435,8 +482,19 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
         score_earned_bot = 0 # Initialize score for bot for this answer
         if is_correct:
             score_earned_bot = random.randint(50, 90) # Bots get a random score if correct
+            
+            if feelin_good_was_active_for_this_submission:
+                bonus_points_bot = score_earned_bot # Double points for bot
+                score_earned_bot += bonus_points_bot
+                print(f"Bot {player_name} got Feelin' Good bonus of {bonus_points_bot} points!")
+                # No need to emit 'feelin_good_bonus' to bot, but log is good
+
             game['scores'][player_name] = game['scores'].get(player_name, 0) + score_earned_bot
             game['bots'][bot_id]['score'] = game['scores'][player_name]
+        elif feelin_good_was_active_for_this_submission: # Incorrect answer but FG was active for bot
+            print(f"Bot {player_name}'s Feelin' Good expired without bonus.")
+            # No client-side event needed for bot's FG expiry
+
         print(f"Bot {player_name} in game {game_id} answered: {answer}. Correct: {is_correct}. Score earned: {score_earned_bot}")
 
     # Check if it's time to proceed to the next question's answer display period
@@ -572,11 +630,44 @@ def handle_use_lifeline(data):
         emit('fifty_fifty_result', {'disabled_answers': disabled_answers[:2]}, room=player_sid)
         print(f"Player {player_info['name']} (SID: {player_sid}) used 50:50. Disabling: {disabled_answers[:2]}. Keeping: {kept_incorrect} alongside {correct_answer}.")
 
-    # Add other lifeline types here later (e.g., 'ninetieth_minute', 'feelin_good')
-    # elif lifeline_type == 'ninetieth_minute':
-    #     pass # Handle 90th minute
-    # elif lifeline_type == 'feelin_good':
-    #     pass # Handle feelin' good
+    elif lifeline_type == 'ninetieth_minute':
+        if player_info['lifelines_used'].get('ninetieth_minute', False):
+            emit('error', {'message': '90th Minute lifeline already used.'}, room=player_sid)
+            return
+
+        if game['current_question_index'] < 0 or game['current_question_index'] >= len(game['questions']):
+            emit('error', {'message': 'No active question for 90th Minute lifeline.'}, room=player_sid)
+            return
+        
+        player_info['lifelines_used']['ninetieth_minute'] = True
+        if player_sid in game['lifelines_used_by_player']:
+             game['lifelines_used_by_player'][player_sid]['ninetieth_minute'] = True
+
+        current_question_details = game['questions'][game['current_question_index']]
+        correct_answer_text = current_question_details['correct_answer']
+        
+        emit('ninetieth_minute_result', {'correct_answer_text': correct_answer_text}, room=player_sid)
+        print(f"Player {player_info['name']} (SID: {player_sid}) used 90th Minute. Correct answer: {correct_answer_text} revealed to them.")
+    
+    elif lifeline_type == 'feelin_good':
+        if player_info['lifelines_used'].get('feelin_good', False):
+            emit('error', {'message': 'Feelin\' Good lifeline already used.'}, room=player_sid)
+            return
+        
+        if game['feelin_good_active_for_player'].get(player_sid, False):
+            emit('error', {'message': 'Feelin\' Good is already active for you.'}, room=player_sid)
+            return
+
+        player_info['lifelines_used']['feelin_good'] = True
+        game['feelin_good_active_for_player'][player_sid] = True
+        if player_sid in game['lifelines_used_by_player']:
+             game['lifelines_used_by_player'][player_sid]['feelin_good'] = True
+        
+        emit('feelin_good_active', room=player_sid) # Inform client it's active
+        print(f"Player {player_info['name']} (SID: {player_sid}) activated Feelin' Good lifeline.")
+    
+    # elif lifeline_type == 'another_lifeline':
+    #     pass # Future lifelines
 
 
 def end_game(game_id):
