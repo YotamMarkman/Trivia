@@ -583,10 +583,6 @@ footer {
     margin-right: 7px;
 }
 
-#h2h-chat-messages .chat-content {
-    /* Text color inherited from .chat-message or #h2h-chat-messages */
-}
-
 #h2h-chat-input-area {
     margin-top: 8px;
     display: flex; /* Keep this for input and button alignment */
@@ -651,6 +647,116 @@ footer {
     }
 }
 /* --- End H2H Flex Layout --- */
+
+/* --- Multiplayer Flex Layout (similar to H2H) --- */
+#multiplayer-game-screen {
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.mp-flex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.mp-question-area {
+    flex: 2 1 0; /* Takes up more space */
+    min-width: 0; /* Allows shrinking */
+    background: rgba(13, 27, 42, 0.85);
+    border-radius: 10px;
+    padding: 24px 18px;
+    box-shadow: 0 0 10px #2228;
+    margin-bottom: 0;
+}
+
+.mp-chat-area {
+    flex: 1 1 0; /* Takes up less space */
+    min-width: 220px; /* Minimum width for chat */
+    max-width: 320px; /* Maximum width for chat */
+    background: rgba(13, 27, 42, 0.9);
+    border-radius: 10px;
+    padding: 16px 10px 10px 10px;
+    box-shadow: 0 0 8px #2226;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#mp-chat-container {
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
+#mp-chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    min-height: 350px; /* Or adjust as needed */
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+#mp-chat-messages .chat-message {
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background-color: #33373d;
+    border-radius: 4px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+#mp-chat-messages .chat-sender {
+    font-weight: bold;
+    color: #7f9cf5;
+    margin-right: 7px;
+}
+
+#mp-chat-input-area {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#mp-chat-message-input {
+    flex-grow: 1;
+    margin-right: 8px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+#mp-send-chat-message-btn {
+    background-color: #4CAF50;
+}
+
+/* Responsive adjustments for multiplayer flex layout */
+@media (max-width: 900px) {
+    .mp-flex-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .mp-question-area, .mp-chat-area {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+/* --- End Multiplayer Flex Layout --- */
 
 /* Game Over Screen Styling */
 #game-over-screen {

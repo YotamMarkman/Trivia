@@ -228,6 +228,48 @@
                 </div>
             </div>
 
+            <!-- Multiplayer Game Screen (Question + Chat Side by Side) -->
+            <div id="multiplayer-game-screen" class="screen">
+                <div class="mp-flex-row">
+                    <div class="mp-question-area">
+                        <div id="mp-game-info-bar">
+                            <span id="mp-question-counter">Q: 1/10</span>
+                            <span id="mp-timer">Time: 15s</span>
+                            <span id="mp-current-score">Score: 0</span>
+                        </div>
+                        <h3 id="mp-question-text">Multiplayer Question Text...</h3>
+                        <div id="mp-question-category-image-container">
+                            <!-- Category image will be populated here -->
+                        </div>
+                        <div class="answers-grid" id="mp-answers-grid">
+                            <button class="answer-button" data-answer="A">Answer A</button>
+                            <button class="answer-button" data-answer="B">Answer B</button>
+                            <button class="answer-button" data-answer="C">Answer C</button>
+                            <button class="answer-button" data-answer="D">Answer D</button>
+                        </div>
+                        <div id="mp-feedback-message"></div>
+                        <button class="game-action-button exit-game-trigger">Exit Game</button>
+                    </div>
+                    <div class="mp-chat-area">
+                        <div id="mp-chat-container">
+                            <h3>Chat</h3>
+                            <div id="mp-chat-messages"></div>
+                            <div id="mp-chat-input-area" class="chat-input-area">
+                                <input type="text" id="mp-chat-message-input" placeholder="Type a message...">
+                                <button id="mp-send-chat-message-btn">Send</button>
+                            </div>
+                            <div class="emoji-button-container" id="mp-emoji-button-container">
+                                <button class="emoji-button" data-emoji="👍">👍</button>
+                                <button class="emoji-button" data-emoji="😂">😂</button>
+                                <button class="emoji-button" data-emoji="🤔">🤔</button>
+                                <button class="emoji-button" data-emoji="🔥">🔥</button>
+                                <button class="emoji-button" data-emoji="🎉">🎉</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Game Over Screen -->
             <div id="game-over-screen" class="screen">
                 <h2>Full Time!</h2>

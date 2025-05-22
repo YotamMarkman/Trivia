@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameOver: document.getElementById('game-over-screen'),
         leaderboard: document.getElementById('leaderboard-screen'),
         h2hGameFlexContainer: document.getElementById('h2h-game-flex-container'), // Added for H2H flex screen
+        multiplayerGameScreen: document.getElementById('multiplayer-game-screen'), // Added multiplayer game screen
     };
 
     // Buttons and Inputs
@@ -52,6 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalizeMultiplayerRoomSetupBtn = document.getElementById('finalize-multiplayer-room-setup');
     const multiplayerLobbyPlayersUl = document.getElementById('multiplayer-lobby-players');
 
+    // Multiplayer Game Screen elements (New)
+    const mpQuestionCounterSpan = document.getElementById('mp-question-counter');
+    const mpTimerSpan = document.getElementById('mp-timer');
+    const mpCurrentScoreSpan = document.getElementById('mp-current-score');
+    const mpQuestionTextElem = document.getElementById('mp-question-text');
+    const mpQuestionCategoryImageContainer = document.getElementById('mp-question-category-image-container');
+    const mpAnswerButtons = document.querySelectorAll('#mp-answers-grid .answer-button');
+    const mpFeedbackMessageElem = document.getElementById('mp-feedback-message');
+    const mpChatContainer = document.getElementById('mp-chat-container');
+    const mpChatMessagesDiv = document.getElementById('mp-chat-messages');
+    const mpChatMessageInput = document.getElementById('mp-chat-message-input');
+    const mpSendChatMessageBtn = document.getElementById('mp-send-chat-message-btn');
+    const mpEmojiButtons = document.querySelectorAll('#mp-emoji-button-container .emoji-button');
 
     // Game Lobby
     const lobbyGameIdSpan = document.getElementById('lobby-game-id');
@@ -62,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const startGameButton = document.getElementById('start-game-button');
     const waitingForHostMessage = document.getElementById('waiting-for-host-message');
     const leaveLobbyButton = document.querySelector('#game-lobby-screen .leave-lobby-button');
-
 
     // Question Screen
     const questionCounterSpan = document.getElementById('question-counter');
@@ -103,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Exit Game Buttons (Class-based)
     const exitGameBtns = document.querySelectorAll('.exit-game-trigger');
 
-
     let currentPlayerName = '';
     let currentGameId = null;
     let currentGameMode = '';
@@ -137,6 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 h2hChatContainer.style.display = 'none';
             }
         }
+        // Show/Hide Multiplayer chat container based on screen
+        if (mpChatContainer) {
+            if (screenName === 'multiplayerGameScreen') {
+                mpChatContainer.style.display = 'block';
+            } else {
+                mpChatContainer.style.display = 'none';
+            }
+        }
     }
 
     goToModeSelectBtn.addEventListener('click', () => {
@@ -150,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const mode = button.dataset.mode;
             currentGameMode = mode;
             if (h2hChatContainer) h2hChatContainer.style.display = 'none'; // Hide H2H chat by default
+            if (mpChatContainer) mpChatContainer.style.display = 'none'; // Hide MP chat by default
 
             if (mode === 'singleplayer') {
                 showScreen('singlePlayerCategorySelect'); // New screen
@@ -183,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showScreen('modeSelect');
         });
     }
-
 
     // --- Single Player ---
     async function fetchCategories() {
@@ -563,6 +583,12 @@ document.addEventListener('DOMContentLoaded', () => {
             targetFeedbackElem = h2hFeedbackMessageElem;
             targetAnswersGridBtns = h2hAnswerButtons;
             targetImageContainer = h2hQuestionCategoryImageContainer;
+        } else if (currentGameMode === 'multiplayer') {
+            targetQuestionTextElem = mpQuestionTextElem;
+            targetQuestionCounterSpan = mpQuestionCounterSpan;
+            targetFeedbackElem = mpFeedbackMessageElem;
+            targetAnswersGridBtns = mpAnswerButtons;
+            targetImageContainer = mpQuestionCategoryImageContainer;
         } else {
             targetQuestionTextElem = questionTextElem;
             targetQuestionCounterSpan = questionCounterSpan;
@@ -640,7 +666,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleAnswerSubmit(answer, clickedButton) { // Added clickedButton parameter
         clearInterval(questionTimerInterval);
-        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
+        let currentAnswerButtons;
+        if (currentGameMode === 'head_to_head') {
+            currentAnswerButtons = h2hAnswerButtons;
+        } else if (currentGameMode === 'multiplayer') {
+            currentAnswerButtons = mpAnswerButtons;
+        } else {
+            currentAnswerButtons = answerButtons;
+        }
         
         // Disable all buttons and highlight the selected one
         currentAnswerButtons.forEach(button => {
@@ -665,7 +698,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showScreen('h2hGameFlexContainer');
             if (h2hChatContainer) h2hChatContainer.style.display = 'block'; // Ensure H2H chat is visible
         } else if (currentGameMode === 'multiplayer') {
-            showScreen('question');
+            showScreen('multiplayerGameScreen'); // Show multiplayer game screen
+            if (mpChatContainer) mpChatContainer.style.display = 'block'; // Ensure MP chat is visible
         } else {
             showScreen('question');
         }
@@ -684,8 +718,17 @@ document.addEventListener('DOMContentLoaded', () => {
         playerScore = data.your_total_score; 
         updateScoreDisplay();
 
-        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
-        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
+        let currentAnswerButtons, currentFeedbackElem;
+        if (currentGameMode === 'head_to_head') {
+            currentAnswerButtons = h2hAnswerButtons;
+            currentFeedbackElem = h2hFeedbackMessageElem;
+        } else if (currentGameMode === 'multiplayer') {
+            currentAnswerButtons = mpAnswerButtons;
+            currentFeedbackElem = mpFeedbackMessageElem;
+        } else {
+            currentAnswerButtons = answerButtons;
+            currentFeedbackElem = feedbackMessageElem;
+        }
 
         // Highlight the correct answer regardless of selection
         currentAnswerButtons.forEach(button => {
@@ -707,9 +750,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Show answer period started:", data);
         clearInterval(questionTimerInterval); // Stop the question timer
 
-        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
-        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
-        const currentTimerSpan = currentGameMode === 'head_to_head' ? h2hTimerSpan : timerSpan;
+        let currentAnswerButtons, currentFeedbackElem, currentTimerSpan;
+        if (currentGameMode === 'head_to_head') {
+            currentAnswerButtons = h2hAnswerButtons;
+            currentFeedbackElem = h2hFeedbackMessageElem;
+            currentTimerSpan = h2hTimerSpan;
+        } else if (currentGameMode === 'multiplayer') {
+            currentAnswerButtons = mpAnswerButtons;
+            currentFeedbackElem = mpFeedbackMessageElem;
+            currentTimerSpan = mpTimerSpan;
+        } else {
+            currentAnswerButtons = answerButtons;
+            currentFeedbackElem = feedbackMessageElem;
+            currentTimerSpan = timerSpan;
+        }
 
         // Ensure all buttons are disabled
         currentAnswerButtons.forEach(button => {
@@ -763,12 +817,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     function startTimer(duration) {
         let timeLeft = duration;
-        const currentTimerSpan = currentGameMode === 'head_to_head' ? h2hTimerSpan : timerSpan;
-        const currentAnswerButtons = currentGameMode === 'head_to_head' ? h2hAnswerButtons : answerButtons;
-        const currentFeedbackElem = currentGameMode === 'head_to_head' ? h2hFeedbackMessageElem : feedbackMessageElem;
+        let currentTimerSpan, currentAnswerButtons, currentFeedbackElem;
+
+        if (currentGameMode === 'head_to_head') {
+            currentTimerSpan = h2hTimerSpan;
+            currentAnswerButtons = h2hAnswerButtons;
+            currentFeedbackElem = h2hFeedbackMessageElem;
+        } else if (currentGameMode === 'multiplayer') {
+            currentTimerSpan = mpTimerSpan;
+            currentAnswerButtons = mpAnswerButtons;
+            currentFeedbackElem = mpFeedbackMessageElem;
+        } else {
+            currentTimerSpan = timerSpan;
+            currentAnswerButtons = answerButtons;
+            currentFeedbackElem = feedbackMessageElem;
+        }
 
         if (currentTimerSpan) currentTimerSpan.textContent = `Time: ${timeLeft}s`;
 
@@ -802,6 +867,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateScoreDisplay() {
         if (currentGameMode === 'head_to_head') {
             if(h2hCurrentScoreSpan) h2hCurrentScoreSpan.textContent = `Score: ${playerScore}`;
+        } else if (currentGameMode === 'multiplayer') {
+            if(mpCurrentScoreSpan) mpCurrentScoreSpan.textContent = `Score: ${playerScore}`;
         } else {
             if(currentScoreSpan) currentScoreSpan.textContent = `Score: ${playerScore}`;
         }
@@ -974,6 +1041,34 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('[Chat Setup] h2hChatMessageInput (in else):', h2hChatMessageInput);
     }
 
+    // Multiplayer Chat Setup
+    if (mpSendChatMessageBtn && mpChatMessageInput) {
+        try {
+            mpSendChatMessageBtn.addEventListener('click', sendMpChatMessage);
+            mpChatMessageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMpChatMessage();
+                }
+            });
+
+            mpEmojiButtons.forEach(button => {
+                if (button) {
+                    button.addEventListener('click', () => {
+                        if (mpChatMessageInput) {
+                            mpChatMessageInput.value += button.dataset.emoji;
+                            mpChatMessageInput.focus();
+                        }
+                    });
+                }
+            });
+            console.log('[Chat Setup] Successfully added all multiplayer chat event listeners.');
+        } catch (e) {
+            console.error('[Chat Setup] Error during addEventListener setup for MP chat:', e);
+        }
+    } else {
+        console.warn('[Chat Setup] Skipped adding multiplayer chat event listeners because mpSendChatMessageBtn or mpChatMessageInput is null/falsy.');
+    }
+
     socket.on('new_chat_message', (message) => {
         displayChatMessage(message);
     });
@@ -989,9 +1084,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function sendMpChatMessage() {
+        const messageText = mpChatMessageInput.value.trim();
+        if (messageText && currentGameId) {
+            socket.emit('send_chat_message', {
+                game_id: currentGameId,
+                message: messageText
+            });
+            mpChatMessageInput.value = '';
+        }
+    }
+
     function displayChatMessage(msg) {
-        if (!h2hChatMessagesDiv) {
-            console.error("H2H Chat messages container not found!");
+        let targetChatMessagesDiv;
+        if (currentGameMode === 'head_to_head') {
+            targetChatMessagesDiv = h2hChatMessagesDiv;
+        } else if (currentGameMode === 'multiplayer') {
+            targetChatMessagesDiv = mpChatMessagesDiv;
+        } else {
+            // No chat for single player or other modes currently
+            return;
+        }
+
+        if (!targetChatMessagesDiv) {
+            console.error("Chat messages container not found for mode:", currentGameMode);
             return;
         }
 
@@ -1013,8 +1129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         messageElement.appendChild(senderSpan);
         messageElement.appendChild(contentSpan);
 
-        h2hChatMessagesDiv.appendChild(messageElement);
-        h2hChatMessagesDiv.scrollTop = h2hChatMessagesDiv.scrollHeight;
+        targetChatMessagesDiv.appendChild(messageElement);
+        targetChatMessagesDiv.scrollTop = targetChatMessagesDiv.scrollHeight;
     }
 
     // --- Utility and State Management ---
@@ -1028,8 +1144,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if(feedbackMessageElem) feedbackMessageElem.textContent = '';
         if(h2hFeedbackMessageElem) h2hFeedbackMessageElem.textContent = '';
+        if(mpFeedbackMessageElem) mpFeedbackMessageElem.textContent = '';
         
         if(h2hChatMessagesDiv) h2hChatMessagesDiv.innerHTML = ''; 
+        if(mpChatMessagesDiv) mpChatMessagesDiv.innerHTML = ''; 
     }
 
     function resetGameStateFull() { 
@@ -1057,7 +1175,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resetGameStateFull();
         showScreen('initialSetup');
     });
-
 
     // Initial setup
     showScreen('initialSetup');
