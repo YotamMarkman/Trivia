@@ -13,14 +13,15 @@ body {
 }
 
 #app-container {
-    background-color: rgba(23, 37, 50, 0.9); /* Semi-transparent darker blue */
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3); /* Cyan glow */
-    padding: 25px;
-    width: 90%;
-    max-width: 850px;
-    text-align: center;
-    border: 4px solid #778DA9; /* Muted blue-grey border */
+    width: 95%; /* Allow it to use most of the viewport width */
+    max-width: 1800px; /* Set a more generous max-width for very large screens */
+    margin: auto;
+    background-color: #1a1a2e;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    color: #e0e0e0;
+    box-sizing: border-box; /* Ensure padding is included in the width */
 }
 
 header h1 {
@@ -605,7 +606,13 @@ footer {
 .emoji-button-container {
     display: flex;
     justify-content: flex-start; /* Align emojis to the left */
+    gap: 5px; /* Add gap between emoji buttons */
+    margin-top: 10px; /* Space above emoji buttons */
     margin-bottom: 10px; /* Space below emoji buttons */
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2); /* Darker, slightly transparent background */
+    border-radius: 6px;
+    border: 1px solid #415A77; /* Muted blue-grey border, consistent with other elements */
 }
 
 .emoji-button {
@@ -658,34 +665,117 @@ footer {
 
 .mp-flex-row {
     display: flex;
-    flex-direction: row;
-    gap: 24px;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top */
+    padding: 10px;
+    gap: 20px; /* Maintained gap, can be adjusted if needed */
+    height: calc(100vh - 200px); /* Adjusted slightly if header/footer/padding changes */
+    width: 100%; /* Ensure it takes full width of its parent */
+}
+
+.mp-scoreboard-area,
+.mp-question-area,
+.mp-chat-area {
+    padding: 15px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    display: flex; /* Added to allow inner content to flex if needed, e.g. title and list */
+    flex-direction: column; /* Stack content vertically within each area */
+}
+
+.mp-scoreboard-area {
+    flex: 1 1 25%; /* Grow, Shrink, Basis */
+    min-width: 230px; /* Prevent from becoming too narrow */
 }
 
 .mp-question-area {
-    flex: 2 1 0; /* Takes up more space */
-    min-width: 0; /* Allows shrinking */
-    background: rgba(13, 27, 42, 0.85);
-    border-radius: 10px;
-    padding: 24px 18px;
-    box-shadow: 0 0 10px #2228;
-    margin-bottom: 0;
+    flex: 2 1 50%; /* Grow more, Shrink, Basis */
+    min-width: 350px; /* Prevent from becoming too narrow */
 }
 
 .mp-chat-area {
-    flex: 1 1 0; /* Takes up less space */
-    min-width: 220px; /* Minimum width for chat */
-    max-width: 320px; /* Maximum width for chat */
-    background: rgba(13, 27, 42, 0.9);
-    border-radius: 10px;
-    padding: 16px 10px 10px 10px;
-    box-shadow: 0 0 8px #2226;
-    margin-bottom: 0;
+    flex: 1 1 25%; /* Grow, Shrink, Basis */
+    min-width: 230px; /* Prevent from becoming too narrow */
+}
+
+#mp-scoreboard-container {
+    background-color: #2c3e50; /* Dark blue-grey background */
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: none;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
+
+#mp-scoreboard-container h3 {
+    color: #A7C957; /* Lime green, consistent with other titles */
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    margin-bottom: 10px; /* Space below title */
+    text-align: center;
+}
+
+#mp-scoreboard-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #1e1e1e; /* Dark background for list area */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+#mp-scoreboard-list li {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background-color: #2c2f33; /* Slightly lighter than list background */
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease, transform 0.2s ease-out; /* For score change animation */
+}
+
+#mp-scoreboard-list li .player-name {
+    font-weight: bold;
+    color: #FFD700; /* Gold for player name */
+}
+
+#mp-scoreboard-list li .player-score {
+    color: #A7C957; /* Lime green for score */
+    font-weight: bold;
+}
+
+#mp-scoreboard-list li.score-increased {
+    background-color: #4CAF50; /* Green pulse for score increase */
+    transform: scale(1.03);
+}
+
+#mp-scoreboard-list li.score-decreased {
+    background-color: #D32F2F; /* Red pulse for score decrease */
+    transform: scale(0.97);
+    animation: score-decrease-animation 0.5s ease-out;
+}
+
+.mp-chat-area {
+    flex: 0 0 27%; /* Made slightly wider */
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    border: 1px solid #444; /* Add a border to define the "box" */
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05); /* Slight background to enhance box appearance */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Optional: add some shadow */
+    overflow-y: auto; /* Add scroll if content overflows */
 }
 
 #mp-chat-container {
@@ -731,6 +821,7 @@ footer {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    gap: 5px; /* Add gap between input and button */
 }
 
 #mp-chat-message-input {
@@ -745,15 +836,48 @@ footer {
     background-color: #4CAF50;
 }
 
+.emoji-button-container {
+    display: flex;
+    justify-content: space-around; /* Distribute emojis evenly */
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2); /* Slightly darker background for the box */
+    border: 1px solid #555; /* Border for the box */
+    border-radius: 8px; /* Rounded corners for the box */
+    margin-top: 10px; /* Space above the emoji container */
+    gap: 5px; /* Gap between emoji buttons */
+}
+
 /* Responsive adjustments for multiplayer flex layout */
+@media (max-width: 1200px) { /* Add a new breakpoint for better handling of 3 columns */
+    .mp-flex-row {
+        flex-wrap: wrap; /* Allow items to wrap if not enough space */
+    }
+    .mp-question-area {
+        order: 1; /* Ensure question area is first in wrapped layout if needed */
+        flex: 1 1 100%; /* Take full width when wrapped */
+    }
+    .mp-scoreboard-area {
+        order: 2; /* Scoreboard second */
+        flex: 1 1 45%; /* Share space when wrapped */
+    }
+    .mp-chat-area {
+        order: 3; /* Chat third */
+        flex: 1 1 45%; /* Share space when wrapped */
+    }
+}
+
 @media (max-width: 900px) {
     .mp-flex-row {
         flex-direction: column;
-        gap: 10px;
+        height: auto; /* Allow height to adjust to content */
     }
-    .mp-question-area, .mp-chat-area {
-        max-width: 100%;
-        width: 100%;
+    .mp-scoreboard-area,
+    .mp-question-area,
+    .mp-chat-area {
+        flex-basis: auto; /* Reset flex-basis */
+        width: 100%; /* Take full width when stacked */
+        margin-bottom: 15px; /* Add some space between stacked items */
+        min-width: 0; /* Reset min-width */
     }
 }
 /* --- End Multiplayer Flex Layout --- */

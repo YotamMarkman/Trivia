@@ -18,6 +18,7 @@
             <div id="initial-setup-screen" class="screen active">
                 <h2>Welcome, Sports Fan!</h2>
                 <input type="text" id="player-name" placeholder="Enter Your Name">
+                <p id="player-name-error" class="error-message" style="display: none;"></p>
                 <button id="go-to-mode-select">Next</button>
             </div>
 
@@ -231,6 +232,14 @@
             <!-- Multiplayer Game Screen (Question + Chat Side by Side) -->
             <div id="multiplayer-game-screen" class="screen">
                 <div class="mp-flex-row">
+                    <div class="mp-scoreboard-area">
+                        <div id="mp-scoreboard-container">
+                            <h3>Scoreboard</h3>
+                            <ul id="mp-scoreboard-list">
+                                <!-- Player scores will be populated here by script.js -->
+                            </ul>
+                        </div>
+                    </div>
                     <div class="mp-question-area">
                         <div id="mp-game-info-bar">
                             <span id="mp-question-counter">Q: 1/10</span>

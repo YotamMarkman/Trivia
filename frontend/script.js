@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buttons and Inputs
     const playerNameInput = document.getElementById('player-name');
+    const playerNameError = document.getElementById('player-name-error'); // Added for error message
     const goToModeSelectBtn = document.getElementById('go-to-mode-select');
 
     const modeButtons = document.querySelectorAll('.mode-button');
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mpChatMessageInput = document.getElementById('mp-chat-message-input');
     const mpSendChatMessageBtn = document.getElementById('mp-send-chat-message-btn');
     const mpEmojiButtons = document.querySelectorAll('#mp-emoji-button-container .emoji-button');
+    const mpScoreboardList = document.getElementById('mp-scoreboard-list'); // Added scoreboard list selector
 
     // Game Lobby
     const lobbyGameIdSpan = document.getElementById('lobby-game-id');
@@ -160,7 +162,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     goToModeSelectBtn.addEventListener('click', () => {
-        currentPlayerName = playerNameInput.value.trim() || 'Anonymous';
+        currentPlayerName = playerNameInput.value.trim();
+        if (!currentPlayerName) {
+            if (playerNameError) {
+                playerNameError.textContent = 'Please enter your name to continue.';
+                playerNameError.style.display = 'block'; // Show the error message
+            }
+            return; // Stop execution if name is missing
+        }
+        if (playerNameError) {
+            playerNameError.style.display = 'none'; // Hide error message if name is provided
+        }
         playerNameInput.disabled = true; // Prevent name change mid-session
         showScreen('modeSelect');
     });
@@ -431,8 +443,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     finalizeMultiplayerRoomSetupBtn.addEventListener('click', () => {
         if (!isHost || !currentGameId) return;
+
+        // Gather all configuration options
+        const maxPlayers = parseInt(document.getElementById('multiplayer-max-players').value) || 8;
         const numBots = parseInt(numBotsMultiplayerInput.value) || 0;
-        console.log(`Host starting multiplayer game ${currentGameId} from host options screen.`);
+        const selectedCategory = document.getElementById('multiplayer-category-select').value || 'all';
+        const timePerQuestion = parseInt(document.getElementById('multiplayer-time-per-question').value) || 15;
+        const totalQuestions = parseInt(document.getElementById('multiplayer-total-questions').value) || 10;
+
+        console.log(`Host configuring multiplayer game ${currentGameId} with settings:`, { maxPlayers, numBots, selectedCategory, timePerQuestion, totalQuestions });
+
+        // Emit 'configure_game' with all settings
+        socket.emit('configure_game', {
+            game_id: currentGameId,
+            max_players: maxPlayers,
+            num_bots: numBots,
+            categories: [selectedCategory], // Ensure categories is an array
+            time_per_question: timePerQuestion,
+            total_questions: totalQuestions
+        });
+
+        console.log(`Host starting multiplayer game ${currentGameId} after attempting configuration.`);
         socket.emit('start_game', { game_id: currentGameId });
     });
 
@@ -700,6 +731,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentGameMode === 'multiplayer') {
             showScreen('multiplayerGameScreen'); // Show multiplayer game screen
             if (mpChatContainer) mpChatContainer.style.display = 'block'; // Ensure MP chat is visible
+            if (data.players) { // Initialize scoreboard with all players
+                updateMultiplayerScoreboard(data.players);
+            }
         } else {
             showScreen('question');
         }
@@ -796,6 +830,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     });
 
+    socket.on('scoreboard_update', (playerList) => { // Changed 'data' to 'playerList' for clarity
+        console.log('Scoreboard update received:', playerList);
+        if (currentGameMode === 'multiplayer' && screens.multiplayerGameScreen.classList.contains('active')) {
+            // The playerList is directly the array of players from get_player_list
+            if (playerList && Array.isArray(playerList)) { // Check if playerList is a valid array
+                updateMultiplayerScoreboard(playerList);
+            } else {
+                console.warn("Received scoreboard_update with invalid data:", playerList);
+            }
+        }
+    });
+
     socket.on('update_scores', (data) => {
         console.log('Scores updated:', data);
         if (screens.gameLobby.classList.contains('active') || screens.multiplayerHostOptions.classList.contains('active')) {
@@ -815,6 +861,56 @@ document.addEventListener('DOMContentLoaded', () => {
             li.textContent = text;
             lobbyPlayersListUl.appendChild(li);
         });
+    }
+
+    function updateMultiplayerScoreboard(playersData) {
+        if (!mpScoreboardList) return;
+
+        // Sort players by score, highest first
+        const sortedPlayers = [...playersData].sort((a, b) => b.score - a.score);
+
+        // Get existing li elements to update or remove
+        const existingLiElements = Array.from(mpScoreboardList.children);
+        const newLiElements = [];
+
+        sortedPlayers.forEach(player => {
+            let li = existingLiElements.find(el => el.dataset.sid === player.sid);
+            let oldScore = 0;
+
+            if (li) {
+                oldScore = parseInt(li.querySelector('.player-score').textContent, 10);
+            } else {
+                li = document.createElement('li');
+                li.dataset.sid = player.sid; // Store sid for future updates
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('player-name');
+                const scoreSpan = document.createElement('span');
+                scoreSpan.classList.add('player-score');
+                li.appendChild(nameSpan);
+                li.appendChild(scoreSpan);
+            }
+
+            li.querySelector('.player-name').textContent = player.name + (player.is_bot ? ' (Bot)' : '');
+            li.querySelector('.player-score').textContent = player.score;
+
+            // Animation for score changes
+            li.classList.remove('score-increased', 'score-decreased');
+            if (player.score > oldScore && oldScore !== undefined) {
+                li.classList.add('score-increased');
+            } else if (player.score < oldScore && oldScore !== undefined) {
+                li.classList.add('score-decreased');
+            }
+            // Remove animation class after a short delay
+            setTimeout(() => {
+                li.classList.remove('score-increased', 'score-decreased');
+            }, 500); 
+
+            newLiElements.push(li);
+        });
+
+        // Clear and re-append sorted elements
+        mpScoreboardList.innerHTML = '';
+        newLiElements.forEach(li => mpScoreboardList.appendChild(li));
     }
 
     function startTimer(duration) {

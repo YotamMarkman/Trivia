@@ -67,8 +67,22 @@ def handle_configure_game(data):
     game['max_players'] = int(data.get('max_players', game['max_players']))
     game['num_bots'] = int(data.get('num_bots', game['num_bots']))
     game['selected_categories'] = data.get('categories', game['selected_categories'])
-    game['time_per_question'] = int(data.get('time_per_question', game.get('time_per_question', 15))) # Default 15s
-    game['total_questions'] = int(data.get('total_questions', game.get('total_questions', 10))) # Default 10 questions
+
+    # Validate and set time_per_question
+    default_time_per_question = game.get('time_per_question', 15)
+    try:
+        time_val = int(data.get('time_per_question', default_time_per_question))
+        game['time_per_question'] = max(5, min(60, time_val))  # Clamp: 5-60 seconds
+    except (ValueError, TypeError):
+        game['time_per_question'] = max(5, min(60, default_time_per_question)) # Fallback to clamped default
+
+    # Validate and set total_questions
+    default_total_questions = game.get('total_questions', 10)
+    try:
+        total_val = int(data.get('total_questions', default_total_questions))
+        game['total_questions'] = max(5, min(50, total_val))  # Clamp: 5-50 questions
+    except (ValueError, TypeError):
+        game['total_questions'] = max(5, min(50, default_total_questions)) # Fallback to clamped default
 
     # Adjust bots based on new num_bots
     current_bot_count = len(game['bots'])
@@ -388,53 +402,60 @@ def handle_submit_answer(data, bot_id=None): # bot_id is internal for bot submis
     # Check if it's time to proceed to the next question's answer display period
     proceed_to_show_answer_phase = False
     game_mode = game['game_mode']
-    
-    if game_mode == 'multiplayer':
-        human_player_sids = [sid for sid in game['players'].keys()]
-        answered_sids_for_current_q = game['player_answers'].get(current_q_index, {}).keys()
-        all_human_players_answered = True
-        if not human_player_sids: # No human players left (e.g. all disconnected)
-            all_human_players_answered = False # Or handle this scenario differently, maybe end game?
-            # For now, if no human players, bots might be playing alone, let them proceed if they are the only ones.
-            if not game['players'] and game['bots']:
-                # Check if all bots have answered
-                bot_sids = [sid for sid in game['bots'].keys()]
-                all_bots_answered = True
-                for b_sid in bot_sids:
-                    if b_sid not in answered_sids_for_current_q:
-                        all_bots_answered = False
-                        break
-                if all_bots_answered:
-                    proceed_to_show_answer_phase = True
-                    print(f"All bots have answered (no humans) for question {current_q_index} in game {game_id}. Proceeding.")
+    proceeded_flag_key = f'q_{current_q_index}_proceeded'
 
-        else:
-            for sid in human_player_sids:
-                if sid not in answered_sids_for_current_q:
-                    all_human_players_answered = False
-                    break
-            if all_human_players_answered:
-                proceed_to_show_answer_phase = True
-                print(f"All human players have answered question {current_q_index} in game {game_id}. Proceeding to show answer phase.")
+    if game.get(proceeded_flag_key, False):
+        print(f"Question {current_q_index} in game {game_id} has already proceeded. Current submission by {player_name} will not re-trigger phase transition.")
+    else:
+        if game_mode == 'multiplayer':
+            human_player_sids = [sid for sid in game['players'].keys()]
+            answered_sids_for_current_q = game['player_answers'].get(current_q_index, {}).keys()
+            all_human_players_answered = True
+            if not human_player_sids: # No human players left (e.g. all disconnected)
+                all_human_players_answered = False # Or handle this scenario differently, maybe end game?
+                # For now, if no human players, bots might be playing alone, let them proceed if they are the only ones.
+                if not game['players'] and game['bots']:
+                    # Check if all bots have answered
+                    bot_sids = [sid for sid in game['bots'].keys()]
+                    all_bots_answered = True
+                    for b_sid in bot_sids:
+                        if b_sid not in answered_sids_for_current_q:
+                            all_bots_answered = False
+                            break
+                    if all_bots_answered:
+                        proceed_to_show_answer_phase = True
+                        print(f"All bots have answered (no humans) for question {current_q_index} in game {game_id}. Proceeding.")
+
             else:
-                print(f"Waiting for other players to answer question {current_q_index} in game {game_id}.")
+                for sid in human_player_sids:
+                    if sid not in answered_sids_for_current_q:
+                        all_human_players_answered = False
+                        break
+                if all_human_players_answered:
+                    proceed_to_show_answer_phase = True
+                    print(f"All human players have answered question {current_q_index} in game {game_id}. Proceeding to show answer phase.")
+                else:
+                    print(f"Waiting for other players to answer question {current_q_index} in game {game_id}.")
 
-    elif game_mode == 'singleplayer':
-        if not bot_id: # Only human player's submission triggers next phase
-            proceed_to_show_answer_phase = True
-            print(f"Single player answered question {current_q_index}. Proceeding to show answer phase.")
+        elif game_mode == 'singleplayer':
+            if not bot_id: # Only human player's submission triggers next phase
+                proceed_to_show_answer_phase = True
+                print(f"Single player answered question {current_q_index}. Proceeding to show answer phase.")
 
-    elif game_mode == 'head_to_head':
-        total_participants = len(game['players']) + len(game['bots'])
-        if len(game['player_answers'].get(current_q_index, {})) == total_participants:
-            proceed_to_show_answer_phase = True
-            print(f"All H2H participants answered question {current_q_index}. Proceeding to show answer phase.")
-        else:
-            print(f"H2H: Waiting for all participants for question {current_q_index} in game {game_id}.")
+        elif game_mode == 'head_to_head':
+            total_participants = len(game['players']) + len(game['bots'])
+            if len(game['player_answers'].get(current_q_index, {})) == total_participants:
+                proceed_to_show_answer_phase = True
+                print(f"All H2H participants answered question {current_q_index}. Proceeding to show answer phase.")
+            else:
+                print(f"H2H: Waiting for all participants for question {current_q_index} in game {game_id}.")
 
-    if proceed_to_show_answer_phase:
+    if proceed_to_show_answer_phase and not game.get(proceeded_flag_key, False):
+        game[proceeded_flag_key] = True # Set the flag immediately
+
         if game_mode != 'singleplayer': # Scores are relevant for multiplayer & H2H
-             socketio.emit('update_scores', {'scores': game['scores'], 'player_list': get_player_list(game_id)}, room=game_id)
+             # Changed event name to 'scoreboard_update' and payload to be the direct player list
+             socketio.emit('scoreboard_update', get_player_list(game_id), room=game_id)
         
         inter_question_delay = 5 # Default for multiplayer and H2H vs Player
         if game_mode == 'singleplayer':
