@@ -807,11 +807,15 @@ if __name__ == '__main__':
         print(f"Please ensure the database '{os.path.basename(DATABASE_PATH)}' is in the same directory as this script or adjust DATABASE_PATH.")
         exit(1)
 
-    print("Starting server...")
-    # Use environment variables for host and port (for Render deployment)
+    print("Starting server...")    # Use environment variables for host and port (for Render deployment)
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') != 'production'
     
     print(f"Server starting on {host}:{port} (debug={debug})")
-    socketio.run(app, debug=debug, host=host, port=port)
+    
+    # For production deployment, allow unsafe Werkzeug
+    if os.environ.get('FLASK_ENV') == 'production':
+        socketio.run(app, debug=debug, host=host, port=port, allow_unsafe_werkzeug=True)
+    else:
+        socketio.run(app, debug=debug, host=host, port=port)

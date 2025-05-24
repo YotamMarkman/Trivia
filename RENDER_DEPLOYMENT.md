@@ -16,9 +16,9 @@ Set these environment variables in your Render service:
 ### Required Variables:
 - `FLASK_ENV=production`
 - `SECRET_KEY=your-secure-random-secret-key-here`
-- `DATABASE_PATH=/app/quiz_questions.db`
+- `DATABASE_PATH=/opt/render/project/src/quiz_questions.db`
 - `HOST=0.0.0.0`
-- `PYTHON_VERSION=3.11`
+- `PYTHON_VERSION=3.11.0`
 
 ### Optional Variables:
 - `PORT` (Render will set this automatically)
@@ -29,7 +29,7 @@ Set these environment variables in your Render service:
 ### Build Settings:
 - **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `python backend/app.py`
-- **Environment**: Python 3.11
+- **Environment**: Python 3.11.0
 
 ### Service Settings:
 - **Service Type**: Web Service
