@@ -1,5 +1,9 @@
+// Dynamic server URL - uses current hostname and protocol
+const serverUrl = window.location.protocol + '//' + window.location.host;
+console.log('Connecting to server at:', serverUrl);
+
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io('http://localhost:5000'); // Ensure this matches your backend host and port
+    const socket = io(serverUrl); // Dynamic connection based on current URL
 
     // Screens
     const screens = {
@@ -246,12 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
             resetGameStateFull();
             showScreen('modeSelect');
         });
-    }
-
-    // --- Single Player ---
+    }    // --- Single Player ---
     async function fetchCategories() {
         try {
-            const response = await fetch('http://localhost:5000/api/categories');
+            const response = await fetch(`${serverUrl}/api/categories`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -360,11 +362,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateH2HConfigScreenUI(); // Re-run to show/hide bot level based on new opponent type
             }
         });
-    }
-
-    async function fetchAndPopulateH2HCategories() {
+    }    async function fetchAndPopulateH2HCategories() {
         try {
-            const response = await fetch('http://localhost:5000/api/categories');
+            const response = await fetch(`${serverUrl}/api/categories`);
             if (!response.ok) throw new Error('Failed to fetch categories');
             const categories = await response.json();
             if (!h2hCategorySelect) {
