@@ -1,17 +1,22 @@
 import os
 import sqlite3
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory, send_file
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS # Import CORS
 import random
 import time
 
-app = Flask(__name__)
+# Configure Flask to serve static files from frontend directory
+frontend_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend')
+app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 CORS(app) # Enable CORS for all routes
-app.config['SECRET_KEY'] = 'secret!'
+
+# Use environment variables for production
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret!')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), '..', 'quiz_questions.db')
+# Use environment variable for database path in production
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(os.path.dirname(__file__), '..', 'quiz_questions.db'))
 print(f"Database path configured to: {DATABASE_PATH}") # New log
 
 def get_db_connection():
@@ -44,6 +49,16 @@ def get_categories():
     categories = [row['category'] for row in cursor.fetchall()]
     conn.close()
     return jsonify(categories)
+
+# Route to serve the main HTML file
+@app.route('/')
+def serve_index():
+    return send_from_directory(frontend_dir, 'index.html')
+
+# Route to serve static files (CSS, JS, images, etc.)
+@app.route('/<path:filename>')
+def serve_static_files(filename):
+    return send_from_directory(frontend_dir, filename)
 
 # Game state
 games = {}
@@ -793,4 +808,10 @@ if __name__ == '__main__':
         exit(1)
 
     print("Starting server...")
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    # Use environment variables for host and port (for Render deployment)
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    
+    print(f"Server starting on {host}:{port} (debug={debug})")
+    socketio.run(app, debug=debug, host=host, port=port)
